@@ -5,7 +5,6 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.zzx.jiachangcai.module.user.entity.User;
 import com.zzx.jiachangcai.module.user.mapper.UserMapper;
 import com.zzx.jiachangcai.module.user.service.IUserService;
-import com.zzx.jiachangcai.module.user.service.impl.UserServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
