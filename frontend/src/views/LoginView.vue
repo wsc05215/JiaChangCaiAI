@@ -1,16 +1,12 @@
 <template>
   <div class="login-page">
-    <!-- 顶部品牌名 -->
     <h1 class="brand-title">佳尝菜</h1>
 
-    <!-- 登录卡片 -->
     <div class="login-card">
-      <!-- 密码登录模式 -->
       <template v-if="mode === 'password'">
         <h2 class="welcome-text">欢迎回来</h2>
         <p class="sub-text">开启您的舌尖之旅，探索家常美味</p>
 
-        <!-- 账号输入框 -->
         <div class="input-wrapper">
           <svg class="input-icon" viewBox="0 0 1024 1024" width="22" height="22">
             <path d="M736.65 929.96H287.35a83.59 83.59 0 0 1-83.6-83.6V177.63a83.59 83.59 0 0 1 83.6-83.59h449.3a83.59 83.59 0 0 1 83.6 83.6v668.73a83.59 83.59 0 0 1-83.6 83.6zM287.35 135.84a41.8 41.8 0 0 0-41.8 41.8v668.73a41.8 41.8 0 0 0 41.8 41.8h449.3a41.8 41.8 0 0 0 41.8-41.8V177.63a41.8 41.8 0 0 0-41.8-41.8H287.35z" fill="#2c2c2c"/>
@@ -24,7 +20,6 @@
           />
         </div>
 
-        <!-- 密码输入框 -->
         <div class="input-wrapper">
           <svg class="input-icon" viewBox="0 0 1024 1024" width="22" height="22">
             <path d="M798.29 956.45H228.02c-36.26 0-60.72-4.26-79.33-13.81-18.3-9.39-40.1-29.3-40.1-70.76V404.81h809.14v467.07c0 41.47-21.81 61.37-40.1 70.76-18.61 9.55-43.08 13.81-79.34 13.81zM149.52 445.74v426.14c0 28.3 12.51 43.64 78.5 43.64h570.27c66 0 78.51-15.34 78.51-43.64V445.74H149.52z" fill="#2c2c2c"/>
@@ -39,7 +34,6 @@
           />
         </div>
 
-        <!-- 记住密码 / 验证码登录 / 忘记密码 -->
         <div class="options-row">
           <label class="remember-row" @click="rememberMe = !rememberMe">
             <span class="checkbox" :class="{ checked: rememberMe }">
@@ -53,17 +47,14 @@
           <span class="forgot-link">忘记密码？</span>
         </div>
 
-        <!-- 一键登录按钮 -->
         <button class="login-btn" @click="handleLogin" :disabled="loading">
           {{ loading ? '登录中...' : '一键登录' }}
         </button>
 
-        <!-- 其他方式登录 -->
         <div class="divider">
           <span>其他方式登录</span>
         </div>
 
-        <!-- 社交图标 -->
         <div class="social-icons">
           <svg viewBox="0 0 1024 1024" width="24" height="24">
             <path d="M512 64C264.6 64 64 264.6 64 512s200.6 448 448 448 448-200.6 448-448S759.4 64 512 64zm0 820c-205.4 0-372-166.6-372-372s166.6-372 372-372 372 166.6 372 372-166.6 372-372 372z" fill="#2c2c2c"/>
@@ -79,7 +70,6 @@
         </div>
       </template>
 
-      <!-- 验证码登录模式 -->
       <template v-else>
         <svg class="back-arrow" viewBox="0 0 1024 1024" width="22" height="22" @click="mode = 'password'">
           <path d="M669.6 849.6c8.8 8 22.4 7.2 30.4-1.6 7.2-8 6.4-20.8-1.6-28.8L338.4 512l360-307.2c8-7.2 8.8-20 1.6-28.8-8-8.8-21.6-9.6-30.4-1.6L288 512l381.6 337.6z" fill="#2c2c2c"/>
@@ -88,7 +78,6 @@
         <h2 class="welcome-text">欢迎回来</h2>
         <p class="sub-text">开启您的舌尖之旅，探索家常美味</p>
 
-        <!-- 手机号输入框 -->
         <div class="input-wrapper">
           <svg class="input-icon" viewBox="0 0 1024 1024" width="22" height="22">
             <path d="M736.65 929.96H287.35a83.59 83.59 0 0 1-83.6-83.6V177.63a83.59 83.59 0 0 1 83.6-83.59h449.3a83.59 83.59 0 0 1 83.6 83.6v668.73a83.59 83.59 0 0 1-83.6 83.6zM287.35 135.84a41.8 41.8 0 0 0-41.8 41.8v668.73a41.8 41.8 0 0 0 41.8 41.8h449.3a41.8 41.8 0 0 0 41.8-41.8V177.63a41.8 41.8 0 0 0-41.8-41.8H287.35z" fill="#2c2c2c"/>
@@ -102,7 +91,6 @@
           />
         </div>
 
-        <!-- 验证码输入框 -->
         <div class="input-wrapper">
           <input
             v-model="smsForm.code"
@@ -115,14 +103,12 @@
           </button>
         </div>
 
-        <!-- 一键登录按钮 -->
         <button class="login-btn" @click="handleSmsLogin" :disabled="loading">
           {{ loading ? '登录中...' : '一键登录' }}
         </button>
       </template>
     </div>
 
-    <!-- 提示 Toast -->
     <transition name="fade">
       <div v-if="toast.show" class="toast" :class="toast.type">{{ toast.msg }}</div>
     </transition>
@@ -133,6 +119,7 @@
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { login } from '../api/auth'
+import { userStore } from '../store/user'
 
 const router = useRouter()
 
@@ -168,7 +155,8 @@ async function handleLogin() {
   loading.value = true
   try {
     const res = await login(username, password)
-    if (res.data === 'ok') {
+    if (res.data) {
+      userStore.setUser(res.data)
       showToast('登录成功')
       if (rememberMe.value) {
         localStorage.setItem('savedUsername', username)
@@ -177,6 +165,9 @@ async function handleLogin() {
         localStorage.removeItem('savedUsername')
         localStorage.removeItem('savedPassword')
       }
+      setTimeout(() => {
+        router.push('/home')
+      }, 500)
     } else {
       showToast('账号或密码错误', 'error')
     }
@@ -205,7 +196,6 @@ function sendCode() {
   showToast('验证码已发送')
 }
 
-// 初始化：读取记住的密码
 const savedUser = localStorage.getItem('savedUsername')
 const savedPwd = localStorage.getItem('savedPassword')
 if (savedUser && savedPwd) {
@@ -228,7 +218,6 @@ if (savedUser && savedPwd) {
   overflow: hidden;
 }
 
-/* 品牌标题 */
 .brand-title {
   font-size: 28px;
   font-weight: 700;
@@ -238,7 +227,6 @@ if (savedUser && savedPwd) {
   letter-spacing: 2px;
 }
 
-/* 登录卡片 */
 .login-card {
   width: 100%;
   max-width: 345px;
@@ -250,7 +238,6 @@ if (savedUser && savedPwd) {
   box-shadow: 0 4px 20px rgba(185, 158, 142, 0.1);
 }
 
-/* 返回箭头 */
 .back-arrow {
   position: absolute;
   left: 18px;
@@ -258,7 +245,6 @@ if (savedUser && savedPwd) {
   cursor: pointer;
 }
 
-/* 欢迎文案 */
 .welcome-text {
   font-size: 16px;
   font-weight: 700;
@@ -274,7 +260,6 @@ if (savedUser && savedPwd) {
   margin-bottom: 24px;
 }
 
-/* 输入框 */
 .input-wrapper {
   display: flex;
   align-items: center;
@@ -300,7 +285,6 @@ if (savedUser && savedPwd) {
   font-size: 14px;
 }
 
-/* 验证码输入框内的获取按钮 */
 .code-btn {
   flex-shrink: 0;
   font-size: 12px;
@@ -315,7 +299,6 @@ if (savedUser && savedPwd) {
   color: var(--gray);
 }
 
-/* 选项行：记住密码 / 验证码登录 / 忘记密码 */
 .options-row {
   display: flex;
   align-items: center;
@@ -361,7 +344,6 @@ if (savedUser && savedPwd) {
   white-space: nowrap;
 }
 
-/* 登录按钮 */
 .login-btn {
   display: block;
   width: 100%;
@@ -385,7 +367,6 @@ if (savedUser && savedPwd) {
   opacity: 0.7;
 }
 
-/* 分割线 "其他方式登录" */
 .divider {
   text-align: center;
   margin-top: 28px;
@@ -407,7 +388,6 @@ if (savedUser && savedPwd) {
 .divider::before { left: 16px; }
 .divider::after { right: 16px; }
 
-/* 社交图标 */
 .social-icons {
   display: flex;
   justify-content: center;
@@ -425,7 +405,6 @@ if (savedUser && savedPwd) {
   opacity: 1;
 }
 
-/* Toast 提示 */
 .toast {
   position: fixed;
   top: 50%;
@@ -446,7 +425,6 @@ if (savedUser && savedPwd) {
 .fade-leave-active {
   transition: opacity 0.3s;
 }
-
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;

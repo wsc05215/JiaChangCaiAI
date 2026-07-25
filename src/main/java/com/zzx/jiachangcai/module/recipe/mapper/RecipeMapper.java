@@ -1,0 +1,17 @@
+package com.zzx.jiachangcai.module.recipe.mapper;
+
+import com.zzx.jiachangcai.module.recipe.entity.Recipe;
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+
+/**
+ * <p>
+ *  Mapper 接口
+ * </p>
+ *
+ * @author wsc
+ * @since 2026-07-25
+ */
+public interface RecipeMapper extends BaseMapper<Recipe> {
+    Integer seletcountByid(Long id);
+    Integer selectLikecount(Long id);
+}

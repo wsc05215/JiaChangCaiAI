@@ -12,5 +12,5 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
  * @since 2026-07-24
  */
 public interface UserMapper extends BaseMapper<User> {
-
+     User selectdetail(Long id);
 }
