@@ -7,6 +7,7 @@ export default defineConfig({
     port: 3001,
     proxy: {
       '/user': 'http://localhost:8080',
+      '/follow': 'http://localhost:8080',
     },
   },
   build: {

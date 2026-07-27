@@ -5,7 +5,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-@MapperScan("com.zzx.jiachangcai.module.*.mapper")
+@MapperScan({"com.zzx.jiachangcai.module.*.mapper", "com.zzx.jiachangcai.module.social.follow.module.mapper"})
 public class JiachangcaiApplication {
 
     public static void main(String[] args) {

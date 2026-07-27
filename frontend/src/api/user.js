@@ -11,3 +11,11 @@ export function getWorkCount(userId) {
 export function getLikeCount(userId) {
   return request.get('/user/likeCount', { params: { id: userId } })
 }
+
+export function getFollowingCount(userId) {
+  return request.get('/follow/followingCount', { params: { id: userId } })
+}
+
+export function getFollowerCount(userId) {
+  return request.get('/follow/followeeCount', { params: { id: userId } })
+}

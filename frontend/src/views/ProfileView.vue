@@ -61,7 +61,7 @@
 import { computed, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { userStore } from '../store/user'
-import { getUserDetail, getWorkCount, getLikeCount } from '../api/user'
+import { getUserDetail, getWorkCount, getLikeCount, getFollowingCount, getFollowerCount } from '../api/user'
 import AppTabbar from '../components/AppTabbar.vue'
 
 const router = useRouter()
@@ -99,10 +99,12 @@ onMounted(async () => {
     return
   }
   try {
-    const [detailRes, worksRes, likesRes] = await Promise.all([
+    const [detailRes, worksRes, likesRes, followingRes, followerRes] = await Promise.all([
       getUserDetail(user.userId),
       getWorkCount(user.userId),
       getLikeCount(user.userId),
+      getFollowingCount(user.userId),
+      getFollowerCount(user.userId),
     ])
     if (detailRes.data) {
       userInfo.nickName = detailRes.data.nickName || ''
@@ -110,6 +112,8 @@ onMounted(async () => {
     }
     stats.works = worksRes.data || 0
     stats.likes = likesRes.data || 0
+    stats.following = followingRes.data || 0
+    stats.followers = followerRes.data || 0
   } catch {
     // 失败保持默认值 0
   }
