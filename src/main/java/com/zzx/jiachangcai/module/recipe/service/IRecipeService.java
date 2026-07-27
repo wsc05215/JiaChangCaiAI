@@ -4,6 +4,8 @@ import com.zzx.jiachangcai.module.recipe.entity.Recipe;
 import com.zzx.jiachangcai.module.recipe.service.IRecipeService;
 import com.baomidou.mybatisplus.extension.service.IService;
 
+import java.util.List;
+
 /**
  * <p>
  *  服务类
@@ -15,4 +17,6 @@ import com.baomidou.mybatisplus.extension.service.IService;
 public interface IRecipeService extends IService<Recipe> {
     Integer getcountByid(Long id);
     Integer getLikecount(Long id);
+    List<Recipe> getAllRecipe();
+    List<Recipe> getReciprOfFollow(Long id);
 }

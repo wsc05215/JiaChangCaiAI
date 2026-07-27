@@ -2,11 +2,13 @@ import { createRouter, createWebHashHistory } from 'vue-router'
 import LoginView from '../views/LoginView.vue'
 import HomeView from '../views/HomeView.vue'
 import ProfileView from '../views/ProfileView.vue'
+import RecipeDetail from '../views/RecipeDetail.vue'
 
 const routes = [
   { path: '/', name: 'Login', component: LoginView },
   { path: '/home', name: 'Home', component: HomeView },
   { path: '/profile', name: 'Profile', component: ProfileView },
+  { path: '/recipe/:id', name: 'RecipeDetail', component: RecipeDetail },
   { path: '/member', name: 'Member', component: { template: '<div style="padding-top:200px;text-align:center;color:#B99E8E;">会员开发中...</div>' } },
   { path: '/favorites', name: 'Favorites', component: { template: '<div style="padding-top:200px;text-align:center;color:#B99E8E;">收藏开发中...</div>' } },
 ]

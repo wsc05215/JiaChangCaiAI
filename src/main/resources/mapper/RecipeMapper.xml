@@ -8,4 +8,16 @@
     <select id="selectLikecount" resultType="java.lang.Integer" parameterType="java.lang.Long">
         select sum(like_count) from recipe where author_id = #{id}
     </select>
+    <select id="selectAllRecipe" resultType="com.zzx.jiachangcai.module.recipe.entity.Recipe">
+        select * from recipe
+    </select>
+    <select id="selectReciprOfFollow" resultType="com.zzx.jiachangcai.module.recipe.entity.Recipe">
+        SELECT r.*, u.nick_name AS authorName, u.avatar AS authorAvatar
+        FROM recipe r
+        JOIN user u ON r.author_id = u.user_id
+        WHERE r.author_id IN (
+            SELECT followee_id FROM follow WHERE follower_id = #{id}
+        )
+        ORDER BY r.create_time DESC
+    </select>
 </mapper>

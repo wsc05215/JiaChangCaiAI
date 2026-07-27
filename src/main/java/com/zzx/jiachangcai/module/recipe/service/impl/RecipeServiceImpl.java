@@ -9,6 +9,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 /**
  * <p>
@@ -32,5 +35,19 @@ public class RecipeServiceImpl extends ServiceImpl<RecipeMapper, Recipe> impleme
     public Integer getLikecount(Long id) {
         Integer likecount = mapper.selectLikecount(id);
         return likecount;
+    }
+
+    @Override
+    public List<Recipe> getAllRecipe() {
+        List<Recipe> AllRecipe = mapper.selectAllRecipe();
+        //按照评分从大到小排列
+        Collections.sort(AllRecipe, Comparator.comparing(Recipe::getLikeCount).reversed());
+        return AllRecipe;
+    }
+
+    @Override
+    public List<Recipe> getReciprOfFollow(Long id) {
+        List<Recipe> RecipeOfFollow =mapper.selectReciprOfFollow(id);
+        return RecipeOfFollow;
     }
 }

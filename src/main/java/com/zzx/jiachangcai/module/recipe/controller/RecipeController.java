@@ -1,9 +1,15 @@
 package com.zzx.jiachangcai.module.recipe.controller;
 
 
+import com.zzx.jiachangcai.module.recipe.entity.Recipe;
+import com.zzx.jiachangcai.module.recipe.service.IRecipeService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 /**
  * <p>
@@ -16,5 +22,21 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/recipe")
 public class RecipeController {
+    @Autowired
+    private IRecipeService service;
+    //推荐页菜谱
+    @GetMapping("/getAllRecipe")
+    public List<Recipe> getAllRecipe(){
+        List<Recipe> AllRecipe = service.getAllRecipe();
+        return AllRecipe;
+    }
+
+    //关注页菜谱
+    @GetMapping("/getAllRecipeOfFollow")
+    public List<Recipe> AllRecipeOfFollow(Long id){
+        List<Recipe> AllRecipeOfFollow = service.getReciprOfFollow(id);
+        return AllRecipeOfFollow;
+    }
+
 
 }

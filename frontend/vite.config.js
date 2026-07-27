@@ -8,6 +8,7 @@ export default defineConfig({
     proxy: {
       '/user': 'http://localhost:8080',
       '/follow': 'http://localhost:8080',
+      '/recipe': 'http://localhost:8080',
     },
   },
   build: {
