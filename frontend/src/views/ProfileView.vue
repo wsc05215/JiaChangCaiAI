@@ -121,7 +121,11 @@ onMounted(async () => {
 
 function handleEdit() {}
 
-function handleMenuClick(item) {}
+function handleMenuClick(item) {
+  if (item.route) {
+    router.push(item.route)
+  }
+}
 </script>
 
 <style scoped>

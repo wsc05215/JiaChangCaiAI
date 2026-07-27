@@ -9,6 +9,7 @@ export default defineConfig({
       '/user': 'http://localhost:8080',
       '/follow': 'http://localhost:8080',
       '/recipe': 'http://localhost:8080',
+      '/chat': 'http://localhost:8080',
     },
   },
   build: {

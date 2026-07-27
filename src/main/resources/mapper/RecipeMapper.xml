@@ -20,4 +20,7 @@
         )
         ORDER BY r.create_time DESC
     </select>
+    <select id="selectRecipeOfOwn" resultType="com.zzx.jiachangcai.module.recipe.entity.Recipe" parameterType="java.lang.Long">
+        select * from recipe where author_id = #{id}
+    </select>
 </mapper>

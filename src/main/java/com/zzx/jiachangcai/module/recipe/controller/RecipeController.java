@@ -37,6 +37,10 @@ public class RecipeController {
         List<Recipe> AllRecipeOfFollow = service.getReciprOfFollow(id);
         return AllRecipeOfFollow;
     }
-
-
+    //我发布的菜谱查询
+    @GetMapping("/ownRecipe")
+    public List<Recipe> ownRecipe(Long id){
+        List<Recipe> ownRecipe =service.getRecipeOfOwn(id);
+        return ownRecipe;
+    }
 }

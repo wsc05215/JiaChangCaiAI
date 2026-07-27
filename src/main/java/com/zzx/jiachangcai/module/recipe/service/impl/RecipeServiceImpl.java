@@ -44,10 +44,16 @@ public class RecipeServiceImpl extends ServiceImpl<RecipeMapper, Recipe> impleme
         Collections.sort(AllRecipe, Comparator.comparing(Recipe::getLikeCount).reversed());
         return AllRecipe;
     }
-
+    //关注的人的菜谱
     @Override
     public List<Recipe> getReciprOfFollow(Long id) {
         List<Recipe> RecipeOfFollow =mapper.selectReciprOfFollow(id);
         return RecipeOfFollow;
+    }
+    //我的菜谱查询
+    @Override
+    public List<Recipe> getRecipeOfOwn(Long id) {
+      List<Recipe> RecipeOfOwn =mapper.selectRecipeOfOwn(id);
+      return RecipeOfOwn;
     }
 }
