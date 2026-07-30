@@ -1,6 +1,6 @@
-package com.zzx.jiachangcai.module.social.follow.module.mapper;
+package com.jcx.jiachangcai.module.social.follow.module.mapper;
 
-import com.zzx.jiachangcai.module.social.follow.module.entity.Follow;
+import com.jcx.jiachangcai.module.social.follow.module.entity.Follow;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
 /**

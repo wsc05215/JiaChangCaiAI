@@ -1,12 +1,12 @@
 <template>
   <div class="home-page">
     <!-- 搜索栏 -->
-    <div class="search-bar">
+    <div class="search-bar" @click="router.push('/search')">
       <svg class="search-icon" viewBox="0 0 24 24" width="16" height="16">
         <circle cx="11" cy="11" r="7" stroke="#B99E8E" stroke-width="2" fill="none"/>
         <path d="M16.5 16.5l5 5" stroke="#B99E8E" stroke-width="2" stroke-linecap="round"/>
       </svg>
-      <input class="search-input" type="search" placeholder="搜索" />
+      <input class="search-input" type="search" placeholder="搜索" readonly />
     </div>
 
     <!-- Tab 导航 -->
@@ -24,7 +24,7 @@
         <div class="today-badge">今日推荐</div>
         <div class="today-info">
           <div class="today-title">{{ todayRecommend.title }}</div>
-          <div class="today-meta">{{ todayRecommend.cookTime || '' }} · 收藏{{ formatCount(todayRecommend.likeCount) }}</div>
+          <div class="today-meta">{{ todayRecommend.cookTime || '' }} · 收藏{{ formatCount(todayRecommend.favoriteCount) }}</div>
         </div>
         <div class="today-btn">立即查看</div>
       </div>
@@ -38,7 +38,7 @@
         <div v-for="item in featuredRecipes" :key="item.recipeId" class="recipe-card" @click="goDetail(item.recipeId)">
           <img class="recipe-img" :src="getCover(item.coverImages)" @error="onImgError" />
           <div class="recipe-name">{{ item.title }}</div>
-          <div class="recipe-meta">{{ item.cookTime || '' }} · {{ formatCount(item.likeCount) }}收藏</div>
+          <div class="recipe-meta">{{ item.cookTime || '' }} · {{ formatCount(item.favoriteCount) }}收藏</div>
         </div>
       </div>
     </div>
@@ -72,7 +72,7 @@
               <svg viewBox="0 0 24 24" width="18" height="18">
                 <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" stroke="#B99E8E" stroke-width="1.5" fill="none"/>
               </svg>
-              {{ formatCount(item.likeCount) }}
+              {{ formatCount(item.favoriteCount) }}
             </span>
             <span class="feed-action">
               <svg viewBox="0 0 24 24" width="18" height="18">

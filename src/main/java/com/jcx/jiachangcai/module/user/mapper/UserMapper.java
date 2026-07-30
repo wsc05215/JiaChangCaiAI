@@ -1,6 +1,6 @@
-package com.zzx.jiachangcai.module.user.mapper;
+package com.jcx.jiachangcai.module.user.mapper;
 
-import com.zzx.jiachangcai.module.user.entity.User;
+import com.jcx.jiachangcai.module.user.entity.User;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
 /**

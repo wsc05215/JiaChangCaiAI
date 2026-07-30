@@ -1,6 +1,6 @@
-package com.zzx.jiachangcai.module.shop.service;
+package com.jcx.jiachangcai.module.shop.service;
 
-import com.zzx.jiachangcai.module.shop.entity.Product;
+import com.jcx.jiachangcai.module.shop.entity.Product;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 import java.util.List;

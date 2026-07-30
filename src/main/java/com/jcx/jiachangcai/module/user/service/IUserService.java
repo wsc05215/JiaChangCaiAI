@@ -1,6 +1,6 @@
-package com.zzx.jiachangcai.module.user.service;
+package com.jcx.jiachangcai.module.user.service;
 
-import com.zzx.jiachangcai.module.user.entity.User;
+import com.jcx.jiachangcai.module.user.entity.User;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 /**

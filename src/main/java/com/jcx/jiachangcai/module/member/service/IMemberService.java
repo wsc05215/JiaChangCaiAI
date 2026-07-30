@@ -12,5 +12,5 @@ import com.baomidou.mybatisplus.extension.service.IService;
  * @since 2026-07-30
  */
 public interface IMemberService extends IService<Member> {
-
+    boolean getisMember(Long id);
 }

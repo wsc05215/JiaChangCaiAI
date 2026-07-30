@@ -6,14 +6,17 @@ export default defineConfig({
   server: {
     host: '0.0.0.0',
     port: 3001,
-    allowedHosts: ['do8mi8132279.vicp.fun', '.vicp.fun'],
+    allowedHosts: ['do8mi8132279.vicp.fun', '127969crhh494.vicp.fun', '.vicp.fun'],
     proxy: {
       '/user': 'http://localhost:8080',
       '/follow': 'http://localhost:8080',
       '/recipe': 'http://localhost:8080',
       '/product': 'http://localhost:8080',
       '/favorite': 'http://localhost:8080',
+      '/member': 'http://localhost:8080',
       '/chat': 'http://localhost:8080',
+      '/RecipechatAI': 'http://localhost:8080',
+      '/MyRecipeChatOfAI': 'http://localhost:8080',
     },
   },
   build: {

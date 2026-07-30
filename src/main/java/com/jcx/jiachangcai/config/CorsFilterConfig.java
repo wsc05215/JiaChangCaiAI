@@ -1,4 +1,4 @@
-package com.zzx.jiachangcai.config;
+package com.jcx.jiachangcai.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

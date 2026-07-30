@@ -6,6 +6,8 @@ import RecipeDetail from '../views/RecipeDetail.vue'
 import MyRecipesView from '../views/MyRecipesView.vue'
 import AiChatView from '../views/AiChatView.vue'
 import FavoritesView from '../views/FavoritesView.vue'
+import SearchView from '../views/SearchView.vue'
+import MemberView from '../views/MemberView.vue'
 
 const routes = [
   { path: '/', name: 'Login', component: LoginView },
@@ -14,8 +16,9 @@ const routes = [
   { path: '/recipe/:id', name: 'RecipeDetail', component: RecipeDetail },
   { path: '/my-recipes', name: 'MyRecipes', component: MyRecipesView },
   { path: '/ai-chat', name: 'AiChat', component: AiChatView },
-  { path: '/member', name: 'Member', component: { template: '<div style="padding-top:200px;text-align:center;color:#B99E8E;">会员开发中...</div>' } },
+  { path: '/member', name: 'Member', component: MemberView },
   { path: '/favorites', name: 'Favorites', component: FavoritesView },
+  { path: '/search', name: 'Search', component: SearchView },
 ]
 
 const router = createRouter({

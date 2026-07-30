@@ -23,7 +23,7 @@
       <div v-for="item in recipes" :key="item.recipeId" class="recipe-card" @click="goDetail(item.recipeId)">
         <img class="recipe-img" :src="getCover(item.coverImages)" @error="onImgError" />
         <div class="recipe-name">{{ item.title }}</div>
-        <div class="recipe-meta">{{ item.cookTime || '' }} · {{ formatCount(item.likeCount) }}收藏</div>
+        <div class="recipe-meta">{{ item.cookTime || '' }} · {{ formatCount(item.favoriteCount) }}收藏</div>
       </div>
     </div>
   </div>

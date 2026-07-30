@@ -1,8 +1,8 @@
-package com.zzx.jiachangcai.module.recipe.controller;
+package com.jcx.jiachangcai.module.recipe.controller;
 
 
-import com.zzx.jiachangcai.module.recipe.entity.Recipe;
-import com.zzx.jiachangcai.module.recipe.service.IRecipeService;
+import com.jcx.jiachangcai.module.recipe.entity.Recipe;
+import com.jcx.jiachangcai.module.recipe.service.IRecipeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

@@ -1,15 +1,13 @@
-package com.zzx.jiachangcai.module.recipe.service.impl;
+package com.jcx.jiachangcai.module.recipe.service.impl;
 
-import com.zzx.jiachangcai.module.recipe.entity.Recipe;
-import com.zzx.jiachangcai.module.recipe.service.impl.RecipeServiceImpl;
-import com.zzx.jiachangcai.module.recipe.mapper.RecipeMapper;
-import com.zzx.jiachangcai.module.recipe.service.IRecipeService;
+import com.jcx.jiachangcai.module.recipe.entity.Recipe;
+import com.jcx.jiachangcai.module.recipe.mapper.RecipeMapper;
+import com.jcx.jiachangcai.module.recipe.service.IRecipeService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;

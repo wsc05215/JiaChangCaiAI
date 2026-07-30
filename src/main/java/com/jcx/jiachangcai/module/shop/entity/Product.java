@@ -1,4 +1,4 @@
-package com.zzx.jiachangcai.module.shop.entity;
+package com.jcx.jiachangcai.module.shop.entity;
 
 import java.math.BigDecimal;
 import com.baomidou.mybatisplus.annotation.TableName;

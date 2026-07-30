@@ -1,9 +1,9 @@
-package com.zzx.jiachangcai.module.user.service.impl;
+package com.jcx.jiachangcai.module.user.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.zzx.jiachangcai.module.user.entity.User;
-import com.zzx.jiachangcai.module.user.mapper.UserMapper;
-import com.zzx.jiachangcai.module.user.service.IUserService;
+import com.jcx.jiachangcai.module.user.entity.User;
+import com.jcx.jiachangcai.module.user.mapper.UserMapper;
+import com.jcx.jiachangcai.module.user.service.IUserService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;

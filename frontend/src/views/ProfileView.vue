@@ -7,7 +7,10 @@
         <span v-else class="avatar-placeholder">{{ initial }}</span>
       </div>
       <div class="header-right">
-        <div class="nickname">{{ userInfo.nickName || userStore.user?.nickName || '未登录' }}</div>
+        <div class="nickname-row">
+          <span class="nickname">{{ userInfo.nickName || userStore.user?.nickName || '未登录' }}</span>
+          <span v-if="isMember" class="vip-tag">VIP用户</span>
+        </div>
         <div class="bio">热爱生活，享受下厨的每一刻</div>
       </div>
       <button class="edit-btn" @click="handleEdit">编辑</button>
@@ -58,13 +61,16 @@
 </template>
 
 <script setup>
-import { computed, reactive, onMounted } from 'vue'
+import { computed, reactive, ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { userStore } from '../store/user'
 import { getUserDetail, getWorkCount, getLikeCount, getFollowingCount, getFollowerCount } from '../api/user'
+import { checkMember } from '../api/member'
 import AppTabbar from '../components/AppTabbar.vue'
 
 const router = useRouter()
+
+const isMember = ref(false)
 
 const userInfo = reactive({
   nickName: '',
@@ -99,13 +105,15 @@ onMounted(async () => {
     return
   }
   try {
-    const [detailRes, worksRes, likesRes, followingRes, followerRes] = await Promise.all([
+    const [detailRes, worksRes, likesRes, followingRes, followerRes, memberFlag] = await Promise.all([
       getUserDetail(user.userId),
       getWorkCount(user.userId),
       getLikeCount(user.userId),
       getFollowingCount(user.userId),
       getFollowerCount(user.userId),
+      checkMember(user.userId),
     ])
+    isMember.value = memberFlag
     if (detailRes.data) {
       userInfo.nickName = detailRes.data.nickName || ''
       userInfo.avatar = detailRes.data.avatar || ''
@@ -158,6 +166,7 @@ function handleMenuClick(item) {
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
 }
 
 .avatar-img {
@@ -178,11 +187,27 @@ function handleMenuClick(item) {
   min-width: 0;
 }
 
+.nickname-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .nickname {
   font-size: 18px;
   font-weight: 600;
   color: #333;
   line-height: 1.3;
+}
+
+.vip-tag {
+  background: linear-gradient(135deg, #f5a623, #e8961a);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 10px;
+  white-space: nowrap;
 }
 
 .bio {

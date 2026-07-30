@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jcx.jiachangcai.module.search.mapper.searchMapper">
+    <select id="searchByKeyword" resultType="com.jcx.jiachangcai.module.recipe.entity.Recipe" parameterType="java.lang.String">
+        SELECT r.*,
+               u.nick_name AS authorName,
+               u.avatar    AS authorAvatar,
+               COALESCE(f.cnt, 0) AS favoriteCount
+        FROM recipe r
+        LEFT JOIN user u ON r.author_id = u.user_id
+        LEFT JOIN (
+            SELECT recipe_id, COUNT(*) AS cnt FROM favorite GROUP BY recipe_id
+        ) f ON r.recipe_id = f.recipe_id
+        WHERE r.status = 1
+          AND (r.title LIKE CONCAT('%', #{keyword}, '%')
+               OR r.description LIKE CONCAT('%', #{keyword}, '%'))
+        ORDER BY r.like_count DESC
+    </select>
+</mapper>

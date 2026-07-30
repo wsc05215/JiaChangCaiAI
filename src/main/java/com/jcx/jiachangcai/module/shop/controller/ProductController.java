@@ -1,8 +1,8 @@
-package com.zzx.jiachangcai.module.shop.controller;
+package com.jcx.jiachangcai.module.shop.controller;
 
 
-import com.zzx.jiachangcai.module.shop.entity.Product;
-import com.zzx.jiachangcai.module.shop.service.IProductService;
+import com.jcx.jiachangcai.module.shop.entity.Product;
+import com.jcx.jiachangcai.module.shop.service.IProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

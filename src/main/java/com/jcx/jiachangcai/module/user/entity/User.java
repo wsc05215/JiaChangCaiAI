@@ -1,4 +1,4 @@
-package com.zzx.jiachangcai.module.user.entity;
+package com.jcx.jiachangcai.module.user.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.IdType;

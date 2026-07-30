@@ -34,7 +34,7 @@
           </div>
           <div class="fav-info">
             <div class="fav-title">{{ item.title }}</div>
-            <div class="fav-meta">{{ item.rating != null ? item.rating + '分  ' : '' }}{{ item.likeCount || 0 }}人做过</div>
+            <div class="fav-meta">{{ item.rating != null ? item.rating + '分  ' : '' }}{{ item.favoriteCount || 0 }}人收藏</div>
             <div class="fav-author">
               <svg viewBox="0 0 24 24" width="12" height="12">
                 <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" stroke="#B99E8E" stroke-width="1.5" fill="none"/>
@@ -43,6 +43,11 @@
               <span>{{ item.authorName || '用户' + item.authorId }}</span>
             </div>
           </div>
+          <button class="fav-remove-btn" @click.stop="handleRemoveFavorite(item)" title="取消收藏">
+            <svg viewBox="0 0 24 24" width="16" height="16">
+              <path d="M18 6L6 18M6 6l12 12" stroke="#999" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </button>
         </div>
       </div>
     </div>
@@ -62,6 +67,18 @@
       </div>
     </div>
 
+    <!-- 删除确认弹窗 -->
+    <div v-if="showConfirm" class="modal-overlay" @click.self="showConfirm = false">
+      <div class="modal-box">
+        <div class="modal-title">取消收藏</div>
+        <div class="modal-desc">确定取消收藏「{{ removingItem?.title }}」吗？</div>
+        <div class="modal-actions">
+          <button class="modal-btn modal-btn-cancel" @click="showConfirm = false">再想想</button>
+          <button class="modal-btn modal-btn-confirm" @click="confirmRemove">确定</button>
+        </div>
+      </div>
+    </div>
+
     <AppTabbar />
   </div>
 </template>
@@ -71,7 +88,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { userStore } from '../store/user'
 import { getAllRecipes } from '../api/recipe'
-import { getFavoriteRecipeIds } from '../api/favorite'
+import { getFavoriteRecipeIds, removeFavorite } from '../api/favorite'
 import AppTabbar from '../components/AppTabbar.vue'
 
 const router = useRouter()
@@ -79,6 +96,8 @@ const activeTab = ref('recipe')
 const searchText = ref('')
 const loading = ref(false)
 const favoriteRecipes = ref([])
+const showConfirm = ref(false)
+const removingItem = ref(null)
 
 const currentUser = computed(() => userStore.user)
 
@@ -123,6 +142,28 @@ function onImgError(e) {
 
 function goDetail(id) {
   router.push('/recipe/' + id)
+}
+
+function handleRemoveFavorite(item) {
+  removingItem.value = item
+  showConfirm.value = true
+}
+
+async function confirmRemove() {
+  const item = removingItem.value
+  if (!item || !currentUser.value) {
+    showConfirm.value = false
+    return
+  }
+  try {
+    await removeFavorite(currentUser.value.userId, item.recipeId)
+    favoriteRecipes.value = favoriteRecipes.value.filter(r => r.recipeId !== item.recipeId)
+  } catch {
+    // ignore
+  } finally {
+    showConfirm.value = false
+    removingItem.value = null
+  }
 }
 </script>
 
@@ -214,6 +255,7 @@ function goDetail(id) {
   box-shadow: 0 2px 10px rgba(0,0,0,0.04);
   cursor: pointer;
   transition: transform 0.15s;
+  position: relative;
 }
 
 .fav-card:active {
@@ -267,6 +309,7 @@ function goDetail(id) {
   text-overflow: ellipsis;
   white-space: nowrap;
   margin-bottom: 6px;
+  padding-right: 28px;
 }
 
 .fav-meta {
@@ -281,6 +324,27 @@ function goDetail(id) {
   gap: 4px;
   font-size: 12px;
   color: var(--brown);
+}
+
+.fav-remove-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.04);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 2;
+  transition: background 0.15s;
+}
+
+.fav-remove-btn:active {
+  background: rgba(255,0,0,0.1);
 }
 
 /* 菜单 */
@@ -306,5 +370,68 @@ function goDetail(id) {
 .menu-desc {
   font-size: 13px;
   color: var(--gray);
+}
+
+/* 确认弹窗 */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-box {
+  width: 280px;
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px 20px 20px;
+  text-align: center;
+}
+
+.modal-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.modal-desc {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.modal-btn {
+  flex: 1;
+  height: 40px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.modal-btn:active {
+  opacity: 0.8;
+}
+
+.modal-btn-cancel {
+  background: #f0e4d6;
+  color: #8B7355;
+}
+
+.modal-btn-confirm {
+  background: var(--orange);
+  color: #fff;
 }
 </style>

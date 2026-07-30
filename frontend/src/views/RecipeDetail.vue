@@ -25,7 +25,9 @@
       <div class="author-info">
         <div class="author-name">{{ authorName }}</div>
       </div>
-      <button class="follow-btn" @click="handleFollow">{{ isFollowed ? '已关注' : '关注' }}</button>
+      <button class="follow-btn" :class="{ followed: isFollowed }" @click="handleFollow">
+        {{ isFollowed ? '取消关注' : '关注' }}
+      </button>
     </div>
 
     <!-- 描述 -->
@@ -75,7 +77,7 @@
         <svg viewBox="0 0 24 24" width="22" height="22">
           <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" :stroke="isFavorited ? '#FF7A3D' : '#333'" :fill="isFavorited ? '#FF7A3D' : 'none'" stroke-width="1.5"/>
         </svg>
-        <span>{{ recipe.likeCount || 0 }}</span>
+        <span>{{ recipe.favoriteCount || 0 }}</span>
       </div>
       <input class="comment-input" type="text" placeholder="说点什么......" v-model="commentText" />
     </div>
@@ -87,6 +89,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { userStore } from '../store/user'
 import { checkFavorited, addFavorite, removeFavorite } from '../api/favorite'
+import { follow, unfollow, checkFollowing } from '../api/follow'
 
 const route = useRoute()
 const router = useRouter()
@@ -115,6 +118,12 @@ onMounted(async () => {
           const favRes = await checkFavorited(currentUser.value.userId, found.recipeId)
           isFavorited.value = favRes.data === true
         } catch { /* ignore */ }
+        if (found.authorId) {
+          try {
+            const followRes = await checkFollowing(currentUser.value.userId, found.authorId)
+            isFollowed.value = followRes.data === true
+          } catch { /* ignore */ }
+        }
       }
     }
   } catch {
@@ -152,15 +161,34 @@ async function toggleFavorite() {
     if (isFavorited.value) {
       await removeFavorite(userId, recipeId)
       isFavorited.value = false
+      if (recipe.value.favoriteCount != null) recipe.value.favoriteCount--
     } else {
       await addFavorite(userId, recipeId)
       isFavorited.value = true
+      if (recipe.value.favoriteCount != null) recipe.value.favoriteCount++
     }
   } catch { /* ignore */ }
 }
 
-function handleFollow() {
-  isFollowed.value = !isFollowed.value
+async function handleFollow() {
+  if (!currentUser.value || !recipe.value) return
+  const myId = currentUser.value.userId
+  const authorId = recipe.value.authorId
+  try {
+    if (isFollowed.value) {
+      const res = await unfollow(myId, authorId)
+      if (res.data === true) {
+        isFollowed.value = false
+      }
+    } else {
+      const res = await follow(myId, authorId)
+      if (res.data === true) {
+        isFollowed.value = true
+      }
+    }
+  } catch (e) {
+    console.error('关注操作失败:', e)
+  }
 }
 
 function handleComment() {
@@ -272,6 +300,11 @@ function handleComment() {
   font-size: 13px;
   border: none;
   cursor: pointer;
+}
+
+.follow-btn.followed {
+  background: #ccc;
+  color: #666;
 }
 
 .follow-btn:active {

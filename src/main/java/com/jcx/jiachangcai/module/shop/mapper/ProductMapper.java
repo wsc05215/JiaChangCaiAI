@@ -1,6 +1,6 @@
-package com.zzx.jiachangcai.module.shop.mapper;
+package com.jcx.jiachangcai.module.shop.mapper;
 
-import com.zzx.jiachangcai.module.shop.entity.Product;
+import com.jcx.jiachangcai.module.shop.entity.Product;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
 /**

@@ -1,6 +1,6 @@
-package com.zzx.jiachangcai.module.social.favorite.service;
+package com.jcx.jiachangcai.module.social.favorite.service;
 
-import com.zzx.jiachangcai.module.social.favorite.entity.Favorite;
+import com.jcx.jiachangcai.module.social.favorite.entity.Favorite;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 import java.util.List;

@@ -1,9 +1,9 @@
-package com.zzx.jiachangcai.module.shop.service.impl;
+package com.jcx.jiachangcai.module.shop.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.zzx.jiachangcai.module.shop.entity.Product;
-import com.zzx.jiachangcai.module.shop.mapper.ProductMapper;
-import com.zzx.jiachangcai.module.shop.service.IProductService;
+import com.jcx.jiachangcai.module.shop.entity.Product;
+import com.jcx.jiachangcai.module.shop.mapper.ProductMapper;
+import com.jcx.jiachangcai.module.shop.service.IProductService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;

@@ -1,6 +1,6 @@
-package com.zzx.jiachangcai.module.social.favorite.controller;
+package com.jcx.jiachangcai.module.social.favorite.controller;
 
-import com.zzx.jiachangcai.module.social.favorite.service.IFavoriteService;
+import com.jcx.jiachangcai.module.social.favorite.service.IFavoriteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 

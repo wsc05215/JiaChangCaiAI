@@ -1,4 +1,4 @@
-package com.zzx.jiachangcai.module.social.favorite.entity;
+package com.jcx.jiachangcai.module.social.favorite.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.IdType;

@@ -1,7 +1,6 @@
-package com.zzx.jiachangcai.module.recipe.service;
+package com.jcx.jiachangcai.module.recipe.service;
 
-import com.zzx.jiachangcai.module.recipe.entity.Recipe;
-import com.zzx.jiachangcai.module.recipe.service.IRecipeService;
+import com.jcx.jiachangcai.module.recipe.entity.Recipe;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 import java.util.List;

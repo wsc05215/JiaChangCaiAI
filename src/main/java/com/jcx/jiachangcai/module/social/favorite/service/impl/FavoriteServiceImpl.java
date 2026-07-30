@@ -1,10 +1,10 @@
-package com.zzx.jiachangcai.module.social.favorite.service.impl;
+package com.jcx.jiachangcai.module.social.favorite.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.zzx.jiachangcai.module.recipe.mapper.RecipeMapper;
-import com.zzx.jiachangcai.module.social.favorite.entity.Favorite;
-import com.zzx.jiachangcai.module.social.favorite.mapper.FavoriteMapper;
-import com.zzx.jiachangcai.module.social.favorite.service.IFavoriteService;
+import com.jcx.jiachangcai.module.recipe.mapper.RecipeMapper;
+import com.jcx.jiachangcai.module.social.favorite.entity.Favorite;
+import com.jcx.jiachangcai.module.social.favorite.mapper.FavoriteMapper;
+import com.jcx.jiachangcai.module.social.favorite.service.IFavoriteService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;

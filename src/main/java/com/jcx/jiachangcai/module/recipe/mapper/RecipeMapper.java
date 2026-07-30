@@ -1,6 +1,6 @@
-package com.zzx.jiachangcai.module.recipe.mapper;
+package com.jcx.jiachangcai.module.recipe.mapper;
 
-import com.zzx.jiachangcai.module.recipe.entity.Recipe;
+import com.jcx.jiachangcai.module.recipe.entity.Recipe;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
 import java.util.List;

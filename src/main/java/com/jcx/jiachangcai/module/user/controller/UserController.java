@@ -1,10 +1,8 @@
-package com.zzx.jiachangcai.module.user.controller;
+package com.jcx.jiachangcai.module.user.controller;
 
-import com.zzx.jiachangcai.module.recipe.mapper.RecipeMapper;
-import com.zzx.jiachangcai.module.recipe.service.IRecipeService;
-import com.zzx.jiachangcai.module.user.entity.User;
-import com.zzx.jiachangcai.module.user.service.IUserService;
-import io.swagger.v3.oas.models.security.SecurityScheme;
+import com.jcx.jiachangcai.module.recipe.service.IRecipeService;
+import com.jcx.jiachangcai.module.user.entity.User;
+import com.jcx.jiachangcai.module.user.service.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;

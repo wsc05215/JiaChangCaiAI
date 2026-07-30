@@ -1,7 +1,6 @@
-package com.zzx.jiachangcai.module.social.follow.module.service;
+package com.jcx.jiachangcai.module.social.follow.module.service;
 
-import com.zzx.jiachangcai.module.social.follow.module.entity.Follow;
-import com.zzx.jiachangcai.module.social.follow.module.service.IFollowService;
+import com.jcx.jiachangcai.module.social.follow.module.entity.Follow;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 /**
@@ -15,4 +14,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 public interface IFollowService extends IService<Follow> {
     Long getFollowingCount(Long id);
     Long gettFollowerCount(Long id);
+    boolean follow(Long followerId, Long followeeId);
+    boolean unfollow(Long followerId, Long followeeId);
+    boolean isFollowing(Long followerId, Long followeeId);
 }

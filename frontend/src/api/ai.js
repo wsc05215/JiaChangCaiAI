@@ -1,8 +1,18 @@
-export function streamChat(msg, onToken, onDone, onError) {
-  const url = `/chat/stream?msg=${encodeURIComponent(msg)}`
+const ENDPOINTS = {
+  chat: '/chat/stream',
+  recipe: '/RecipechatAI/stream',
+  menu: '/MyRecipeChatOfAI/stream'
+}
+
+export function streamChat(msg, mode, userId, onToken, onDone, onError) {
+  const base = ENDPOINTS[mode] || ENDPOINTS.chat
+  const url = `${base}?msg=${encodeURIComponent(msg)}&userId=${userId}`
   const es = new EventSource(url)
 
+  let received = false
+
   es.onmessage = (event) => {
+    received = true
     if (event.data) {
       onToken(event.data)
     }
@@ -10,11 +20,12 @@ export function streamChat(msg, onToken, onDone, onError) {
 
   es.onerror = () => {
     es.close()
-    // EventSource will auto-reconnect — we've already received tokens,
-    // so treat close as done; if we got nothing, treat as error
-    onDone()
+    if (received) {
+      onDone()
+    } else {
+      onError()
+    }
   }
 
-  // Return a cancel function
   return () => es.close()
 }

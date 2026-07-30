@@ -7,21 +7,14 @@
           <path d="M15 18l-6-6 6-6" stroke="#555" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </div>
-      <div class="nav-center">
-        <div class="nav-avatar">
-          <svg viewBox="0 0 20 20" width="11" height="11" fill="#fff">
-            <circle cx="10" cy="10" r="9" fill="none" stroke="#fff" stroke-width="1.5" opacity="0.5"/>
-            <path d="M10 4l1 4 4 1-4 1-1 4-1-4-4-1 4-1z"/>
-          </svg>
-        </div>
-        <span class="nav-title">AI 饮食管家</span>
+      <span class="nav-title">{{ modeText }}</span>
+      <div class="nav-placeholder">
+        <span v-if="isMember" class="member-tag">VIP</span>
       </div>
-      <div class="nav-placeholder"></div>
     </div>
 
     <!-- 消息列表 -->
     <div class="msg-list" ref="msgList">
-      <!-- 欢迎消息 -->
       <div v-if="messages.length === 0 && !streaming" class="welcome-area">
         <div class="welcome-avatar">
           <svg viewBox="0 0 48 48" width="48" height="48" fill="none">
@@ -57,7 +50,6 @@
         <div v-if="msg.role === 'user'" class="avatar-user">{{ (userStore.user?.username || '我')[0] }}</div>
       </div>
 
-      <!-- 流式输出 -->
       <div v-if="streaming" class="msg-row msg-ai">
         <div class="avatar-ai streaming">
           <svg viewBox="0 0 20 20" width="11" height="11" fill="#fff">
@@ -72,38 +64,30 @@
       </div>
     </div>
 
-    <!-- 快捷提问 -->
-    <div class="quick-bar">
-      <span class="quick-chip" @click="sendQuick('根据我冰箱里的食材给我定制一份今日食谱')">
-        <svg viewBox="0 0 16 16" width="12" height="12" fill="none">
-          <path d="M3 2h10l2 2v8l-2 2H3l-2-2V4l2-2z" stroke="#E85D26" stroke-width="1.2" stroke-linejoin="round"/>
-          <path d="M6 7h4M6 10h2" stroke="#E85D26" stroke-width="1.2" stroke-linecap="round"/>
-        </svg>
-        定制食谱
-      </span>
-      <span class="quick-chip" @click="sendQuick('帮我生成今天的一日三餐菜单')">
-        <svg viewBox="0 0 16 16" width="12" height="12" fill="none">
-          <circle cx="8" cy="8" r="6" stroke="#E85D26" stroke-width="1.2"/>
-          <path d="M8 5v4M6 7h4" stroke="#E85D26" stroke-width="1.2" stroke-linecap="round"/>
-        </svg>
-        一键菜单
-      </span>
-      <span class="quick-chip" @click="sendQuick('帮我看看冰箱里的食材哪些需要尽快用掉')">
-        <svg viewBox="0 0 16 16" width="12" height="12" fill="none">
-          <rect x="2" y="3" width="12" height="11" rx="1.5" stroke="#E85D26" stroke-width="1.2"/>
-          <path d="M5 1v3M11 1v3" stroke="#E85D26" stroke-width="1.2" stroke-linecap="round"/>
-        </svg>
-        食材管理
-      </span>
-    </div>
+    <!-- 底部按钮 + 输入区 -->
+    <div class="bottom-area">
+      <div class="feature-btns">
+        <button
+          class="feature-btn"
+          :class="{ active: mode === 'recipe' }"
+          @click="switchMode('recipe')"
+        >定制食谱</button>
+        <button
+          class="feature-btn"
+          :class="{ active: mode === 'menu' }"
+          @click="switchMode('menu')"
+        >一键菜单</button>
+        <button
+          class="feature-btn"
+          @click="ingredientManage"
+        >食材管理</button>
+      </div>
 
-    <!-- 底部输入区 -->
-    <div class="input-area">
       <div class="input-card">
         <input
           v-model="input"
           class="text-input"
-          placeholder="输入你的饮食需求..."
+          :placeholder="inputPlaceholder"
           @keyup.enter="send"
           :disabled="streaming"
         />
@@ -118,21 +102,54 @@
           </svg>
         </button>
       </div>
+
+      <div v-if="trialExhausted" class="trial-link" @click="$router.push('/member')">
+        开通会员解锁无限次数 →
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, nextTick } from 'vue'
+import { ref, computed, nextTick, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { streamChat } from '../api/ai'
+import { checkMember } from '../api/member'
 import { userStore } from '../store/user'
 
+const router = useRouter()
 const input = ref('')
 const messages = ref([])
 const streaming = ref(false)
 const streamingText = ref('')
 const msgList = ref(null)
+const mode = ref('chat')
+const isMember = ref(false)
+
+const trialExhausted = computed(() => {
+  return messages.value.some(m => m.role === 'ai' && m.content.includes('额度已用完'))
+})
+
 let cancelStream = null
+
+const modeText = computed(() => {
+  return { chat: '饮食管家', recipe: '定制食谱', menu: '一键菜单' }[mode.value]
+})
+
+const inputPlaceholder = computed(() => {
+  return {
+    chat: '输入你的饮食需求...',
+    recipe: '描述你想要什么类型的食谱...',
+    menu: '告诉我你想怎么搭配菜单...'
+  }[mode.value]
+})
+
+onMounted(async () => {
+  const uid = userStore.user?.userId
+  if (uid) {
+    isMember.value = await checkMember(uid)
+  }
+})
 
 function scrollBottom() {
   nextTick(() => {
@@ -147,16 +164,21 @@ function addMessage(role, content) {
   scrollBottom()
 }
 
-async function send() {
-  const text = input.value.trim()
-  if (!text || streaming.value) return
+function switchMode(newMode) {
+  if (mode.value === newMode) {
+    mode.value = 'chat'
+    return
+  }
+  mode.value = newMode
+}
 
-  addMessage('user', text)
-  input.value = ''
+function streamSend(m, msg) {
+  addMessage('user', msg)
   streaming.value = true
   streamingText.value = ''
 
-  cancelStream = streamChat(text,
+  const uid = userStore.user?.userId
+  cancelStream = streamChat(msg, m, uid,
     (token) => {
       streamingText.value += token
       scrollBottom()
@@ -169,8 +191,7 @@ async function send() {
       streaming.value = false
       cancelStream = null
     },
-    (err) => {
-      console.error('Chat error:', err)
+    () => {
       if (!streamingText.value) {
         addMessage('ai', '抱歉，出了点问题，请稍后重试。')
       } else {
@@ -183,36 +204,16 @@ async function send() {
   )
 }
 
-function sendQuick(msg) {
-  input.value = ''
-  addMessage('user', msg)
-  streaming.value = true
-  streamingText.value = ''
+function send() {
+  const text = input.value.trim()
+  if (!text || streaming.value) return
 
-  cancelStream = streamChat(msg,
-    (token) => {
-      streamingText.value += token
-      scrollBottom()
-    },
-    () => {
-      if (streamingText.value) {
-        addMessage('ai', streamingText.value)
-      }
-      streamingText.value = ''
-      streaming.value = false
-      cancelStream = null
-    },
-    () => {
-      if (!streamingText.value) {
-        addMessage('ai', '抱歉，出了点问题，请稍后重试。')
-      } else {
-        addMessage('ai', streamingText.value)
-      }
-      streamingText.value = ''
-      streaming.value = false
-      cancelStream = null
-    }
-  )
+  input.value = ''
+  streamSend(mode.value, text)
+}
+
+function ingredientManage() {
+  streamSend('chat', '帮我看看家里的食材，哪些需要尽快用掉？有什么推荐的处理方法吗？')
 }
 </script>
 
@@ -225,7 +226,7 @@ function sendQuick(msg) {
   background: linear-gradient(180deg, #fef9f4 0%, var(--bg) 30%);
 }
 
-/* ===== 顶部 ===== */
+/* ===== 顶部导航 ===== */
 .nav-bar {
   display: flex;
   align-items: center;
@@ -249,22 +250,6 @@ function sendQuick(msg) {
   background: rgba(0,0,0,0.04);
 }
 
-.nav-center {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.nav-avatar {
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #FF8C5A, #E85D26);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
 .nav-title {
   font-size: 16px;
   font-weight: 600;
@@ -274,6 +259,19 @@ function sendQuick(msg) {
 .nav-placeholder {
   width: 36px;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.member-tag {
+  background: linear-gradient(135deg, #f5a623, #e8961a);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 6px;
+  letter-spacing: 1px;
 }
 
 /* ===== 消息列表 ===== */
@@ -284,7 +282,6 @@ function sendQuick(msg) {
   -webkit-overflow-scrolling: touch;
 }
 
-/* 欢迎区 */
 .welcome-area {
   display: flex;
   flex-direction: column;
@@ -397,55 +394,39 @@ function sendQuick(msg) {
   50% { opacity: 0; }
 }
 
-/* ===== 快捷提问 ===== */
-.quick-bar {
-  display: flex;
-  gap: 8px;
-  padding: 6px 14px;
+/* ===== 底部区 ===== */
+.bottom-area {
   flex-shrink: 0;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-.quick-bar::-webkit-scrollbar {
-  display: none;
-}
-
-.quick-chip {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  background: #fff;
-  color: #E85D26;
-  font-size: 12px;
-  font-weight: 500;
-  padding: 7px 14px;
-  border-radius: 18px;
-  cursor: pointer;
-  border: 1px solid #fde0d2;
-  transition: all 0.2s;
-  white-space: nowrap;
-}
-
-.quick-chip:active {
-  background: #E85D26;
-  color: #fff;
-  border-color: #E85D26;
-}
-
-.quick-chip:active svg path,
-.quick-chip:active svg circle,
-.quick-chip:active svg rect {
-  stroke: #fff;
-}
-
-/* ===== 底部输入 ===== */
-.input-area {
   padding: 8px 14px;
   padding-bottom: max(8px, env(safe-area-inset-bottom));
-  flex-shrink: 0;
-  background: transparent;
+}
+
+.feature-btns {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.feature-btn {
+  flex: 1;
+  background: #fff;
+  border: 1px solid #e8e0d8;
+  border-radius: 8px;
+  padding: 10px 0;
+  font-size: 15px;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.feature-btn:active {
+  transform: scale(0.97);
+}
+
+.feature-btn.active {
+  border-color: #E85D26;
+  color: #E85D26;
+  background: #fefaf7;
 }
 
 .input-card {
@@ -491,4 +472,14 @@ function sendQuick(msg) {
 .send-btn:active {
   transform: scale(0.92);
 }
+
+.trial-link {
+  text-align: center;
+  font-size: 12px;
+  color: #E85D26;
+  padding: 6px 0 0;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
 </style>
