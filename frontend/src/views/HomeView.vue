@@ -87,7 +87,39 @@
 
     <!-- 商店 -->
     <div v-else class="tab-content">
-      <p class="empty-text">商店开发中...</p>
+      <!-- 每日上新 -->
+      <div class="shop-section-title">每日上新</div>
+      <div v-if="recentProducts.length === 0" class="empty-text">暂无上新商品</div>
+      <div class="daily-scroll" v-else>
+        <div v-for="item in recentProducts" :key="item.id" class="daily-card">
+          <div class="daily-img-wrap">
+            <img v-if="item.coverImage" :src="item.coverImage" class="daily-img" />
+          </div>
+          <div class="daily-name">{{ item.name }}</div>
+          <div class="daily-price">{{ item.price != null ? '￥' + item.price : '--' }}</div>
+        </div>
+      </div>
+
+      <!-- 七天销量榜 -->
+      <div class="shop-section-title">七天销量榜</div>
+      <div class="sales-tabs">
+        <span v-for="cat in salesCategories" :key="cat"
+              class="sales-tab" :class="{ active: activeSalesCat === cat }"
+              @click="switchSalesCat(cat)">{{ cat }}</span>
+      </div>
+      <div v-if="filteredSalesProducts.length === 0" class="empty-text">暂无商品</div>
+      <div class="sales-list" v-else>
+        <div v-for="item in filteredSalesProducts" :key="item.id" class="sales-card">
+          <div class="sales-img-wrap">
+            <img v-if="item.coverImage" :src="item.coverImage" class="sales-img" />
+          </div>
+          <div class="sales-info">
+            <div class="sales-name">{{ item.name }}</div>
+            <div class="sales-price">{{ item.price != null ? '￥' + item.price : '--' }}</div>
+            <div class="sales-count">7天销量{{ item.sales || 0 }}</div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <AppTabbar />
@@ -99,6 +131,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { userStore } from '../store/user'
 import { getAllRecipes, getFollowRecipes } from '../api/recipe'
+import { getRecentProducts, getSalesRanking, getSalesRankingByCategory } from '../api/shop'
 import AppTabbar from '../components/AppTabbar.vue'
 
 const router = useRouter()
@@ -107,8 +140,19 @@ const recipes = ref([])
 const followRecipes = ref([])
 const currentUser = computed(() => userStore.user)
 
+// 商店
+const recentProducts = ref([])
+const salesProducts = ref([])
+const activeSalesCat = ref('全部')
+const salesCategories = ['全部', '果蔬', '肉蛋', '海鲜', '速食']
+
 const todayRecommend = computed(() => recipes.value.length > 0 ? recipes.value[0] : null)
 const featuredRecipes = computed(() => recipes.value.slice(1))
+
+const filteredSalesProducts = computed(() => {
+  if (activeSalesCat.value === '全部') return salesProducts.value
+  return salesProducts.value.filter(p => p.category === activeSalesCat.value)
+})
 
 onMounted(async () => {
   try {
@@ -131,7 +175,35 @@ watch(activeTab, async (tab) => {
       followRecipes.value = res.data || []
     } catch { /* ignore */ }
   }
+  if (tab === 'shop') {
+    fetchShopData()
+  }
 })
+
+async function fetchShopData() {
+  try {
+    const [recentRes, salesRes] = await Promise.all([
+      getRecentProducts(),
+      getSalesRanking()
+    ])
+    recentProducts.value = recentRes.data || []
+    salesProducts.value = salesRes.data || []
+  } catch (e) {
+    console.error('获取商店数据失败:', e)
+  }
+}
+
+async function switchSalesCat(cat) {
+  activeSalesCat.value = cat
+  try {
+    const res = cat === '全部'
+      ? await getSalesRanking()
+      : await getSalesRankingByCategory(cat)
+    salesProducts.value = res.data || []
+  } catch (e) {
+    console.error('切换分类失败:', e)
+  }
+}
 
 function getCover(images) {
   if (!images) return ''
@@ -454,5 +526,145 @@ function goDetail(id) {
   gap: 4px;
   font-size: 12px;
   color: var(--brown);
+}
+
+/* 商店 */
+.shop-section-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 12px;
+}
+
+.daily-scroll {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  margin-bottom: 24px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.daily-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.daily-card {
+  flex: 0 0 110px;
+  background: var(--white);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.daily-img-wrap {
+  width: 110px;
+  height: 90px;
+  background: #f0e4d6;
+  border-radius: 10px 10px 0 0;
+  overflow: hidden;
+}
+
+.daily-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.daily-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: #333;
+  padding: 6px 8px 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.daily-price {
+  font-size: 12px;
+  color: var(--orange);
+  padding: 0 8px 8px;
+  font-weight: 600;
+}
+
+.sales-tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.sales-tab {
+  font-size: 12px;
+  color: var(--brown);
+  padding: 4px 12px;
+  border-radius: 14px;
+  background: #f5ebe0;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.sales-tab.active {
+  background: var(--orange);
+  color: #fff;
+}
+
+.sales-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sales-card {
+  display: flex;
+  gap: 12px;
+  background: var(--white);
+  border-radius: 12px;
+  padding: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.sales-img-wrap {
+  width: 80px;
+  height: 80px;
+  border-radius: 8px;
+  background: #f0e4d6;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.sales-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.sales-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+}
+
+.sales-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sales-price {
+  font-size: 13px;
+  color: var(--orange);
+  font-weight: 600;
+}
+
+.sales-count {
+  font-size: 11px;
+  color: var(--gray);
 }
 </style>

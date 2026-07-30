@@ -13,8 +13,8 @@ public class CorsFilterConfig {
     @Bean
     public CorsFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
-        // 允许前端域名
-        config.setAllowedOrigins(Arrays.asList("http://localhost:3000", "http://localhost:3001")); //根据vue部署位置可以进行更改
+        // 允许前端域名（本地 + 内网穿透）
+        config.setAllowedOriginPatterns(Arrays.asList("http://localhost:*", "http://*.vicp.fun", "https://*.vicp.fun"));
         // 允许请求方法
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         // 允许凭证

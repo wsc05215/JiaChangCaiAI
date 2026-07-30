@@ -5,6 +5,7 @@ import com.zzx.jiachangcai.module.social.follow.module.entity.Follow;
 import com.zzx.jiachangcai.module.social.follow.module.mapper.FollowMapper;
 import com.zzx.jiachangcai.module.social.follow.module.service.IFollowService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 /**
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
  * @since 2026-07-27
  */
 @Service
+@Primary
 public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow> implements IFollowService {
 
     @Override

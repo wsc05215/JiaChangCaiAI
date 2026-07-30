@@ -71,9 +71,9 @@
         </svg>
         <span>{{ recipe.commentCount || 0 }}</span>
       </div>
-      <div class="action-item" :class="{ liked: isLiked }" @click="toggleLike">
+      <div class="action-item" :class="{ liked: isFavorited }" @click="toggleFavorite">
         <svg viewBox="0 0 24 24" width="22" height="22">
-          <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" :stroke="isLiked ? '#FF7A3D' : '#333'" :fill="isLiked ? '#FF7A3D' : 'none'" stroke-width="1.5"/>
+          <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" :stroke="isFavorited ? '#FF7A3D' : '#333'" :fill="isFavorited ? '#FF7A3D' : 'none'" stroke-width="1.5"/>
         </svg>
         <span>{{ recipe.likeCount || 0 }}</span>
       </div>
@@ -86,17 +86,19 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { userStore } from '../store/user'
+import { checkFavorited, addFavorite, removeFavorite } from '../api/favorite'
 
 const route = useRoute()
 const router = useRouter()
 const recipe = ref(null)
 const ingredients = ref([])
 const steps = ref([])
-const isLiked = ref(false)
+const isFavorited = ref(false)
 const isFollowed = ref(false)
 const commentText = ref('')
 
-const authorName = computed(() => '用户' + (recipe.value?.authorId || ''))
+const currentUser = computed(() => userStore.user)
+const authorName = computed(() => recipe.value?.authorName || ('用户' + (recipe.value?.authorId || '')))
 
 onMounted(async () => {
   const id = route.params.id
@@ -108,6 +110,12 @@ onMounted(async () => {
       recipe.value = found
       ingredients.value = parseJson(found.ingredients)
       steps.value = parseJson(found.steps)
+      if (currentUser.value) {
+        try {
+          const favRes = await checkFavorited(currentUser.value.userId, found.recipeId)
+          isFavorited.value = favRes.data === true
+        } catch { /* ignore */ }
+      }
     }
   } catch {
     router.back()
@@ -136,10 +144,19 @@ function onImgError(e) {
   e.target.style.display = 'none'
 }
 
-function toggleLike() {
-  isLiked.value = !isLiked.value
-  if (isLiked.value) recipe.value.likeCount++
-  else recipe.value.likeCount--
+async function toggleFavorite() {
+  if (!currentUser.value || !recipe.value) return
+  const userId = currentUser.value.userId
+  const recipeId = recipe.value.recipeId
+  try {
+    if (isFavorited.value) {
+      await removeFavorite(userId, recipeId)
+      isFavorited.value = false
+    } else {
+      await addFavorite(userId, recipeId)
+      isFavorited.value = true
+    }
+  } catch { /* ignore */ }
 }
 
 function handleFollow() {

@@ -6,6 +6,7 @@ import com.zzx.jiachangcai.module.user.mapper.UserMapper;
 import com.zzx.jiachangcai.module.user.service.IUserService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 /**
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
  * @since 2026-07-24
  */
 @Service
+@Primary
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IUserService {
 
     @Autowired

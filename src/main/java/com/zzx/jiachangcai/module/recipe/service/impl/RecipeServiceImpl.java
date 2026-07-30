@@ -6,6 +6,7 @@ import com.zzx.jiachangcai.module.recipe.mapper.RecipeMapper;
 import com.zzx.jiachangcai.module.recipe.service.IRecipeService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
@@ -22,6 +23,7 @@ import java.util.List;
  * @since 2026-07-25
  */
 @Service
+@Primary
 public class RecipeServiceImpl extends ServiceImpl<RecipeMapper, Recipe> implements IRecipeService {
     @Autowired
     private RecipeMapper mapper;
