@@ -58,4 +58,18 @@ public class RecipeServiceImpl extends ServiceImpl<RecipeMapper, Recipe> impleme
       List<Recipe> RecipeOfOwn =mapper.selectRecipeOfOwn(id);
       return RecipeOfOwn;
     }
+
+    //收藏
+    @Override
+    public Integer incrementLikeCount(Long recipeId) {
+      Integer a =  mapper.decrementLikeCount(recipeId);
+       return a;
+    }
+    //取消收藏
+    @Override
+    public Integer decrementLikeCount(Long recipeId) {
+           Integer a = mapper.decrementLikeCount(recipeId);
+           return a;
+    }
+
 }

@@ -1,10 +1,12 @@
 package com.zzx.jiachangcai.module.social.favorite.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.zzx.jiachangcai.module.recipe.mapper.RecipeMapper;
 import com.zzx.jiachangcai.module.social.favorite.entity.Favorite;
 import com.zzx.jiachangcai.module.social.favorite.mapper.FavoriteMapper;
 import com.zzx.jiachangcai.module.social.favorite.service.IFavoriteService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +17,9 @@ import java.util.stream.Collectors;
 @Primary
 public class FavoriteServiceImpl extends ServiceImpl<FavoriteMapper, Favorite> implements IFavoriteService {
 
+    @Autowired
+    private RecipeMapper recipeMapper;
+
     @Override
     public boolean addFavorite(Long userId, Long recipeId) {
         if (isFavorited(userId, recipeId)) {
@@ -23,7 +28,11 @@ public class FavoriteServiceImpl extends ServiceImpl<FavoriteMapper, Favorite> i
         Favorite favorite = new Favorite();
         favorite.setUserId(userId);
         favorite.setRecipeId(recipeId);
-        return save(favorite);
+        if (save(favorite)) {
+            recipeMapper.incrementLikeCount(recipeId);
+            return true;
+        }
+        return false;
     }
 
     @Override
@@ -31,7 +40,11 @@ public class FavoriteServiceImpl extends ServiceImpl<FavoriteMapper, Favorite> i
         LambdaQueryWrapper<Favorite> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Favorite::getUserId, userId)
                 .eq(Favorite::getRecipeId, recipeId);
-        return remove(wrapper);
+        if (remove(wrapper)) {
+            recipeMapper.decrementLikeCount(recipeId);
+            return true;
+        }
+        return false;
     }
 
     @Override

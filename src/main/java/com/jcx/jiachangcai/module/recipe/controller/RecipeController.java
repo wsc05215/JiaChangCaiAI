@@ -43,4 +43,19 @@ public class RecipeController {
         List<Recipe> ownRecipe =service.getRecipeOfOwn(id);
         return ownRecipe;
     }
+
+
+    //取消收藏
+    @GetMapping("/decrementLikeCount")
+    public Integer decrementLikeCount(Long recipe_id){
+       Integer back = service.decrementLikeCount(recipe_id);
+       return back;
+    }
+
+    //收藏
+    @GetMapping("/incrementLikeCount")
+    public Integer incrementLikeCount(Long recipe_id){
+        Integer back = service.incrementLikeCount(recipe_id);
+        return back;
+    }
 }

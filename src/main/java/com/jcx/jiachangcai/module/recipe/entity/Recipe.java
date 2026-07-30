@@ -69,6 +69,10 @@ public class Recipe implements Serializable {
     @Schema(description = "评论数")
     private Integer commentCount;
 
+    @Schema(description = "收藏数")
+    @TableField(exist = false)
+    private Integer favoriteCount;
+
     @Schema(description = "状态: 0=草稿, 1=已发布, 2=已下架")
     private Integer status;
 

@@ -19,4 +19,8 @@ public interface RecipeMapper extends BaseMapper<Recipe> {
     List<Recipe> selectAllRecipe();
     List<Recipe> selectReciprOfFollow(Long id);
     List<Recipe> selectRecipeOfOwn(Long id);
+
+    Integer incrementLikeCount(Long recipeId);
+
+    Integer decrementLikeCount(Long recipeId);
 }
