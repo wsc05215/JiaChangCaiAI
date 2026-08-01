@@ -1,15 +1,13 @@
 <template>
-  <div class="floating-ball" @click="$router.push('/ai-chat')">
-    <div class="ball-inner">
-      <svg viewBox="0 0 28 28" width="17" height="17" class="ball-icon">
-        <!-- Sparkle icon -->
-        <path d="M14 3l1.2 4.8L20 9l-4.8 1.2L14 15l-1.2-4.8L8 9l4.8-1.2z" fill="#fff"/>
-        <circle cx="5" cy="6" r="1.2" fill="#fff" opacity="0.8"/>
-        <circle cx="23" cy="5" r="0.8" fill="#fff" opacity="0.5"/>
-        <circle cx="6" cy="21" r="1" fill="#fff" opacity="0.6"/>
-        <circle cx="22" cy="22" r="1.2" fill="#fff" opacity="0.4"/>
+  <div class="ai-entry" @click="$router.push('/ai-chat')">
+    <div class="ai-pill">
+      <svg class="ai-spark" viewBox="0 0 20 20" width="16" height="16">
+        <path d="M10 2l.8 3.2L14 6l-3.2.8L10 10l-.8-3.2L6 6l3.2-.8z" fill="currentColor"/>
+        <circle cx="5" cy="4" r="0.9" fill="currentColor" opacity="0.7"/>
+        <circle cx="16" cy="3" r="0.6" fill="currentColor" opacity="0.5"/>
+        <circle cx="4" cy="14" r="0.7" fill="currentColor" opacity="0.5"/>
       </svg>
-      <span class="ball-text">AI</span>
+      <span class="ai-label">AI</span>
     </div>
   </div>
 </template>
@@ -18,51 +16,59 @@
 </script>
 
 <style scoped>
-.floating-ball {
+.ai-entry {
   position: fixed;
-  right: 14px;
-  bottom: 95px;
-  width: 54px;
-  height: 54px;
-  border-radius: 50%;
-  z-index: 999;
+  right: 12px;
+  bottom: 90px;
+  z-index: 900;
   cursor: pointer;
-  background: linear-gradient(135deg, #FF7B3D 0%, #E85D26 100%);
-  box-shadow: 0 4px 20px rgba(232, 93, 38, 0.4);
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  animation: float 3s ease-in-out infinite;
 }
 
-.floating-ball:active {
-  transform: scale(0.88);
-  box-shadow: 0 2px 10px rgba(232, 93, 38, 0.3);
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-5px); }
-}
-
-.ball-inner {
-  width: 100%;
-  height: 100%;
+.ai-pill {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 0px;
+  gap: 6px;
+  padding: 10px 16px;
+  background: #fff;
+  border-radius: var(--radius-full);
+  box-shadow: 0 2px 16px rgba(255, 122, 51, 0.10), 0 1px 3px rgba(0,0,0,0.04);
+  border: 1px solid rgba(255, 122, 51, 0.08);
+  transition: all 0.3s var(--ease-smooth);
+  position: relative;
 }
 
-.ball-icon {
+.ai-pill::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: var(--radius-full);
+  background: var(--gradient-primary);
+  opacity: 0;
+  z-index: -1;
+  transition: opacity 0.3s;
+}
+
+.ai-pill:active {
+  transform: scale(0.94);
+  box-shadow: 0 1px 8px rgba(255, 122, 51, 0.12);
+}
+
+.ai-spark {
+  color: var(--primary);
   flex-shrink: 0;
+  animation: sparkPulse 2.5s ease-in-out infinite;
 }
 
-.ball-text {
-  font-size: 11px;
-  font-weight: 800;
-  color: #fff;
+@keyframes sparkPulse {
+  0%, 100% { opacity: 0.7; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.12); }
+}
+
+.ai-label {
+  font-family: var(--font-heading);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
   letter-spacing: 1px;
-  line-height: 1;
-  margin-top: -1px;
 }
 </style>

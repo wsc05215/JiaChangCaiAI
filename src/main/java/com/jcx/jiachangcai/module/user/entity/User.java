@@ -46,6 +46,9 @@ public class User implements Serializable {
     @Schema(description ="手机号")
     private String phone;
 
+    @Schema(description ="邮箱号")
+    private String email;
+
     @Schema(description ="会员类型 0普通 1月卡 2年卡")
     private Integer memberType;
 

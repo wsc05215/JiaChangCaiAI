@@ -14,7 +14,7 @@ public class CorsFilterConfig {
     public CorsFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
         // 允许前端域名（本地 + 内网穿透）
-        config.setAllowedOriginPatterns(Arrays.asList("http://localhost:*", "http://*.vicp.fun", "https://*.vicp.fun"));
+        config.setAllowedOriginPatterns(Arrays.asList("http://localhost:*", "http://*.vicp.fun", "https://*.vicp.fun", "http://192.168.*:*"));
         // 允许请求方法
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         // 允许凭证

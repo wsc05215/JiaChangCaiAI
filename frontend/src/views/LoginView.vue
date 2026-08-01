@@ -1,5 +1,8 @@
 <template>
   <div class="login-page">
+    <div class="bg-decor-top"></div>
+    <div class="bg-decor-bottom"></div>
+
     <h1 class="brand-title">佳尝菜</h1>
 
     <div class="login-card">
@@ -8,9 +11,9 @@
         <p class="sub-text">开启您的舌尖之旅，探索家常美味</p>
 
         <div class="input-wrapper">
-          <svg class="input-icon" viewBox="0 0 1024 1024" width="22" height="22">
-            <path d="M736.65 929.96H287.35a83.59 83.59 0 0 1-83.6-83.6V177.63a83.59 83.59 0 0 1 83.6-83.59h449.3a83.59 83.59 0 0 1 83.6 83.6v668.73a83.59 83.59 0 0 1-83.6 83.6zM287.35 135.84a41.8 41.8 0 0 0-41.8 41.8v668.73a41.8 41.8 0 0 0 41.8 41.8h449.3a41.8 41.8 0 0 0 41.8-41.8V177.63a41.8 41.8 0 0 0-41.8-41.8H287.35z" fill="#2c2c2c"/>
-            <path d="M616.49 815.02H407.51a20.9 20.9 0 1 1 0-41.8h208.98a20.9 20.9 0 1 1 0 41.8z" fill="#2c2c2c"/>
+          <svg class="input-icon" viewBox="0 0 24 24" width="20" height="20">
+            <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" stroke="#c4b8aa" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+            <circle cx="12" cy="7" r="4" stroke="#c4b8aa" stroke-width="1.8" fill="none"/>
           </svg>
           <input
             v-model="loginForm.username"
@@ -21,10 +24,9 @@
         </div>
 
         <div class="input-wrapper">
-          <svg class="input-icon" viewBox="0 0 1024 1024" width="22" height="22">
-            <path d="M798.29 956.45H228.02c-36.26 0-60.72-4.26-79.33-13.81-18.3-9.39-40.1-29.3-40.1-70.76V404.81h809.14v467.07c0 41.47-21.81 61.37-40.1 70.76-18.61 9.55-43.08 13.81-79.34 13.81zM149.52 445.74v426.14c0 28.3 12.51 43.64 78.5 43.64h570.27c66 0 78.51-15.34 78.51-43.64V445.74H149.52z" fill="#2c2c2c"/>
-            <path d="M810.69 445.74H215.62v-20.46c0-4.27.15-57.95.54-65.9 4.46-90.34 36.48-166.61 92.6-220.56 26.62-25.58 57.9-45.37 92.96-58.81 34.68-13.29 72.17-20.03 111.44-20.03 39.04 0 76.32 6.63 110.8 19.72 34.91 13.24 66.08 32.76 92.64 58.01 56 53.24 88.3 128.76 93.4 218.4.52 9.24.7 64.57.7 69.17v20.46zm-554.08-40.93h513.07c-.1-18.32-.3-41.78-.56-46.39-5.12-156.44-105.6-257.52-252.19-257.52-145.5 0-248.42 104.68-256.11 260.5-.2 3.9-.35 25.88-.43 43.4z" fill="#2c2c2c"/>
-            <path d="M492.69 586.79h40.93v205.15h-40.93z" fill="#2c2c2c"/>
+          <svg class="input-icon" viewBox="0 0 24 24" width="20" height="20">
+            <rect x="3" y="11" width="18" height="11" rx="2" stroke="#c4b8aa" stroke-width="1.8" fill="none"/>
+            <path d="M7 11V7a5 5 0 0110 0v4" stroke="#c4b8aa" stroke-width="1.8" fill="none" stroke-linecap="round"/>
           </svg>
           <input
             v-model="loginForm.password"
@@ -38,60 +40,57 @@
           <label class="remember-row" @click="rememberMe = !rememberMe">
             <span class="checkbox" :class="{ checked: rememberMe }">
               <svg v-if="rememberMe" viewBox="0 0 24 24" width="12" height="12">
-                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" fill="#F08B4F"/>
+                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" fill="var(--primary)"/>
               </svg>
             </span>
             <span class="remember-text">记住密码</span>
           </label>
-          <span class="toggle-mode" @click="mode = 'sms'">验证码登录</span>
           <span class="forgot-link">忘记密码？</span>
         </div>
 
         <button class="login-btn" @click="handleLogin" :disabled="loading">
-          {{ loading ? '登录中...' : '一键登录' }}
+          {{ loading ? '登录中...' : '登录' }}
         </button>
 
         <div class="divider">
           <span>其他方式登录</span>
         </div>
 
-        <div class="social-icons">
-          <svg viewBox="0 0 1024 1024" width="24" height="24">
-            <path d="M512 64C264.6 64 64 264.6 64 512s200.6 448 448 448 448-200.6 448-448S759.4 64 512 64zm0 820c-205.4 0-372-166.6-372-372s166.6-372 372-372 372 166.6 372 372-166.6 372-372 372z" fill="#2c2c2c"/>
-            <path d="M680 370c-19.8 0-37.8 7.4-52 19.6V320H372v384h256V524c0-41.2 21.6-74 52-74 13.2 0 24 10.8 24 24v230h64V474c0-51.6-39.4-104-88-104z" fill="#2c2c2c"/>
+        <div class="other-login" @click="mode = 'sms'">
+          <svg viewBox="0 0 24 24" width="20" height="20">
+            <rect x="2" y="4" width="20" height="16" rx="2" stroke="#5a524c" stroke-width="1.5" fill="none"/>
+            <path d="M2 8l10 6 10-6" stroke="#5a524c" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
-          <svg viewBox="0 0 1024 1024" width="24" height="24">
-            <circle cx="512" cy="512" r="448" fill="none" stroke="#2c2c2c" stroke-width="40"/>
-            <path d="M420 420c0-33.14 26.86-60 60-60s60 26.86 60 60v60H420v-60zm-60 60h-60v200h424V480H360zm300 0v200c0 22.09-17.91 40-40 40H400c-22.09 0-40-17.91-40-40V480c-22.09 0-40-17.91-40-40v-20c0-66.27 53.73-120 120-120h140c66.27 0 120 53.73 120 120v20c0 22.09-17.91 40-40 40z" fill="#2c2c2c"/>
-          </svg>
-          <svg viewBox="0 0 1024 1024" width="24" height="24">
-            <path d="M512 64C264.6 64 64 264.6 64 512s200.6 448 448 448 448-200.6 448-448S759.4 64 512 64zm206.8 401.2c-6.6 44.4-44.4 78-88.8 84.6-56.4 8.4-112.8 12.6-169.2 12.6-12 0-24 0-36-.6-43.2-1.8-85.8-8.4-127.2-19.2-27-7.2-52.8-16.2-77.4-27.6-4.2-1.8-8.4 1.2-7.2 6 3 14.4 7.8 28.2 13.8 41.4 16.8 36.6 42.6 66.6 75 89.4 42.6 30 93 46.8 146.4 46.8 55.8 0 109.2-12.6 157.8-37.2 37.8-19.2 70.2-46.8 94.8-81 18.6-25.8 32.4-55.8 37.8-90 0-4.2-3-6-6.6-4.2-12 6-25.2 9.6-38.4 12-15 2.4-30 3-45.6 3-7.8 0-15 0-22.8-.6-4.8-.6-3-6.6 0-7.8 15.6-5.4 30-12.6 43.2-21.6 9-6 18-13.2 25.2-21.6 2.4-3-.6-7.2-4.2-6-21.6 7.2-43.8 12-66.6 15-18 1.8-36.6 1.8-54.6 0-44.4-5.4-82.2-31.2-96-73.8-5.4-15.6-7.8-31.8-7.8-48.6 0-33 13.2-63 36.6-84.6 33.6-31.2 86.4-33.6 125.4-10.8z" fill="#2c2c2c"/>
-          </svg>
+          <span>邮箱验证码登录</span>
         </div>
       </template>
 
       <template v-else>
-        <svg class="back-arrow" viewBox="0 0 1024 1024" width="22" height="22" @click="mode = 'password'">
-          <path d="M669.6 849.6c8.8 8 22.4 7.2 30.4-1.6 7.2-8 6.4-20.8-1.6-28.8L338.4 512l360-307.2c8-7.2 8.8-20 1.6-28.8-8-8.8-21.6-9.6-30.4-1.6L288 512l381.6 337.6z" fill="#2c2c2c"/>
+        <svg class="back-arrow" viewBox="0 0 24 24" width="22" height="22" @click="mode = 'password'">
+          <path d="M15 18l-6-6 6-6" stroke="#5a524c" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
 
-        <h2 class="welcome-text">欢迎回来</h2>
-        <p class="sub-text">开启您的舌尖之旅，探索家常美味</p>
+        <h2 class="welcome-text">验证码登录</h2>
+        <p class="sub-text">请输入邮箱获取验证码</p>
 
         <div class="input-wrapper">
-          <svg class="input-icon" viewBox="0 0 1024 1024" width="22" height="22">
-            <path d="M736.65 929.96H287.35a83.59 83.59 0 0 1-83.6-83.6V177.63a83.59 83.59 0 0 1 83.6-83.59h449.3a83.59 83.59 0 0 1 83.6 83.6v668.73a83.59 83.59 0 0 1-83.6 83.6zM287.35 135.84a41.8 41.8 0 0 0-41.8 41.8v668.73a41.8 41.8 0 0 0 41.8 41.8h449.3a41.8 41.8 0 0 0 41.8-41.8V177.63a41.8 41.8 0 0 0-41.8-41.8H287.35z" fill="#2c2c2c"/>
-            <path d="M616.49 815.02H407.51a20.9 20.9 0 1 1 0-41.8h208.98a20.9 20.9 0 1 1 0 41.8z" fill="#2c2c2c"/>
+          <svg class="input-icon" viewBox="0 0 24 24" width="20" height="20">
+            <rect x="2" y="4" width="20" height="16" rx="2" stroke="#c4b8aa" stroke-width="1.8" fill="none"/>
+            <path d="M2 8l10 6 10-6" stroke="#c4b8aa" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
           <input
-            v-model="smsForm.phone"
-            type="tel"
-            placeholder="请输入手机号"
-            maxlength="11"
+            v-model="smsForm.email"
+            type="email"
+            placeholder="请输入邮箱"
           />
         </div>
 
         <div class="input-wrapper">
+          <svg class="input-icon" viewBox="0 0 24 24" width="20" height="20">
+            <rect x="3" y="5" width="18" height="14" rx="2" stroke="#c4b8aa" stroke-width="1.8" fill="none"/>
+            <path d="M8 5v14" stroke="#c4b8aa" stroke-width="1.8"/>
+            <path d="M13 12h4M13 8h3M13 16h3" stroke="#c4b8aa" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
           <input
             v-model="smsForm.code"
             type="text"
@@ -109,6 +108,62 @@
       </template>
     </div>
 
+    <!-- 首次登录弹窗 -->
+    <transition name="modal">
+      <div v-if="showFirstLogin" class="modal-overlay" @click.self="() => {}">
+        <div class="modal-card">
+          <h3 class="modal-title">完善个人信息</h3>
+          <p class="modal-sub">首次登录，请设置您的账号信息</p>
+
+          <div class="modal-input-group">
+            <label class="modal-label">用户名</label>
+            <input
+              v-model="firstLoginForm.username"
+              type="text"
+              placeholder="请输入用户名"
+              class="modal-input"
+            />
+          </div>
+
+          <div class="modal-input-group">
+            <label class="modal-label">昵称</label>
+            <input
+              v-model="firstLoginForm.nickName"
+              type="text"
+              placeholder="请输入昵称"
+              class="modal-input"
+            />
+          </div>
+
+          <div class="modal-input-group">
+            <label class="modal-label">密码</label>
+            <input
+              v-model="firstLoginForm.password"
+              type="password"
+              placeholder="请设置密码"
+              class="modal-input"
+            />
+          </div>
+
+          <div class="modal-input-group">
+            <label class="modal-label">手机号 <span class="optional">(选填)</span></label>
+            <input
+              v-model="firstLoginForm.phone"
+              type="tel"
+              placeholder="请输入手机号"
+              class="modal-input"
+            />
+          </div>
+
+          <button class="login-btn modal-btn" @click="submitFirstLogin" :disabled="firstLoginLoading">
+            {{ firstLoginLoading ? '保存中...' : '完成设置' }}
+          </button>
+
+          <button class="modal-skip" @click="skipFirstLogin">跳过，稍后设置</button>
+        </div>
+      </div>
+    </transition>
+
     <transition name="fade">
       <div v-if="toast.show" class="toast" :class="toast.type">{{ toast.msg }}</div>
     </transition>
@@ -118,7 +173,7 @@
 <script setup>
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { login } from '../api/auth'
+import { login, sendEmailCode, emailLogin, isFirstLogin, alterUser } from '../api/auth'
 import { userStore } from '../store/user'
 
 const router = useRouter()
@@ -136,8 +191,19 @@ const loginForm = reactive({
 })
 
 const smsForm = reactive({
-  phone: '',
+  email: '',
   code: '',
+})
+
+// 首次登录弹窗
+const showFirstLogin = ref(false)
+const firstLoginLoading = ref(false)
+const pendingUser = ref(null)
+const firstLoginForm = reactive({
+  username: '',
+  nickName: '',
+  password: '',
+  phone: '',
 })
 
 function showToast(msg, type = 'success') {
@@ -178,22 +244,106 @@ async function handleLogin() {
   }
 }
 
-function handleSmsLogin() {
-  if (!smsForm.phone.trim()) return showToast('请输入手机号', 'error')
+async function handleSmsLogin() {
+  if (!smsForm.email.trim()) return showToast('请输入邮箱', 'error')
   if (!smsForm.code.trim()) return showToast('请输入验证码', 'error')
-  showToast('验证码登录暂未对接后端', 'error')
+
+  loading.value = true
+  try {
+    const res = await emailLogin(smsForm.email.trim(), smsForm.code.trim())
+    if (res.data) {
+      const user = res.data
+      userStore.setUser(user)
+
+      try {
+        const firstRes = await isFirstLogin(user.userId)
+        if (firstRes.data === true) {
+          pendingUser.value = user
+          firstLoginForm.username = user.username || ''
+          firstLoginForm.nickName = user.nickName || ''
+          firstLoginForm.password = ''
+          firstLoginForm.phone = user.phone || ''
+          showFirstLogin.value = true
+          loading.value = false
+          return
+        }
+      } catch { /* 检查失败则跳过弹窗 */ }
+
+      showToast('登录成功')
+      setTimeout(() => {
+        router.push('/home')
+      }, 500)
+    } else {
+      showToast('验证码错误或已过期', 'error')
+    }
+  } catch {
+    showToast('网络错误，请稍后重试', 'error')
+  } finally {
+    loading.value = false
+  }
 }
 
-function sendCode() {
-  if (!smsForm.phone.trim()) return showToast('请输入手机号', 'error')
-  if (smsForm.phone.length !== 11 || smsForm.phone[0] !== '1') return showToast('请输入正确的手机号', 'error')
+async function submitFirstLogin() {
+  if (!firstLoginForm.username.trim()) return showToast('请输入用户名', 'error')
+  if (!firstLoginForm.nickName.trim()) return showToast('请输入昵称', 'error')
+  if (!firstLoginForm.password.trim()) return showToast('请设置密码', 'error')
 
-  codeCountdown.value = 60
-  const timer = setInterval(() => {
-    codeCountdown.value--
-    if (codeCountdown.value <= 0) clearInterval(timer)
-  }, 1000)
-  showToast('验证码已发送')
+  firstLoginLoading.value = true
+  try {
+    await alterUser({
+      userId: pendingUser.value.userId,
+      username: firstLoginForm.username.trim(),
+      nickName: firstLoginForm.nickName.trim(),
+      password: firstLoginForm.password,
+      phone: firstLoginForm.phone.trim(),
+      email: pendingUser.value.email || '',
+    })
+    const updatedUser = {
+      ...pendingUser.value,
+      username: firstLoginForm.username.trim(),
+      nickName: firstLoginForm.nickName.trim(),
+      phone: firstLoginForm.phone.trim(),
+    }
+    userStore.setUser(updatedUser)
+    showFirstLogin.value = false
+    showToast('设置完成')
+    setTimeout(() => {
+      router.push('/home')
+    }, 500)
+  } catch {
+    showToast('保存失败，请稍后重试', 'error')
+  } finally {
+    firstLoginLoading.value = false
+  }
+}
+
+function skipFirstLogin() {
+  showFirstLogin.value = false
+  showToast('登录成功')
+  setTimeout(() => {
+    router.push('/home')
+  }, 500)
+}
+
+async function sendCode() {
+  if (!smsForm.email.trim()) return showToast('请输入邮箱', 'error')
+  if (!smsForm.email.includes('@')) return showToast('请输入正确的邮箱', 'error')
+
+  try {
+    const res = await sendEmailCode(smsForm.email.trim())
+    if (res.data === 'ok') {
+      codeCountdown.value = 60
+      const timer = setInterval(() => {
+        codeCountdown.value--
+        if (codeCountdown.value <= 0) clearInterval(timer)
+      }, 1000)
+      showToast('验证码已发送')
+    } else {
+      showToast('发送失败，请稍后重试', 'error')
+    }
+  } catch {
+    showToast('发送失败，请稍后重试', 'error')
+  }
 }
 
 const savedUser = localStorage.getItem('savedUsername')
@@ -209,7 +359,7 @@ if (savedUser && savedPwd) {
 .login-page {
   min-height: 100vh;
   min-height: 100dvh;
-  background: var(--bg);
+  background: linear-gradient(160deg, #F6F1EA 0%, #FAF7F2 40%, #F9F6F0 100%);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -218,60 +368,101 @@ if (savedUser && savedPwd) {
   overflow: hidden;
 }
 
+.bg-decor-top {
+  position: absolute;
+  top: -100px;
+  right: -60px;
+  width: 260px;
+  height: 260px;
+  background: radial-gradient(circle, rgba(226,184,138,0.10) 0%, rgba(226,184,138,0.03) 40%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.bg-decor-bottom {
+  position: absolute;
+  bottom: -40px;
+  left: -40px;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(226,184,138,0.08) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
 .brand-title {
-  font-size: 28px;
-  font-weight: 700;
-  color: var(--orange);
-  margin-top: 15vh;
-  margin-bottom: 24px;
-  letter-spacing: 2px;
+  margin-top: 16vh;
+  margin-bottom: 32px;
+  position: relative;
+  z-index: 1;
+  font-family: var(--font-heading);
+  font-size: 36px;
+  font-weight: 900;
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: 8px;
 }
 
 .login-card {
   width: 100%;
   max-width: 345px;
-  background: var(--card-bg);
-  border-radius: var(--radius-card);
-  padding: 38px 22px 32px;
+  background: rgba(255, 255, 255, 0.82);
+  border-radius: var(--radius-2xl);
+  padding: 36px 24px 30px;
   position: relative;
-  backdrop-filter: blur(4px);
-  box-shadow: 0 4px 20px rgba(185, 158, 142, 0.1);
+  z-index: 1;
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+  box-shadow: 0 8px 48px rgba(255, 122, 51, 0.05), 0 1px 4px rgba(0,0,0,0.02);
+  border: 1px solid rgba(255,255,255,0.65);
 }
 
 .back-arrow {
   position: absolute;
-  left: 18px;
-  top: 18px;
+  left: 16px;
+  top: 16px;
   cursor: pointer;
+  transition: opacity 0.2s;
 }
 
+.back-arrow:active { opacity: 0.5; }
+
 .welcome-text {
-  font-size: 16px;
-  font-weight: 700;
+  font-family: var(--font-heading);
+  font-size: 20px;
+  font-weight: 800;
   text-align: center;
-  color: #333;
+  color: var(--text-primary);
+  letter-spacing: 1px;
 }
 
 .sub-text {
-  font-size: 12px;
-  color: var(--gray);
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--text-secondary);
   text-align: center;
   margin-top: 6px;
-  margin-bottom: 24px;
+  margin-bottom: 30px;
 }
 
 .input-wrapper {
   display: flex;
   align-items: center;
   height: 50px;
-  border: 1px solid var(--brown);
-  border-radius: var(--radius-input);
-  padding: 0 14px 0 10px;
-  background: var(--white);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-full);
+  padding: 0 18px 0 14px;
+  background: #FFFBF7;
+  transition: all 0.3s var(--ease-smooth);
+  margin-bottom: 14px;
 }
 
-.input-wrapper + .input-wrapper {
-  margin-top: 16px;
+.input-wrapper:focus-within {
+  border-color: var(--primary-lighter);
+  background: #fff;
+  box-shadow: 0 0 0 5px rgba(255, 176, 136, 0.10);
 }
 
 .input-wrapper .input-icon {
@@ -282,30 +473,36 @@ if (savedUser && savedPwd) {
 .input-wrapper input {
   flex: 1;
   height: 100%;
-  font-size: 14px;
+  font-size: 15px;
+  font-family: var(--font-body);
 }
 
 .code-btn {
   flex-shrink: 0;
-  font-size: 12px;
-  color: var(--orange-btn);
+  font-family: var(--font-heading);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--primary);
   white-space: nowrap;
-  padding-left: 10px;
-  border-left: 1px solid var(--brown);
-  margin-left: 10px;
+  padding-left: 14px;
+  border-left: 1.5px solid var(--border);
+  margin-left: 14px;
+  transition: color 0.2s;
 }
 
 .code-btn:disabled {
-  color: var(--gray);
+  color: var(--text-placeholder);
+  font-weight: 500;
 }
 
 .options-row {
   display: flex;
   align-items: center;
-  position: relative;
-  margin-top: 14px;
+  justify-content: space-between;
+  margin-top: 4px;
+  margin-bottom: 8px;
   font-size: 12px;
-  color: var(--brown);
+  color: var(--text-muted);
 }
 
 .remember-row {
@@ -316,62 +513,59 @@ if (savedUser && savedPwd) {
 }
 
 .checkbox {
-  width: 15px;
-  height: 15px;
-  border: 1px solid var(--brown);
-  border-radius: 0;
+  width: 17px;
+  height: 17px;
+  border: 1.5px solid var(--border);
+  border-radius: 5px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  transition: all 0.2s;
 }
 
 .checkbox.checked {
-  background: rgba(240, 139, 79, 0.1);
-}
-
-.toggle-mode {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  cursor: pointer;
-  white-space: nowrap;
+  background: var(--primary-bg);
+  border-color: var(--primary);
 }
 
 .forgot-link {
-  margin-left: auto;
   cursor: pointer;
-  white-space: nowrap;
+  font-weight: 500;
 }
 
 .login-btn {
   display: block;
   width: 100%;
   max-width: 300px;
-  height: 48px;
-  border-radius: var(--radius-btn);
-  background: var(--orange-btn);
+  height: 50px;
+  border-radius: var(--radius-full);
+  background: var(--gradient-primary);
   color: #fff;
+  font-family: var(--font-heading);
   font-size: 18px;
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: 4px;
-  margin: 20px auto 0;
-  transition: opacity 0.2s;
+  margin: 22px auto 0;
+  transition: all 0.3s var(--ease-smooth);
+  box-shadow: var(--shadow-primary);
 }
 
 .login-btn:active {
-  opacity: 0.85;
+  transform: scale(0.96);
+  box-shadow: 0 2px 8px rgba(255, 122, 51, 0.2);
 }
 
 .login-btn:disabled {
-  opacity: 0.7;
+  opacity: 0.55;
+  transform: none;
 }
 
 .divider {
   text-align: center;
-  margin-top: 28px;
+  margin-top: 30px;
   font-size: 12px;
-  color: var(--gray);
+  color: var(--text-muted);
   position: relative;
 }
 
@@ -380,53 +574,160 @@ if (savedUser && savedPwd) {
   content: '';
   position: absolute;
   top: 50%;
-  width: 60px;
+  width: 40px;
   height: 1px;
-  background: #ddd;
+  background: var(--divider);
 }
 
-.divider::before { left: 16px; }
-.divider::after { right: 16px; }
+.divider::before { left: 24px; }
+.divider::after { right: 24px; }
 
-.social-icons {
+.other-login {
   display: flex;
+  align-items: center;
   justify-content: center;
-  gap: 32px;
-  margin-top: 14px;
-}
-
-.social-icons svg {
+  gap: 8px;
+  margin-top: 18px;
   cursor: pointer;
-  opacity: 0.6;
-  transition: opacity 0.2s;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  transition: all 0.2s;
 }
 
-.social-icons svg:active {
-  opacity: 1;
+.other-login:active {
+  color: var(--primary);
+  transform: scale(0.96);
 }
 
+/* Toast */
 .toast {
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  padding: 12px 28px;
-  border-radius: 8px;
+  padding: 14px 36px;
+  border-radius: 14px;
   font-size: 14px;
+  font-weight: 600;
   color: #fff;
   z-index: 999;
   pointer-events: none;
+  letter-spacing: 1px;
+  font-family: var(--font-heading);
 }
 
-.toast.success { background: rgba(0, 0, 0, 0.75); }
-.toast.error { background: rgba(220, 60, 40, 0.85); }
+.toast.success { background: rgba(18, 30, 31, 0.88); }
+.toast.error { background: rgba(180, 60, 20, 0.9); }
 
+/* Modal overlay */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(18, 30, 31, 0.45);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  padding: 24px;
+}
+
+.modal-card {
+  width: 100%;
+  max-width: 340px;
+  background: #fff;
+  border-radius: var(--radius-2xl);
+  padding: 32px 24px 28px;
+  box-shadow: 0 20px 60px rgba(255, 122, 51, 0.15);
+  animation: scaleIn 0.35s var(--ease-smooth);
+}
+
+.modal-title {
+  font-family: var(--font-heading);
+  font-size: 20px;
+  font-weight: 800;
+  text-align: center;
+  color: var(--text-primary);
+  letter-spacing: 1px;
+}
+
+.modal-sub {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--text-secondary);
+  text-align: center;
+  margin-top: 6px;
+  margin-bottom: 24px;
+}
+
+.modal-input-group {
+  margin-bottom: 14px;
+}
+
+.modal-label {
+  display: block;
+  font-family: var(--font-heading);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+  padding-left: 4px;
+}
+
+.modal-label .optional {
+  font-weight: 400;
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.modal-input {
+  width: 100%;
+  height: 46px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 0 14px;
+  font-size: 14px;
+  font-family: var(--font-body);
+  background: #FFFBF7;
+  transition: all 0.25s;
+}
+
+.modal-input:focus {
+  border-color: var(--primary-lighter);
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(255, 176, 136, 0.12);
+}
+
+.modal-input::placeholder {
+  color: var(--text-placeholder);
+}
+
+.modal-btn {
+  margin-top: 6px;
+  max-width: 100%;
+}
+
+.modal-skip {
+  display: block;
+  margin: 12px auto 0;
+  font-size: 13px;
+  color: var(--text-muted);
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.modal-skip:active { color: var(--text-secondary); }
+
+/* Transitions */
 .fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.3s;
-}
+.fade-leave-active { transition: opacity 0.3s; }
 .fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
+.fade-leave-to { opacity: 0; }
+
+.modal-enter-active { transition: opacity 0.3s; }
+.modal-enter-active .modal-card { animation: scaleIn 0.35s var(--ease-smooth); }
+.modal-leave-active { transition: opacity 0.25s; }
+.modal-leave-to { opacity: 0; }
 </style>

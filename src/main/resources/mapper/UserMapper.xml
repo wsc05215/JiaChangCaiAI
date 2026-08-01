@@ -2,7 +2,15 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.jcx.jiachangcai.module.user.mapper.UserMapper">
+    <update id="alterUser" parameterType="com.jcx.jiachangcai.module.user.entity.User">
+        update `user` set username=#{username}, password=#{password}, nick_name=#{nickName}, phone=#{phone}, email=#{email}, update_time=NOW()
+        where user_id = #{userId}
+    </update>
+    <update id="firstLogin" parameterType="com.jcx.jiachangcai.module.user.entity.User">
+        update `user` set username=#{username}, password=#{password}, nick_name=#{nickName}, phone=#{phone}, email=#{email}, update_time=NOW()
+        where user_id = #{userId}
+    </update>
     <select id="selectdetail" resultType="com.jcx.jiachangcai.module.user.entity.User">
-        select avatar, nick_name from user where user_id = #{id}
+        select avatar, nick_name from `user` where user_id = #{id}
     </select>
 </mapper>

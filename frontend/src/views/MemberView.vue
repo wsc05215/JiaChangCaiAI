@@ -1,18 +1,17 @@
 <template>
   <div class="member-page">
-    <!-- 顶部导航 -->
     <div class="nav-bar">
       <div class="back-btn" @click="$router.back()">
         <svg viewBox="0 0 24 24" width="24" height="24">
-          <path d="M15 18l-6-6 6-6" stroke="#555" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M15 18l-6-6 6-6" stroke="#6B5E52" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </div>
-      <span class="nav-title">开通会员</span>
+      <span class="nav-title">会员中心</span>
       <div class="nav-placeholder"></div>
     </div>
 
-    <!-- 会员信息卡片（已是会员时显示） -->
     <div v-if="isMember" class="member-card">
+      <div class="member-card-shine"></div>
       <div class="member-card-inner">
         <div class="member-avatar">
           <img v-if="memberInfo.avatar" :src="memberInfo.avatar" class="avatar-img" />
@@ -29,81 +28,63 @@
       </div>
     </div>
 
-    <!-- 非会员时显示 -->
     <div v-else class="non-member-hint">
-      <div class="hint-icon">👑</div>
+      <div class="hint-crown">&#x1F451;</div>
       <div class="hint-text">开通会员，解锁全部AI功能</div>
     </div>
 
-    <!-- 会员专属权益 -->
     <div class="section-title">会员专属权益</div>
     <div class="benefits-row">
       <div class="benefit-card">
-        <div class="benefit-icon icon-recipe">
-          <svg viewBox="0 0 24 24" width="24" height="24" fill="none">
-            <path d="M6 2h12l2 3H4l2-3zM4 7h16v13a2 2 0 01-2 2H6a2 2 0 01-2-2V7z" stroke="#E85D26" stroke-width="1.5"/>
-            <circle cx="12" cy="14" r="2" fill="#E85D26"/>
-          </svg>
-        </div>
+        <div class="benefit-icon">&#x1F4D6;</div>
         <div class="benefit-name">专属食谱</div>
         <div class="benefit-desc">根据你的需求为你定制专属食谱</div>
       </div>
       <div class="benefit-card">
-        <div class="benefit-icon icon-menu">
-          <svg viewBox="0 0 24 24" width="24" height="24" fill="none">
-            <rect x="3" y="3" width="7" height="7" rx="1" stroke="#E85D26" stroke-width="1.5"/>
-            <rect x="14" y="3" width="7" height="7" rx="1" stroke="#E85D26" stroke-width="1.5"/>
-            <rect x="3" y="14" width="7" height="7" rx="1" stroke="#E85D26" stroke-width="1.5"/>
-            <rect x="14" y="14" width="7" height="7" rx="1" stroke="#E85D26" stroke-width="1.5"/>
-          </svg>
-        </div>
+        <div class="benefit-icon">&#x1F4CB;</div>
         <div class="benefit-name">一键配餐</div>
         <div class="benefit-desc">用普通的食材做出不普通的美食</div>
       </div>
       <div class="benefit-card">
-        <div class="benefit-icon icon-manage">
-          <svg viewBox="0 0 24 24" width="24" height="24" fill="none">
-            <rect x="3" y="5" width="18" height="14" rx="2" stroke="#E85D26" stroke-width="1.5"/>
-            <path d="M3 10h18M8 5v14" stroke="#E85D26" stroke-width="1.5"/>
-          </svg>
-        </div>
+        <div class="benefit-icon">&#x1F96C;</div>
         <div class="benefit-name">食材管理</div>
         <div class="benefit-desc">食材记录管理过期自动提醒</div>
       </div>
     </div>
 
-    <!-- 开通会员（非会员时显示） -->
-    <div v-if="!isMember" class="section-title">开通会员</div>
+    <div v-if="!isMember" class="section-title">选择套餐</div>
     <div v-if="!isMember" class="plans">
       <div class="plan-card">
+        <div class="plan-badge">次卡</div>
         <div class="plan-info">
           <div class="plan-name">食谱定制会员</div>
-          <div class="plan-desc">根据您的需求和口味偏好为您定制一周食谱</div>
+          <div class="plan-desc">根据您的需求和口味偏好定制一周食谱</div>
         </div>
-        <div class="plan-price"><span class="price-num">￥5.9</span>/次</div>
-        <button class="plan-btn" @click="handleBuy('recipe')">立即开通</button>
+        <div class="plan-price"><span class="price-num">¥5.9</span>/次</div>
+        <button class="plan-btn" @click="handleBuy('recipe')">开通</button>
       </div>
       <div class="plan-card">
+        <div class="plan-badge">月卡</div>
         <div class="plan-info">
           <div class="plan-name">食材管理会员</div>
-          <div class="plan-desc">帮您管理家中的食材根据食材推荐食谱</div>
+          <div class="plan-desc">帮您管理家中食材 根据食材推荐食谱</div>
         </div>
-        <div class="plan-price"><span class="price-num">￥18</span>/月</div>
-        <button class="plan-btn" @click="handleBuy('ingredient')">立即开通</button>
+        <div class="plan-price"><span class="price-num">¥18</span>/月</div>
+        <button class="plan-btn" @click="handleBuy('ingredient')">开通</button>
       </div>
       <div class="plan-card plan-premium">
+        <div class="plan-badge plan-badge-gold">推荐</div>
         <div class="plan-info">
           <div class="plan-name">尊享会员</div>
-          <div class="plan-sub">享以上两种会员待遇</div>
+          <div class="plan-sub">享以上两种会员待遇 性价比之选</div>
         </div>
-        <div class="plan-price"><span class="price-num">￥128</span>/年</div>
+        <div class="plan-price"><span class="price-num price-num-gold">¥128</span>/年</div>
         <button class="plan-btn plan-btn-gold" @click="handleBuy('premium')">立即开通</button>
       </div>
     </div>
 
-    <!-- 已是会员 -->
     <div v-else class="already-member">
-      <div class="already-icon">✓</div>
+      <div class="already-icon">&#x2714;</div>
       <div>您已是尊享会员，尽情享受所有功能</div>
     </div>
   </div>
@@ -137,7 +118,6 @@ onMounted(async () => {
 })
 
 function handleBuy(type) {
-  // TODO: 接入支付
   alert('支付功能开发中')
 }
 </script>
@@ -146,16 +126,15 @@ function handleBuy(type) {
 .member-page {
   min-height: 100vh;
   min-height: 100dvh;
-  background: linear-gradient(180deg, #fef9f4 0%, var(--bg) 30%);
+  background: var(--gradient-page);
   padding-bottom: 40px;
 }
 
-/* 导航 */
 .nav-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6px 8px;
+  padding: 8px 8px;
 }
 
 .back-btn {
@@ -164,65 +143,97 @@ function handleBuy(type) {
   cursor: pointer; border-radius: 50%;
 }
 
-.nav-title { font-size: 16px; font-weight: 600; color: #333; }
+.nav-title { font-size: 18px; font-weight: 800; color: var(--text-primary); letter-spacing: 0.5px; }
 .nav-placeholder { width: 36px; }
 
-/* 会员卡片 */
+/* member card */
 .member-card {
-  margin: 16px 16px 0;
-  background: linear-gradient(135deg, #3a3a3a, #1a1a1a);
-  border-radius: 16px;
-  padding: 20px;
+  margin: 20px 16px 0;
+  background: var(--gradient-dark);
+  border-radius: var(--radius-2xl);
+  padding: 28px 22px;
   color: #fff;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(30,21,15,0.3);
+}
+
+.member-card-shine {
+  position: absolute;
+  top: -50%;
+  right: -30%;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(245,195,75,0.12) 0%, transparent 70%);
+  border-radius: 50%;
 }
 
 .member-card-inner {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
+  gap: 14px;
+  margin-bottom: 20px;
+  position: relative;
+  z-index: 1;
 }
 
 .member-avatar {
-  width: 48px; height: 48px;
+  width: 54px; height: 54px;
   border-radius: 50%;
   background: #555;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
+  border: 2.5px solid rgba(245,195,75,0.5);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+  overflow: hidden;
 }
 
 .avatar-img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
-.avatar-text { font-size: 20px; font-weight: 700; color: #ddd; }
+.avatar-text { font-size: 24px; font-weight: 800; color: #DDD0C0; }
 
-.member-info { flex: 1; }
-.member-level { font-size: 17px; font-weight: 600; }
-.member-expire { font-size: 12px; color: #aaa; margin-top: 2px; }
+.member-info { flex: 1; position: relative; z-index: 1; }
+.member-level { font-size: 20px; font-weight: 800; letter-spacing: 1px; }
+.member-expire { font-size: 12px; color: #A09080; margin-top: 6px; }
 
 .member-badge {
-  background: linear-gradient(135deg, #f5a623, #e8961a);
+  background: var(--gradient-gold);
   color: #fff;
-  font-size: 12px; font-weight: 600;
-  padding: 4px 12px; border-radius: 12px;
+  font-size: 12px; font-weight: 800;
+  padding: 7px 16px;
+  border-radius: var(--radius-full);
+  letter-spacing: 1.5px;
+  box-shadow: 0 3px 12px rgba(240,165,0,0.4);
+  position: relative; z-index: 1;
 }
 
-.member-stats { text-align: center; font-size: 13px; color: #ccc; }
-.stats-num { font-size: 18px; font-weight: 700; color: #f5a623; }
-
-/* 非会员提示 */
-.non-member-hint {
+.member-stats {
   text-align: center;
-  padding: 30px 0 10px;
+  font-size: 14px;
+  color: #A09080;
+  position: relative; z-index: 1;
 }
-.hint-icon { font-size: 40px; margin-bottom: 8px; }
-.hint-text { font-size: 14px; color: #999; }
 
-/* 章节标题 */
+.stats-num {
+  font-size: 22px;
+  font-weight: 900;
+  background: var(--gradient-gold);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* non-member */
+.non-member-hint { text-align: center; padding: 36px 0 10px; }
+.hint-crown { font-size: 54px; margin-bottom: 12px; }
+.hint-text { font-size: 15px; color: var(--text-secondary); font-weight: 600; }
+
 .section-title {
-  font-size: 16px; font-weight: 600; color: #333;
-  padding: 20px 16px 12px;
+  font-size: 18px; font-weight: 800; color: var(--text-primary);
+  padding: 26px 16px 14px;
+  letter-spacing: 0.5px;
 }
 
-/* 权益 */
+/* benefits */
 .benefits-row {
   display: flex;
   gap: 10px;
@@ -232,80 +243,110 @@ function handleBuy(type) {
 .benefit-card {
   flex: 1;
   background: #fff;
-  border-radius: 12px;
-  padding: 14px 10px;
+  border-radius: var(--radius-xl);
+  padding: 18px 10px;
   text-align: center;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  box-shadow: var(--shadow-xs);
+  border: 1px solid rgba(0,0,0,0.03);
+  transition: all 0.2s;
 }
 
-.benefit-icon {
-  width: 40px; height: 40px;
-  border-radius: 50%;
-  background: #fef5ee;
-  display: flex; align-items: center; justify-content: center;
-  margin: 0 auto 8px;
-}
+.benefit-card:active { transform: scale(0.96); }
+.benefit-icon { font-size: 28px; margin-bottom: 10px; }
+.benefit-name { font-size: 14px; font-weight: 800; color: var(--text-primary); margin-bottom: 4px; }
+.benefit-desc { font-size: 11px; color: var(--text-muted); line-height: 1.5; }
 
-.benefit-name { font-size: 13px; font-weight: 600; color: #333; margin-bottom: 4px; }
-.benefit-desc { font-size: 11px; color: #999; line-height: 1.4; }
-
-/* 套餐 */
-.plans { padding: 0 16px; display: flex; flex-direction: column; gap: 10px; }
+/* plans */
+.plans { padding: 0 16px; display: flex; flex-direction: column; gap: 12px; }
 
 .plan-card {
   background: #fff;
-  border-radius: 12px;
-  padding: 16px;
+  border-radius: var(--radius-xl);
+  padding: 18px 16px;
   display: flex;
   align-items: center;
   gap: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-  border: 1px solid #eee;
+  box-shadow: var(--shadow-xs);
+  border: 2px solid var(--border);
+  transition: all 0.25s;
+  position: relative;
 }
 
-.plan-premium { border-color: #f5a623; }
+.plan-card:active { transform: scale(0.98); }
+
+.plan-premium {
+  border-color: #F5C34B;
+  box-shadow: 0 4px 24px rgba(240,165,0,0.1);
+  background: #FFFDF6;
+}
+
+.plan-badge {
+  position: absolute;
+  top: -10px; left: 16px;
+  background: var(--text-secondary);
+  color: #fff;
+  font-size: 11px; font-weight: 800;
+  padding: 3px 12px;
+  border-radius: var(--radius-full);
+  letter-spacing: 1px;
+}
+
+.plan-badge-gold {
+  background: var(--gradient-gold);
+  box-shadow: var(--shadow-gold);
+}
 
 .plan-info { flex: 1; min-width: 0; }
-.plan-name { font-size: 15px; font-weight: 600; color: #333; }
-.plan-desc { font-size: 12px; color: #999; margin-top: 2px; }
-.plan-sub { font-size: 12px; color: #999; margin-top: 2px; }
+.plan-name { font-size: 15px; font-weight: 800; color: var(--text-primary); }
+.plan-desc { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.plan-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
 
-.plan-price { flex-shrink: 0; font-size: 12px; color: #999; }
-.price-num { font-size: 18px; font-weight: 700; color: #F08B4F; }
+.plan-price { flex-shrink: 0; font-size: 12px; color: var(--text-muted); text-align: right; }
+.price-num { font-size: 22px; font-weight: 900; color: var(--primary); }
+.price-num-gold { font-size: 22px; font-weight: 900; color: var(--gold); }
 
 .plan-btn {
   flex-shrink: 0;
-  padding: 8px 16px;
-  border-radius: 20px;
-  border: 2px solid #E85D26;
-  color: #E85D26;
-  font-size: 13px; font-weight: 600;
+  padding: 9px 18px;
+  border-radius: var(--radius-full);
+  border: 2px solid var(--primary);
+  color: var(--primary);
+  font-size: 13px; font-weight: 800;
   background: #fff;
   cursor: pointer;
+  transition: all 0.25s;
+}
+
+.plan-btn:active {
+  background: var(--primary);
+  color: #fff;
 }
 
 .plan-btn-gold {
-  border-color: #f5a623;
-  background: linear-gradient(135deg, #f5a623, #e8961a);
+  border-color: var(--gold);
+  background: var(--gradient-gold);
   color: #fff;
+  box-shadow: var(--shadow-gold);
 }
 
-.plan-btn:active { transform: scale(0.96); }
+.plan-btn-gold:active { opacity: 0.9; transform: scale(0.95); }
 
-/* 已是会员 */
+/* already member */
 .already-member {
   text-align: center;
   padding: 30px;
-  color: #E85D26;
-  font-size: 15px; font-weight: 600;
+  color: var(--primary);
+  font-size: 16px; font-weight: 700;
 }
+
 .already-icon {
-  width: 48px; height: 48px;
+  width: 56px; height: 56px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #f5a623, #e8961a);
+  background: var(--gradient-gold);
   color: #fff;
-  font-size: 24px;
+  font-size: 28px;
   display: flex; align-items: center; justify-content: center;
-  margin: 0 auto 12px;
+  margin: 0 auto 14px;
+  box-shadow: var(--shadow-gold);
 }
 </style>

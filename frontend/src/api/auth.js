@@ -10,3 +10,31 @@ export function login(username, password) {
 export function getUserDetail(userId) {
   return request.get('/user/mydetail', { params: { id: userId } })
 }
+
+export function sendEmailCode(email) {
+  const params = new URLSearchParams()
+  params.append('email', email)
+  return request.post('/user/sendCode', params)
+}
+
+export function emailLogin(email, code) {
+  const params = new URLSearchParams()
+  params.append('email', email)
+  params.append('code', code)
+  return request.post('/user/emailLogin', params)
+}
+
+export function isFirstLogin(userId) {
+  return request.get('/user/isFirstLogin', { params: { userId } })
+}
+
+export function alterUser(user) {
+  const params = new URLSearchParams()
+  params.append('userId', user.userId)
+  params.append('username', user.username || '')
+  params.append('password', user.password || '')
+  params.append('nickName', user.nickName || '')
+  params.append('phone', user.phone || '')
+  params.append('email', user.email || '')
+  return request.post('/user/alterUser', params)
+}

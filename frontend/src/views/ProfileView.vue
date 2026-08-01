@@ -1,61 +1,150 @@
 <template>
   <div class="profile-page">
-    <!-- 头像区域 -->
     <div class="header-section">
       <div class="avatar-wrapper">
         <img v-if="userInfo.avatar" :src="userInfo.avatar" class="avatar-img" @error="userInfo.avatar = ''" />
         <span v-else class="avatar-placeholder">{{ initial }}</span>
+        <div class="avatar-ring"></div>
       </div>
       <div class="header-right">
         <div class="nickname-row">
           <span class="nickname">{{ userInfo.nickName || userStore.user?.nickName || '未登录' }}</span>
-          <span v-if="isMember" class="vip-tag">VIP用户</span>
+          <span v-if="isMember" class="vip-tag">VIP</span>
         </div>
         <div class="bio">热爱生活，享受下厨的每一刻</div>
       </div>
-      <button class="edit-btn" @click="handleEdit">编辑</button>
+      <button class="edit-btn" @click="openEdit">编辑资料</button>
     </div>
 
-    <!-- 数据统计卡片 -->
     <div class="stats-card">
       <div class="stat-item">
         <div class="stat-num">{{ stats.works }}</div>
         <div class="stat-label">作品</div>
       </div>
-      <div class="stat-divider"></div>
       <div class="stat-item">
         <div class="stat-num">{{ stats.following }}</div>
         <div class="stat-label">关注</div>
       </div>
-      <div class="stat-divider"></div>
       <div class="stat-item">
         <div class="stat-num">{{ stats.followers }}</div>
         <div class="stat-label">粉丝</div>
       </div>
-      <div class="stat-divider"></div>
       <div class="stat-item">
         <div class="stat-num">{{ stats.likes }}</div>
         <div class="stat-label">获赞</div>
       </div>
     </div>
 
-    <!-- 菜单卡片 -->
     <div class="menu-card">
       <div
         v-for="(item, index) in menuItems"
         :key="item.label"
         class="menu-item"
-        :class="{ 'menu-item--last': index === menuItems.length - 1 }"
         @click="handleMenuClick(item)"
       >
-        <span class="menu-label">{{ item.label }}</span>
-        <svg class="menu-arrow" viewBox="0 0 24 24" width="16" height="16">
-          <path d="M9 18l6-6-6-6" stroke="#B99E8E" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <div class="menu-left">
+          <svg class="menu-icon-svg" viewBox="0 0 24 24" width="20" height="20">
+            <template v-if="item.icon === 'recipe'">
+              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+            </template>
+            <template v-else-if="item.icon === 'cart'">
+              <circle cx="9" cy="21" r="1" fill="currentColor"/><circle cx="20" cy="21" r="1" fill="currentColor"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+            </template>
+            <template v-else-if="item.icon === 'order'">
+              <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M3 10h18M8 2v4M16 2v4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+            </template>
+            <template v-else-if="item.icon === 'bell'">
+              <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+            </template>
+            <template v-else-if="item.icon === 'settings'">
+              <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" stroke="currentColor" stroke-width="1.5" fill="none"/>
+            </template>
+            <template v-else>
+              <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/><circle cx="12" cy="17" r="1" fill="currentColor"/>
+            </template>
+          </svg>
+          <span class="menu-label">{{ item.label }}</span>
+        </div>
+        <svg class="menu-arrow" viewBox="0 0 24 24" width="18" height="18">
+          <path d="M9 18l6-6-6-6" stroke="#c4b8aa" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </div>
     </div>
 
-    <!-- 底部导航栏 -->
+    <!-- Edit profile modal -->
+    <transition name="modal">
+      <div v-if="showEdit" class="modal-overlay" @click.self="showEdit = false">
+        <div class="modal-card">
+          <div class="modal-header">
+            <h3 class="modal-title">编辑资料</h3>
+            <button class="modal-close" @click="showEdit = false">
+              <svg viewBox="0 0 24 24" width="20" height="20">
+                <path d="M18 6L6 18M6 6l12 12" stroke="#9b9085" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </button>
+          </div>
+
+          <div class="modal-input-group">
+            <label class="modal-label">用户名</label>
+            <input
+              v-model="editForm.username"
+              type="text"
+              placeholder="请输入用户名"
+              class="modal-input"
+            />
+          </div>
+
+          <div class="modal-input-group">
+            <label class="modal-label">昵称</label>
+            <input
+              v-model="editForm.nickName"
+              type="text"
+              placeholder="请输入昵称"
+              class="modal-input"
+            />
+          </div>
+
+          <div class="modal-input-group">
+            <label class="modal-label">新密码 <span class="optional">(留空则不修改)</span></label>
+            <input
+              v-model="editForm.password"
+              type="password"
+              placeholder="请输入新密码"
+              class="modal-input"
+            />
+          </div>
+
+          <div class="modal-input-group">
+            <label class="modal-label">手机号</label>
+            <input
+              v-model="editForm.phone"
+              type="tel"
+              placeholder="请输入手机号"
+              class="modal-input"
+            />
+          </div>
+
+          <div class="modal-input-group">
+            <label class="modal-label">邮箱</label>
+            <input
+              v-model="editForm.email"
+              type="email"
+              placeholder="请输入邮箱"
+              class="modal-input"
+            />
+          </div>
+
+          <button class="save-btn" @click="submitEdit" :disabled="editLoading">
+            {{ editLoading ? '保存中...' : '保存修改' }}
+          </button>
+        </div>
+      </div>
+    </transition>
+
+    <transition name="fade">
+      <div v-if="toast.show" class="toast" :class="toast.type">{{ toast.msg }}</div>
+    </transition>
+
     <AppTabbar />
   </div>
 </template>
@@ -66,37 +155,41 @@ import { useRouter } from 'vue-router'
 import { userStore } from '../store/user'
 import { getUserDetail, getWorkCount, getLikeCount, getFollowingCount, getFollowerCount } from '../api/user'
 import { checkMember } from '../api/member'
+import { alterUser } from '../api/auth'
 import AppTabbar from '../components/AppTabbar.vue'
 
 const router = useRouter()
-
 const isMember = ref(false)
 
-const userInfo = reactive({
-  nickName: '',
-  avatar: '',
-})
+const userInfo = reactive({ nickName: '', avatar: '' })
 
 const initial = computed(() => {
   const name = userInfo.nickName || userStore.user?.username || ''
   return name.charAt(0).toUpperCase()
 })
 
-const stats = reactive({
-  works: 0,
-  following: 0,
-  followers: 0,
-  likes: 0,
-})
+const stats = reactive({ works: 0, following: 0, followers: 0, likes: 0 })
 
 const menuItems = [
-  { label: '我发布的菜谱', route: '/my-recipes' },
-  { label: '我的购物车', route: '/cart' },
-  { label: '我的订单', route: '/orders' },
-  { label: '消息通知', route: '/notifications' },
-  { label: '账号设置', route: '/settings' },
-  { label: '帮助与反馈', route: '/help' },
+  { label: '我发布的菜谱', route: '/my-recipes', icon: 'recipe' },
+  { label: '我的购物车', route: '/cart', icon: 'cart' },
+  { label: '我的订单', route: '/orders', icon: 'order' },
+  { label: '消息通知', route: '/notifications', icon: 'bell' },
+  { label: '账号设置', route: '/settings', icon: 'settings' },
+  { label: '帮助与反馈', route: '/help', icon: 'help' },
 ]
+
+const showEdit = ref(false)
+const editLoading = ref(false)
+const toast = reactive({ show: false, msg: '', type: 'success' })
+
+const editForm = reactive({
+  username: '',
+  nickName: '',
+  password: '',
+  phone: '',
+  email: '',
+})
 
 onMounted(async () => {
   const user = userStore.user
@@ -122,17 +215,61 @@ onMounted(async () => {
     stats.likes = likesRes.data || 0
     stats.following = followingRes.data || 0
     stats.followers = followerRes.data || 0
-  } catch {
-    // 失败保持默认值 0
-  }
+  } catch { /* ignore */ }
 })
 
-function handleEdit() {}
+function showToast(msg, type = 'success') {
+  toast.msg = msg
+  toast.type = type
+  toast.show = true
+  setTimeout(() => { toast.show = false }, 2000)
+}
+
+function openEdit() {
+  const user = userStore.user
+  if (!user) return
+  editForm.username = user.username || ''
+  editForm.nickName = user.nickName || ''
+  editForm.password = ''
+  editForm.phone = user.phone || ''
+  editForm.email = user.email || ''
+  showEdit.value = true
+}
+
+async function submitEdit() {
+  const user = userStore.user
+  if (!user) return
+
+  editLoading.value = true
+  try {
+    await alterUser({
+      userId: user.userId,
+      username: editForm.username.trim(),
+      nickName: editForm.nickName.trim(),
+      password: editForm.password,
+      phone: editForm.phone.trim(),
+      email: editForm.email.trim(),
+    })
+    // 更新本地store
+    userStore.setUser({
+      ...user,
+      username: editForm.username.trim(),
+      nickName: editForm.nickName.trim(),
+      phone: editForm.phone.trim(),
+      email: editForm.email.trim(),
+    })
+    userInfo.nickName = editForm.nickName.trim()
+    showEdit.value = false
+    showToast('修改成功')
+  } catch {
+    showToast('修改失败，请稍后重试', 'error')
+  } finally {
+    editLoading.value = false
+  }
+}
 
 function handleMenuClick(item) {
-  if (item.route) {
-    router.push(item.route)
-  }
+  if (item.route) router.push(item.route)
 }
 </script>
 
@@ -140,49 +277,62 @@ function handleMenuClick(item) {
 .profile-page {
   min-height: 100vh;
   min-height: 100dvh;
-  background: var(--bg);
+  background: var(--gradient-page);
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 0 15px 80px;
+  padding: 0 var(--container-padding) 80px;
 }
 
-/* ===== 头像区域 ===== */
 .header-section {
   display: flex;
   align-items: center;
   width: 100%;
-  margin-top: 34px;
-  position: relative;
+  margin-top: 44px;
 }
 
 .avatar-wrapper {
-  width: 70px;
-  height: 70px;
+  width: 74px;
+  height: 74px;
   border-radius: 50%;
-  overflow: hidden;
+  position: relative;
   flex-shrink: 0;
-  background: #f0e4d6;
   display: flex;
   align-items: center;
   justify-content: center;
-  position: relative;
 }
 
-.avatar-img {
+.avatar-ring {
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  background: var(--gradient-primary);
+  z-index: 0;
+}
+
+.avatar-img, .avatar-placeholder {
   width: 100%;
   height: 100%;
+  border-radius: 50%;
   object-fit: cover;
+  position: relative;
+  z-index: 1;
+  border: 3px solid #fff;
 }
 
 .avatar-placeholder {
-  font-size: 28px;
-  font-weight: 700;
-  color: var(--orange);
+  background: linear-gradient(135deg, #F5F0E8, #EDE4D5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+  font-weight: 800;
+  color: var(--primary);
+  font-family: var(--font-heading);
 }
 
 .header-right {
-  margin-left: 14px;
+  margin-left: 16px;
   flex: 1;
   min-width: 0;
 }
@@ -190,58 +340,64 @@ function handleMenuClick(item) {
 .nickname-row {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
 
 .nickname {
-  font-size: 18px;
-  font-weight: 600;
-  color: #333;
-  line-height: 1.3;
+  font-family: var(--font-heading);
+  font-size: 21px;
+  font-weight: 800;
+  color: var(--text-primary);
 }
 
 .vip-tag {
-  background: linear-gradient(135deg, #f5a623, #e8961a);
+  background: var(--gradient-gold);
   color: #fff;
+  font-family: var(--font-heading);
   font-size: 11px;
-  font-weight: 600;
-  padding: 2px 8px;
-  border-radius: 10px;
-  white-space: nowrap;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  letter-spacing: 1.5px;
+  box-shadow: var(--shadow-gold);
 }
 
 .bio {
-  font-size: 12px;
-  color: var(--gray);
-  margin-top: 4px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-top: 6px;
 }
 
 .edit-btn {
-  width: 60px;
-  height: 30px;
-  border-radius: 15px;
-  border: 1px solid var(--orange);
-  color: var(--orange);
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  border: 2px solid var(--primary);
+  color: var(--primary);
+  font-family: var(--font-heading);
   font-size: 13px;
+  font-weight: 700;
   flex-shrink: 0;
-  transition: all 0.2s;
+  background: #fff;
+  transition: all 0.25s;
 }
 
 .edit-btn:active {
-  background: var(--orange);
+  background: var(--primary);
   color: #fff;
+  box-shadow: var(--shadow-primary);
 }
 
-/* ===== 数据统计卡片 ===== */
 .stats-card {
   display: flex;
   align-items: center;
   width: 100%;
-  height: 70px;
-  background: var(--white);
-  border-radius: var(--radius-card);
-  margin-top: 20px;
-  box-shadow: 0 2px 12px rgba(185, 158, 142, 0.1);
+  padding: 18px 0;
+  background: #fff;
+  border-radius: var(--radius-xl);
+  margin-top: 24px;
+  box-shadow: var(--shadow-card);
+  border: 1px solid rgba(255, 122, 51, 0.04);
 }
 
 .stat-item {
@@ -253,55 +409,218 @@ function handleMenuClick(item) {
 }
 
 .stat-num {
-  font-size: 18px;
-  font-weight: 700;
-  color: #333;
+  font-family: var(--font-heading);
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--primary);
 }
 
 .stat-label {
+  font-family: var(--font-body);
   font-size: 12px;
-  color: var(--gray);
+  color: var(--text-muted);
+  font-weight: 500;
 }
 
-.stat-divider {
-  width: 1px;
-  height: 30px;
-  background: #e8ddd2;
-}
-
-/* ===== 菜单卡片 ===== */
 .menu-card {
   width: 100%;
-  background: var(--white);
-  border-radius: var(--radius-card);
+  background: #fff;
+  border-radius: var(--radius-xl);
   margin-top: 16px;
-  box-shadow: 0 2px 12px rgba(185, 158, 142, 0.1);
+  box-shadow: var(--shadow-card);
+  border: 1px solid rgba(255, 122, 51, 0.04);
+  overflow: hidden;
 }
 
 .menu-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 52px;
+  height: 54px;
   padding: 0 18px;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: all 0.2s;
+  border-bottom: 1px solid var(--divider);
+}
+
+.menu-item:last-child {
+  border-bottom: none;
 }
 
 .menu-item:active {
-  background: #fdf7f2;
+  background: var(--primary-bg-light);
 }
 
-.menu-item:not(.menu-item--last) {
-  border-bottom: 1px solid #f0e8de;
+.menu-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.menu-icon-svg {
+  width: 20px;
+  height: 20px;
+  color: var(--primary);
+  flex-shrink: 0;
 }
 
 .menu-label {
+  font-family: var(--font-heading);
   font-size: 15px;
-  color: #333;
+  font-weight: 600;
+  color: var(--text-primary);
 }
 
 .menu-arrow {
   flex-shrink: 0;
 }
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(18, 30, 31, 0.45);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  padding: 24px;
+}
+
+.modal-card {
+  width: 100%;
+  max-width: 340px;
+  background: #fff;
+  border-radius: var(--radius-2xl);
+  padding: 28px 24px 24px;
+  box-shadow: 0 20px 60px rgba(255, 122, 51, 0.15);
+  animation: scaleIn 0.35s var(--ease-smooth);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.modal-title {
+  font-family: var(--font-heading);
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: 1px;
+}
+
+.modal-close {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.modal-close:active { background: var(--primary-bg); }
+
+.modal-input-group {
+  margin-bottom: 14px;
+}
+
+.modal-label {
+  display: block;
+  font-family: var(--font-heading);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+  padding-left: 4px;
+}
+
+.modal-label .optional {
+  font-weight: 400;
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.modal-input {
+  width: 100%;
+  height: 46px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 0 14px;
+  font-size: 14px;
+  font-family: var(--font-body);
+  background: #FFFBF7;
+  transition: all 0.25s;
+}
+
+.modal-input:focus {
+  border-color: var(--primary-lighter);
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(255, 176, 136, 0.12);
+}
+
+.modal-input::placeholder {
+  color: var(--text-placeholder);
+}
+
+.save-btn {
+  display: block;
+  width: 100%;
+  height: 48px;
+  border-radius: var(--radius-full);
+  background: var(--gradient-primary);
+  color: #fff;
+  font-family: var(--font-heading);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  margin-top: 8px;
+  transition: all 0.3s var(--ease-smooth);
+  box-shadow: var(--shadow-primary);
+}
+
+.save-btn:active {
+  transform: scale(0.96);
+  box-shadow: 0 2px 8px rgba(255, 122, 51, 0.2);
+}
+
+.save-btn:disabled {
+  opacity: 0.55;
+  transform: none;
+}
+
+/* Toast */
+.toast {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 14px 36px;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  z-index: 300;
+  pointer-events: none;
+  letter-spacing: 1px;
+  font-family: var(--font-heading);
+}
+
+.toast.success { background: rgba(18, 30, 31, 0.88); }
+.toast.error { background: rgba(180, 60, 20, 0.9); }
+
+.fade-enter-active,
+.fade-leave-active { transition: opacity 0.3s; }
+.fade-enter-from,
+.fade-leave-to { opacity: 0; }
+
+.modal-enter-active { transition: opacity 0.3s; }
+.modal-enter-active .modal-card { animation: scaleIn 0.35s var(--ease-smooth); }
+.modal-leave-active { transition: opacity 0.25s; }
+.modal-leave-to { opacity: 0; }
 </style>

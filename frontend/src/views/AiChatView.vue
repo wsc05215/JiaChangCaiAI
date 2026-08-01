@@ -1,10 +1,9 @@
 <template>
   <div class="ai-page">
-    <!-- 顶部导航 -->
     <div class="nav-bar">
       <div class="back-btn" @click="$router.back()">
         <svg viewBox="0 0 24 24" width="24" height="24">
-          <path d="M15 18l-6-6 6-6" stroke="#555" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M15 18l-6-6 6-6" stroke="#6B5E52" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </div>
       <span class="nav-title">{{ modeText }}</span>
@@ -13,23 +12,31 @@
       </div>
     </div>
 
-    <!-- 消息列表 -->
     <div class="msg-list" ref="msgList">
       <div v-if="messages.length === 0 && !streaming" class="welcome-area">
         <div class="welcome-avatar">
-          <svg viewBox="0 0 48 48" width="48" height="48" fill="none">
-            <circle cx="24" cy="24" r="23" fill="url(#w-grad)" stroke="#fff" stroke-width="2"/>
-            <path d="M24 10l2.5 8.5L35 21l-8.5 2.5L24 32l-2.5-8.5L13 21l8.5-2.5z" fill="#fff"/>
-            <defs>
-              <radialGradient id="w-grad" cx="40%" cy="35%">
-                <stop offset="0%" stop-color="#FF8C5A"/>
-                <stop offset="100%" stop-color="#E85D26"/>
-              </radialGradient>
-            </defs>
-          </svg>
+          <div class="welcome-avatar-circle">
+            <svg viewBox="0 0 48 48" width="48" height="48" fill="none">
+              <circle cx="24" cy="24" r="23" fill="url(#w-grad)" stroke="#fff" stroke-width="2.5"/>
+              <path d="M24 10l2.5 8.5L35 21l-8.5 2.5L24 32l-2.5-8.5L13 21l8.5-2.5z" fill="#fff"/>
+              <defs>
+                <radialGradient id="w-grad" cx="40%" cy="35%">
+                  <stop offset="0%" stop-color="#FF7E55"/>
+                  <stop offset="100%" stop-color="#E84518"/>
+                </radialGradient>
+              </defs>
+            </svg>
+          </div>
+          <div class="welcome-glow"></div>
         </div>
-        <div class="welcome-msg">你好，我是你的"饮食管家"~</div>
+        <div class="welcome-msg">你好，我是你的饮食管家</div>
         <div class="welcome-sub">有什么我可以帮助您的呢？</div>
+
+        <div class="quick-prompts">
+          <div class="prompt-chip" @click="quickAsk('今天吃什么好呢？')">今天吃什么？</div>
+          <div class="prompt-chip" @click="quickAsk('推荐几道低热量的家常菜')">低热量推荐</div>
+          <div class="prompt-chip" @click="quickAsk('帮我搭配一周的菜单')">一周菜单</div>
+        </div>
       </div>
 
       <div
@@ -39,7 +46,7 @@
         :class="msg.role === 'user' ? 'msg-user' : 'msg-ai'"
       >
         <div v-if="msg.role === 'ai'" class="avatar-ai">
-          <svg viewBox="0 0 20 20" width="11" height="11" fill="#fff">
+          <svg viewBox="0 0 20 20" width="12" height="12" fill="#fff">
             <circle cx="10" cy="10" r="9" fill="none" stroke="#fff" stroke-width="1.5" opacity="0.5"/>
             <path d="M10 4l1 4 4 1-4 1-1 4-1-4-4-1 4-1z"/>
           </svg>
@@ -52,7 +59,7 @@
 
       <div v-if="streaming" class="msg-row msg-ai">
         <div class="avatar-ai streaming">
-          <svg viewBox="0 0 20 20" width="11" height="11" fill="#fff">
+          <svg viewBox="0 0 20 20" width="12" height="12" fill="#fff">
             <circle cx="10" cy="10" r="9" fill="none" stroke="#fff" stroke-width="1.5" opacity="0.5"/>
             <path d="M10 4l1 4 4 1-4 1-1 4-1-4-4-1 4-1z"/>
           </svg>
@@ -64,47 +71,43 @@
       </div>
     </div>
 
-    <!-- 底部按钮 + 输入区 -->
     <div class="bottom-area">
       <div class="feature-btns">
-        <button
-          class="feature-btn"
-          :class="{ active: mode === 'recipe' }"
-          @click="switchMode('recipe')"
-        >定制食谱</button>
-        <button
-          class="feature-btn"
-          :class="{ active: mode === 'menu' }"
-          @click="switchMode('menu')"
-        >一键菜单</button>
-        <button
-          class="feature-btn"
-          @click="ingredientManage"
-        >食材管理</button>
-      </div>
-
-      <div class="input-card">
-        <input
-          v-model="input"
-          class="text-input"
-          :placeholder="inputPlaceholder"
-          @keyup.enter="send"
-          :disabled="streaming"
-        />
-        <button
-          class="send-btn"
-          @click="send"
-          :disabled="!input.trim() || streaming"
-          :class="{ ready: input.trim() && !streaming }"
-        >
-          <svg viewBox="0 0 24 24" width="18" height="18">
-            <path d="M3 20V4l19 8-19 8zm2-2.5L17 12 5 6.5v4L11 12l-6 1.5v4z" :fill="input.trim() && !streaming ? '#fff' : '#B99E8E'"/>
-          </svg>
+        <button class="feature-btn" :class="{ active: mode === 'recipe' }" @click="switchMode('recipe')">
+          <span class="f-icon">&#x1F4D6;</span> 定制食谱
+        </button>
+        <button class="feature-btn" :class="{ active: mode === 'menu' }" @click="switchMode('menu')">
+          <span class="f-icon">&#x1F4CB;</span> 一键菜单
+        </button>
+        <button class="feature-btn" @click="ingredientManage">
+          <span class="f-icon">&#x1F96C;</span> 食材管理
         </button>
       </div>
 
+      <div class="input-row">
+        <div class="input-card">
+          <input
+            v-model="input"
+            class="text-input"
+            :placeholder="inputPlaceholder"
+            @keyup.enter="send"
+            :disabled="streaming"
+          />
+          <button
+            class="send-btn"
+            @click="send"
+            :disabled="!input.trim() || streaming"
+            :class="{ ready: input.trim() && !streaming }"
+          >
+            <svg viewBox="0 0 24 24" width="20" height="20">
+              <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" :stroke="input.trim() && !streaming ? '#fff' : '#C4B5AA'" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
       <div v-if="trialExhausted" class="trial-link" @click="$router.push('/member')">
-        开通会员解锁无限次数 →
+        开通会员解锁无限次数 &#x2192;
       </div>
     </div>
   </div>
@@ -172,6 +175,10 @@ function switchMode(newMode) {
   mode.value = newMode
 }
 
+function quickAsk(text) {
+  streamSend('chat', text)
+}
+
 function streamSend(m, msg) {
   addMessage('user', msg)
   streaming.value = true
@@ -207,7 +214,6 @@ function streamSend(m, msg) {
 function send() {
   const text = input.value.trim()
   if (!text || streaming.value) return
-
   input.value = ''
   streamSend(mode.value, text)
 }
@@ -223,109 +229,147 @@ function ingredientManage() {
   flex-direction: column;
   height: 100vh;
   height: 100dvh;
-  background: linear-gradient(180deg, #fef9f4 0%, var(--bg) 30%);
+  background: linear-gradient(180deg, #F5F0E8 0%, #F9F7F2 25%, #F8F4ED 100%);
 }
 
-/* ===== 顶部导航 ===== */
 .nav-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6px 8px;
+  padding: 8px 8px;
   flex-shrink: 0;
+  background: rgba(249,247,242,0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(0,0,0,0.04);
 }
 
 .back-btn {
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.back-btn:active {
-  background: rgba(0,0,0,0.04);
+  width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; border-radius: 50%;
 }
 
 .nav-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: #333;
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: 0.5px;
 }
 
-.nav-placeholder {
-  width: 36px;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-}
+.nav-placeholder { width: 36px; }
 
 .member-tag {
-  background: linear-gradient(135deg, #f5a623, #e8961a);
+  background: var(--gradient-gold);
   color: #fff;
-  font-size: 10px;
-  font-weight: 700;
-  padding: 2px 6px;
-  border-radius: 6px;
-  letter-spacing: 1px;
+  font-size: 10px; font-weight: 800;
+  padding: 3px 8px;
+  border-radius: var(--radius-xs);
+  letter-spacing: 1.5px;
+  box-shadow: var(--shadow-gold);
 }
 
-/* ===== 消息列表 ===== */
+/* msg list */
 .msg-list {
   flex: 1;
   overflow-y: auto;
-  padding: 6px 14px;
+  padding: 10px 14px;
   -webkit-overflow-scrolling: touch;
 }
 
+/* welcome */
 .welcome-area {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: 80px;
+  padding-top: 60px;
 }
 
 .welcome-avatar {
-  margin-bottom: 20px;
+  position: relative;
+  margin-bottom: 28px;
+}
+
+.welcome-avatar-circle {
+  position: relative;
+  z-index: 1;
+  filter: drop-shadow(0 6px 20px rgba(255, 122, 51,0.25));
+}
+
+.welcome-glow {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80px; height: 80px;
+  background: radial-gradient(circle, rgba(230,126,34,0.12) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: welcomePulse 2.5s ease-in-out infinite;
+}
+
+@keyframes welcomePulse {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
+  50% { transform: translate(-50%, -50%) scale(1.3); opacity: 1; }
 }
 
 .welcome-msg {
-  font-size: 17px;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 6px;
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+  letter-spacing: 1px;
 }
 
 .welcome-sub {
   font-size: 14px;
-  color: #B99E8E;
+  color: var(--text-muted);
+  margin-bottom: 24px;
 }
 
-/* 消息行 */
+.quick-prompts {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.prompt-chip {
+  padding: 10px 18px;
+  background: #fff;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-full);
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: var(--shadow-xs);
+}
+
+.prompt-chip:active {
+  background: var(--primary-bg);
+  border-color: var(--primary);
+  color: var(--primary);
+  transform: scale(0.96);
+}
+
+/* messages */
 .msg-row {
   display: flex;
   align-items: flex-start;
-  margin-bottom: 18px;
+  margin-bottom: 22px;
   gap: 8px;
+  animation: fadeInUp 0.3s ease-out;
 }
 
-.msg-user {
-  justify-content: flex-end;
-}
+.msg-user { justify-content: flex-end; }
 
 .avatar-ai {
-  width: 30px;
-  height: 30px;
+  width: 34px; height: 34px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #FF8C5A, #E85D26);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  background: var(--gradient-primary);
+  display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
+  box-shadow: 0 3px 10px rgba(255, 122, 51,0.25);
 }
 
 .avatar-ai.streaming {
@@ -333,57 +377,51 @@ function ingredientManage() {
 }
 
 @keyframes pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(232, 93, 38, 0.3); }
-  50% { box-shadow: 0 0 0 8px rgba(232, 93, 38, 0); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 122, 51,0.35); }
+  50% { box-shadow: 0 0 0 12px rgba(255,94,44,0); }
 }
 
 .avatar-user {
-  width: 30px;
-  height: 30px;
+  width: 34px; height: 34px;
   border-radius: 50%;
-  background: #f0e4d6;
-  color: #B99E8E;
-  font-size: 13px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  background: linear-gradient(135deg, #FFF8F0, #EDE4D5);
+  color: var(--text-muted);
+  font-size: 14px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
 }
 
 .msg-bubble {
-  max-width: 72%;
-  padding: 10px 14px;
-  border-radius: 16px;
+  max-width: 70%;
+  padding: 12px 16px;
+  border-radius: 20px;
   font-size: 14px;
-  line-height: 1.6;
+  line-height: 1.65;
   word-break: break-word;
   white-space: pre-wrap;
 }
 
 .bubble-ai {
   background: #fff;
-  color: #333;
-  border-top-left-radius: 4px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  color: var(--text-primary);
+  border-top-left-radius: 6px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.04);
 }
 
 .bubble-user {
-  background: linear-gradient(135deg, #FF8C5A, #E85D26);
+  background: var(--gradient-primary);
   color: #fff;
-  border-top-right-radius: 4px;
+  border-top-right-radius: 6px;
+  box-shadow: 0 4px 14px rgba(255, 122, 51,0.25);
 }
 
-.msg-text {
-  display: inline;
-}
+.msg-text { display: inline; }
 
 .typing-dot {
   display: inline-block;
-  width: 8px;
-  height: 14px;
+  width: 7px; height: 14px;
   vertical-align: middle;
-  background: linear-gradient(135deg, #FF8C5A, #E85D26);
+  background: var(--primary);
   border-radius: 2px;
   margin-left: 2px;
   animation: blink 1s step-end infinite;
@@ -394,92 +432,110 @@ function ingredientManage() {
   50% { opacity: 0; }
 }
 
-/* ===== 底部区 ===== */
+/* bottom area */
 .bottom-area {
   flex-shrink: 0;
   padding: 8px 14px;
-  padding-bottom: max(8px, env(safe-area-inset-bottom));
+  padding-bottom: max(10px, env(safe-area-inset-bottom));
+  background: rgba(249,247,242,0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(0,0,0,0.04);
 }
 
 .feature-btns {
   display: flex;
   gap: 10px;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .feature-btn {
   flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
   background: #fff;
-  border: 1px solid #e8e0d8;
-  border-radius: 8px;
-  padding: 10px 0;
-  font-size: 15px;
-  color: #666;
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 11px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all 0.25s var(--ease-smooth);
+  box-shadow: var(--shadow-xs);
 }
 
-.feature-btn:active {
-  transform: scale(0.97);
-}
+.f-icon { font-size: 14px; }
+
+.feature-btn:active { transform: scale(0.96); }
 
 .feature-btn.active {
-  border-color: #E85D26;
-  color: #E85D26;
-  background: #fefaf7;
+  border-color: var(--primary);
+  color: var(--primary);
+  background: var(--primary-bg);
+  font-weight: 800;
+  box-shadow: 0 2px 12px rgba(230,126,34,0.08);
+}
+
+.input-row {
+  display: flex;
+  gap: 8px;
 }
 
 .input-card {
+  flex: 1;
   display: flex;
   align-items: center;
   background: #fff;
-  border-radius: 24px;
-  padding: 0 6px 0 18px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-  border: 1px solid #f0e8de;
+  border-radius: 26px;
+  padding: 0 6px 0 20px;
+  box-shadow: 0 4px 24px rgba(30,21,15,0.05);
+  border: 1.5px solid var(--border);
+  transition: all 0.25s;
+}
+
+.input-card:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 4px 24px rgba(230,126,34,0.1);
 }
 
 .text-input {
   flex: 1;
-  height: 42px;
-  border: none;
-  outline: none;
+  height: 46px;
+  border: none; outline: none;
   font-size: 14px;
-  color: #333;
+  color: var(--text-primary);
   background: transparent;
 }
 
-.text-input::placeholder {
-  color: #B99E8E;
-}
+.text-input::placeholder { color: var(--text-placeholder); }
 
 .send-btn {
-  width: 36px;
-  height: 36px;
+  width: 40px; height: 40px;
   border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
-  transition: all 0.2s;
+  transition: all 0.3s var(--ease-bounce);
   background: transparent;
 }
 
 .send-btn.ready {
-  background: linear-gradient(135deg, #FF8C5A, #E85D26);
+  background: var(--gradient-primary);
+  box-shadow: 0 3px 14px rgba(255, 122, 51,0.25);
 }
 
 .send-btn:active {
-  transform: scale(0.92);
+  transform: scale(0.85);
 }
 
 .trial-link {
   text-align: center;
   font-size: 12px;
-  color: #E85D26;
-  padding: 6px 0 0;
+  color: var(--primary);
+  padding: 8px 0 0;
   cursor: pointer;
-  text-decoration: underline;
+  font-weight: 700;
 }
-
 </style>
