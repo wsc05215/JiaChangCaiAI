@@ -16,6 +16,7 @@ export default defineConfig({
       '/search': 'http://localhost:8080',
       '/member': 'http://localhost:8080',
       '/comment': 'http://localhost:8080',
+      '/upload': 'http://localhost:8080',
       '/chat': 'http://localhost:8080',
       '/RecipechatAI': 'http://localhost:8080',
       '/MyRecipeChatOfAI': 'http://localhost:8080',

@@ -11,3 +11,13 @@ export function getFollowRecipes(userId) {
 export function getOwnRecipes(userId) {
   return request.get('/recipe/ownRecipe', { params: { id: userId } })
 }
+
+export function uploadImages(files) {
+  const form = new FormData()
+  files.forEach(f => form.append('files', f))
+  return request.post('/upload/images', form)
+}
+
+export function createRecipe(data) {
+  return request.post('/recipe/create', data)
+}

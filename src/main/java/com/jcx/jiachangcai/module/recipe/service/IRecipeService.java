@@ -21,4 +21,5 @@ public interface IRecipeService extends IService<Recipe> {
     List<Recipe> getRecipeOfOwn(Long id);
     Integer incrementLikeCount(Long recipeId);
     Integer decrementLikeCount(Long recipeId);
+    Recipe createRecipe(Recipe recipe);
 }

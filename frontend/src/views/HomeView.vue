@@ -16,18 +16,23 @@
 
     <!-- 推荐 -->
     <div v-if="activeTab === 'recommend'" class="tab-content">
-      <div v-if="todayRecommend" class="today-card" @click="goDetail(todayRecommend.recipeId)">
-        <div class="today-img-wrap">
-          <img class="today-img" :src="getCover(todayRecommend.coverImages)" @error="onImgError" />
-          <div class="today-overlay"></div>
-          <div class="today-content">
-            <span class="today-tag">今日推荐</span>
-            <div class="today-title-row">
-              <div class="today-title">{{ todayRecommend.title }}</div>
-              <span class="today-btn" @click.stop="goDetail(todayRecommend.recipeId)">立即查看 <svg viewBox="0 0 16 16" width="12" height="12" fill="none" style="vertical-align: middle"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      <div v-if="carouselRecipes.length > 0" class="carousel" @touchstart="onTouchStart" @touchend="onTouchEnd">
+        <div class="carousel-track" :style="{ transform: `translateX(-${currentSlide * 100}%)` }">
+          <div v-for="(item, i) in carouselRecipes" :key="item.recipeId" class="carousel-slide" :class="{ 'is-active': i === currentSlide }" @click="goDetail(item.recipeId)">
+            <div class="slide-img-wrap">
+              <img class="slide-img" :class="{ 'ken-burns': i === currentSlide }" :src="getCover(item.coverImages)" @error="onImgError" />
+              <div class="slide-shine" v-if="i === currentSlide"></div>
+              <div class="slide-overlay"></div>
+              <div class="slide-content" :key="'c' + currentSlide">
+                <span class="slide-tag">{{ i === 0 ? '今日推荐' : i === 1 ? '人气必吃' : '不容错过' }}</span>
+                <div class="slide-title">{{ item.title }}</div>
+                <div class="slide-meta">{{ item.cookTime || '30分钟' }} · {{ formatCount(item.favoriteCount) }} 收藏</div>
+              </div>
             </div>
-            <div class="today-sub">{{ todayRecommend.cookTime || '30分钟' }} / {{ formatCount(todayRecommend.favoriteCount) }} 收藏</div>
           </div>
+        </div>
+        <div class="carousel-dots">
+          <span v-for="(_, i) in carouselRecipes" :key="i" class="carousel-dot" :class="{ active: i === currentSlide }" @click.stop="goToSlide(i)"></span>
         </div>
       </div>
 
@@ -157,7 +162,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { userStore } from '../store/user'
 import { getAllRecipes, getFollowRecipes } from '../api/recipe'
@@ -175,8 +180,41 @@ const salesProducts = ref([])
 const activeSalesCat = ref('全部')
 const salesCategories = ['全部', '果蔬', '肉蛋', '海鲜', '速食']
 
-const todayRecommend = computed(() => recipes.value.length > 0 ? recipes.value[0] : null)
-const featuredRecipes = computed(() => recipes.value.slice(1))
+const carouselRecipes = computed(() => recipes.value.slice(0, 3))
+const featuredRecipes = computed(() => recipes.value.slice(3))
+
+const currentSlide = ref(0)
+let autoTimer = null
+
+function goToSlide(i) {
+  currentSlide.value = i
+  resetAutoPlay()
+}
+
+function nextSlide() {
+  if (carouselRecipes.value.length === 0) return
+  currentSlide.value = (currentSlide.value + 1) % carouselRecipes.value.length
+}
+
+function resetAutoPlay() {
+  clearInterval(autoTimer)
+  autoTimer = setInterval(nextSlide, 4000)
+}
+
+let touchStartX = 0
+function onTouchStart(e) {
+  touchStartX = e.touches[0].clientX
+  clearInterval(autoTimer)
+}
+function onTouchEnd(e) {
+  const dx = e.changedTouches[0].clientX - touchStartX
+  if (dx < -40 && carouselRecipes.value.length > 1) {
+    currentSlide.value = (currentSlide.value + 1) % carouselRecipes.value.length
+  } else if (dx > 40 && carouselRecipes.value.length > 1) {
+    currentSlide.value = (currentSlide.value - 1 + carouselRecipes.value.length) % carouselRecipes.value.length
+  }
+  resetAutoPlay()
+}
 
 const filteredSalesProducts = computed(() => {
   if (activeSalesCat.value === '全部') return salesProducts.value
@@ -195,6 +233,11 @@ onMounted(async () => {
     recipes.value = []
     followRecipes.value = []
   }
+  resetAutoPlay()
+})
+
+onUnmounted(() => {
+  clearInterval(autoTimer)
 })
 
 watch(activeTab, async (tab) => {
@@ -338,115 +381,171 @@ function goDetail(id) {
   margin-top: 10px;
 }
 
-/* today's pick */
-.today-card {
+/* ============ carousel ============ */
+.carousel {
   position: relative;
   border-radius: var(--radius-xl);
   overflow: hidden;
+  box-shadow: 0 12px 48px rgba(30, 21, 15, 0.10), 0 3px 12px rgba(30, 21, 15, 0.05);
+}
+
+.carousel-track {
+  display: flex;
+  transition: transform 0.75s cubic-bezier(0.16, 0, 0.12, 1);
+  will-change: transform;
+}
+
+.carousel-slide {
+  min-width: 100%;
   cursor: pointer;
-  transition: transform 0.35s var(--ease-smooth);
-  box-shadow: var(--shadow-md);
+  -webkit-tap-highlight-color: transparent;
 }
 
-.today-card:active { transform: scale(0.975); }
-
-.today-img-wrap {
+/* image */
+.slide-img-wrap {
   position: relative;
+  overflow: hidden;
+  height: 290px;
 }
 
-.today-img {
+.slide-img {
   width: 100%;
-  height: 280px;
+  height: 100%;
   object-fit: cover;
   background: linear-gradient(135deg, #E8E0D5, #DDD4C5);
-  transition: transform 0.5s var(--ease-smooth);
+  transform-origin: center center;
 }
 
-.today-card:hover .today-img { transform: scale(1.02); }
+.slide-img.ken-burns {
+  animation: kenBurns 5s cubic-bezier(0.33, 0, 0.1, 1) forwards;
+}
 
-.today-overlay {
+@keyframes kenBurns {
+  0%   { transform: scale(1.02); }
+  100% { transform: scale(1.08); }
+}
+
+/* light sweep */
+.slide-shine {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg,
-    rgba(18, 30, 31, 0.05) 0%,
-    rgba(18, 30, 31, 0.02) 30%,
-    rgba(18, 30, 31, 0.45) 70%,
-    rgba(18, 30, 31, 0.72) 100%);
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(110deg,
+    transparent 35%,
+    rgba(255,255,255,0.00) 40%,
+    rgba(255,255,255,0.08) 44%,
+    rgba(255,255,255,0.04) 48%,
+    transparent 53%);
+  animation: shineSweep 5s ease-in-out forwards;
 }
 
-.today-content {
+@keyframes shineSweep {
+  0%   { opacity: 0; }
+  20%  { opacity: 1; }
+  80%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* overlay */
+.slide-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: linear-gradient(180deg,
+    rgba(18, 30, 31, 0.02) 0%,
+    rgba(18, 30, 31, 0.00) 38%,
+    rgba(18, 30, 31, 0.32) 70%,
+    rgba(18, 30, 31, 0.78) 100%);
+}
+
+/* content — spring-like pop */
+.slide-content {
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
-  padding: 24px 20px 20px;
+  z-index: 3;
+  padding: 30px 22px 22px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
-.today-tag {
+.slide-tag {
   display: inline-block;
-  font-family: var(--font-heading);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   color: #fff;
   background: linear-gradient(135deg, #f09055, #e8783d);
   padding: 5px 14px;
   border-radius: 20px;
-  letter-spacing: 1.5px;
+  letter-spacing: 2px;
   align-self: flex-start;
-  box-shadow: 0 2px 14px rgba(225, 115, 45, 0.35);
+  box-shadow: 0 3px 18px rgba(225, 115, 45, 0.40);
+  animation: popIn 0.6s 0.06s cubic-bezier(0.17, 0.84, 0.44, 1) both;
 }
 
-.today-title-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-}
-
-.today-title {
+.slide-title {
   font-family: var(--font-heading);
-  font-size: 21px;
+  font-size: 22px;
   font-weight: 800;
   color: #fff;
   line-height: 1.25;
-  letter-spacing: 0.3px;
-  flex: 1;
-  min-width: 0;
+  letter-spacing: 0.4px;
+  text-shadow: 0 2px 16px rgba(0,0,0,0.22);
+  animation: popIn 0.6s 0.12s cubic-bezier(0.17, 0.84, 0.44, 1) both;
 }
 
-.today-sub {
+.slide-meta {
   font-family: var(--font-body);
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.72);
+  color: rgba(255, 255, 255, 0.80);
   font-weight: 400;
+  animation: popIn 0.6s 0.18s cubic-bezier(0.17, 0.84, 0.44, 1) both;
 }
 
-.today-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  font-family: var(--font-heading);
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--primary);
+@keyframes popIn {
+  0%   { opacity: 0; transform: translateY(16px) scale(0.94); }
+  65%  { opacity: 1; transform: translateY(-2px) scale(1.01); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* dots */
+.carousel-dots {
+  position: absolute;
+  bottom: 18px;
+  right: 18px;
+  display: flex;
+  gap: 8px;
+  z-index: 4;
+  padding: 6px 10px;
+  background: rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 12px;
+}
+
+.carousel-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.45);
+  cursor: pointer;
+  transition: all 0.45s cubic-bezier(0.17, 0.84, 0.44, 1);
+}
+
+.carousel-dot.active {
+  width: 24px;
+  border-radius: 3px;
   background: #fff;
-  border: none;
-  padding: 7px 16px;
-  border-radius: 20px;
-  letter-spacing: 0.4px;
-  transition: all 0.25s;
-  white-space: nowrap;
-  flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 0 10px rgba(255,255,255,0.45);
+  animation: dotPulse 4s ease-in-out infinite;
 }
 
-.today-btn:active {
-  background: #faf5f0;
-  transform: scale(0.94);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+@keyframes dotPulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(255,255,255,0.35); }
+  50%      { box-shadow: 0 0 16px rgba(255,255,255,0.65); }
 }
 
 /* section header */

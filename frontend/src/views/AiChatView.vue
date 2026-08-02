@@ -8,7 +8,7 @@
       </div>
       <span class="nav-title">{{ modeText }}</span>
       <div class="nav-placeholder">
-        <span v-if="isMember" class="member-tag">VIP</span>
+        <span v-if="isMember && memberExpire" class="member-expire">{{ memberExpire }} 到期</span>
       </div>
     </div>
 
@@ -106,10 +106,16 @@
         </div>
       </div>
 
-      <div v-if="trialExhausted" class="trial-link" @click="$router.push('/member')">
+      <div v-if="trialExhausted" class="trial-link" @click="showPayModal = true">
         开通会员解锁无限次数 &#x2192;
       </div>
     </div>
+
+    <MemberPayModal
+      v-if="showPayModal"
+      @close="showPayModal = false"
+      @success="onPaySuccess"
+    />
   </div>
 </template>
 
@@ -117,8 +123,9 @@
 import { ref, computed, nextTick, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { streamChat } from '../api/ai'
-import { checkMember } from '../api/member'
+import { checkMember, getExpireTime } from '../api/member'
 import { userStore } from '../store/user'
+import MemberPayModal from '../components/MemberPayModal.vue'
 
 const router = useRouter()
 const input = ref('')
@@ -128,6 +135,8 @@ const streamingText = ref('')
 const msgList = ref(null)
 const mode = ref('chat')
 const isMember = ref(false)
+const memberExpire = ref('')
+const showPayModal = ref(false)
 
 const trialExhausted = computed(() => {
   return messages.value.some(m => m.role === 'ai' && m.content.includes('额度已用完'))
@@ -151,6 +160,9 @@ onMounted(async () => {
   const uid = userStore.user?.userId
   if (uid) {
     isMember.value = await checkMember(uid)
+    if (isMember.value) {
+      memberExpire.value = formatExpire(await getExpireTime(uid))
+    }
   }
 })
 
@@ -168,6 +180,10 @@ function addMessage(role, content) {
 }
 
 function switchMode(newMode) {
+  if (!isMember.value) {
+    showPayModal.value = true
+    return
+  }
   if (mode.value === newMode) {
     mode.value = 'chat'
     return
@@ -219,7 +235,29 @@ function send() {
 }
 
 function ingredientManage() {
+  if (!isMember.value) {
+    showPayModal.value = true
+    return
+  }
   streamSend('chat', '帮我看看家里的食材，哪些需要尽快用掉？有什么推荐的处理方法吗？')
+}
+
+async function onPaySuccess() {
+  showPayModal.value = false
+  const uid = userStore.user?.userId
+  if (uid) {
+    isMember.value = await checkMember(uid)
+    if (isMember.value) {
+      memberExpire.value = formatExpire(await getExpireTime(uid))
+    }
+  }
+}
+
+function formatExpire(time) {
+  if (!time) return ''
+  const d = new Date(time)
+  const pad = n => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 </script>
 
@@ -259,14 +297,10 @@ function ingredientManage() {
 
 .nav-placeholder { width: 36px; }
 
-.member-tag {
-  background: var(--gradient-gold);
-  color: #fff;
-  font-size: 10px; font-weight: 800;
-  padding: 3px 8px;
-  border-radius: var(--radius-xs);
-  letter-spacing: 1.5px;
-  box-shadow: var(--shadow-gold);
+.member-expire {
+  font-size: 10px; font-weight: 600;
+  color: var(--gold);
+  white-space: nowrap;
 }
 
 /* msg list */

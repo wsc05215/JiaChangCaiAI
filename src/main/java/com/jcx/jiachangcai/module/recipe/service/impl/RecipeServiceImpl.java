@@ -70,4 +70,16 @@ public class RecipeServiceImpl extends ServiceImpl<RecipeMapper, Recipe> impleme
            return a;
     }
 
+    @Override
+    public Recipe createRecipe(Recipe recipe) {
+        recipe.setStatus(1);
+        recipe.setRating(java.math.BigDecimal.ZERO);
+        recipe.setLikeCount(0);
+        recipe.setCommentCount(0);
+        recipe.setCreateTime(java.time.LocalDateTime.now());
+        recipe.setUpdateTime(java.time.LocalDateTime.now());
+        mapper.insert(recipe);
+        return recipe;
+    }
+
 }

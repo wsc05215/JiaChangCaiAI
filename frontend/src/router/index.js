@@ -8,6 +8,7 @@ import AiChatView from '../views/AiChatView.vue'
 import FavoritesView from '../views/FavoritesView.vue'
 import SearchView from '../views/SearchView.vue'
 import MemberView from '../views/MemberView.vue'
+import UploadRecipeView from '../views/UploadRecipeView.vue'
 
 const routes = [
   { path: '/', name: 'Login', component: LoginView },
@@ -19,6 +20,7 @@ const routes = [
   { path: '/member', name: 'Member', component: MemberView },
   { path: '/favorites', name: 'Favorites', component: FavoritesView },
   { path: '/search', name: 'Search', component: SearchView },
+  { path: '/upload-recipe', name: 'UploadRecipe', component: UploadRecipeView },
 ]
 
 const router = createRouter({

@@ -23,9 +23,6 @@
         </div>
         <div class="member-badge">尊享会员</div>
       </div>
-      <div class="member-stats">
-        已经陪您吃过 <span class="stats-num">{{ memberInfo.mealCount || 0 }}</span> 顿饭了
-      </div>
     </div>
 
     <div v-else class="non-member-hint">
@@ -87,15 +84,23 @@
       <div class="already-icon">&#x2714;</div>
       <div>您已是尊享会员，尽情享受所有功能</div>
     </div>
+
+    <MemberPayModal
+      v-if="showPayModal"
+      @close="showPayModal = false"
+      @success="onPaySuccess"
+    />
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { userStore } from '../store/user'
-import { checkMember } from '../api/member'
+import { checkMember, getExpireTime } from '../api/member'
+import MemberPayModal from '../components/MemberPayModal.vue'
 
 const isMember = ref(false)
+const showPayModal = ref(false)
 const memberInfo = ref({
   avatar: '',
   level: '',
@@ -114,11 +119,30 @@ onMounted(async () => {
   isMember.value = await checkMember(uid)
   if (isMember.value) {
     memberInfo.value.avatar = userStore.user?.avatar || ''
+    memberInfo.value.expireTime = formatExpire(await getExpireTime(uid))
   }
 })
 
-function handleBuy(type) {
-  alert('支付功能开发中')
+function handleBuy() {
+  showPayModal.value = true
+}
+
+async function onPaySuccess() {
+  showPayModal.value = false
+  const uid = userStore.user?.userId
+  if (uid) {
+    isMember.value = await checkMember(uid)
+    if (isMember.value) {
+      memberInfo.value.expireTime = formatExpire(await getExpireTime(uid))
+    }
+  }
+}
+
+function formatExpire(time) {
+  if (!time) return ''
+  const d = new Date(time)
+  const pad = n => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 </script>
 
@@ -204,22 +228,6 @@ function handleBuy(type) {
   letter-spacing: 1.5px;
   box-shadow: 0 3px 12px rgba(240,165,0,0.4);
   position: relative; z-index: 1;
-}
-
-.member-stats {
-  text-align: center;
-  font-size: 14px;
-  color: #A09080;
-  position: relative; z-index: 1;
-}
-
-.stats-num {
-  font-size: 22px;
-  font-weight: 900;
-  background: var(--gradient-gold);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
 }
 
 /* non-member */
