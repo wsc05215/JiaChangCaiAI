@@ -45,7 +45,7 @@
             </span>
             <span class="remember-text">记住密码</span>
           </label>
-          <span class="forgot-link">忘记密码？</span>
+          <span class="forgot-link" @click="$router.push('/find-password')">忘记密码？</span>
         </div>
 
         <button class="login-btn" @click="handleLogin" :disabled="loading">

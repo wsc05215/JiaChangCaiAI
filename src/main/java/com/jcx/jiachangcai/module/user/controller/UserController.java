@@ -4,10 +4,8 @@ import com.jcx.jiachangcai.module.recipe.service.IRecipeService;
 import com.jcx.jiachangcai.module.user.entity.User;
 import com.jcx.jiachangcai.module.user.service.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.boot.autoconfigure.mail.MailSenderAutoConfiguration;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * <p>
@@ -25,6 +23,8 @@ public class UserController {
     private IUserService service;
     @Autowired
     private IRecipeService recipeService;
+    @Autowired
+    private MailSenderAutoConfiguration mailSenderAutoConfiguration;
 
     // 密码登录
     @PostMapping("/login")
@@ -100,4 +100,30 @@ public class UserController {
         service.alterUserDeail(user);
         return "ok";
     }
+
+//查询邮箱是否被注册
+    @PostMapping("/findEmail")
+    public String findEmail(String email) {
+        String msg = service.findEmail(email);
+        return msg;
+    }
+
+    //根据邮箱验证码重置密码
+    @PostMapping("/reastPassword")
+    public String restPassword(String email, String code, String newPassword){
+        if(email==null||code==null||newPassword==null){
+            return "null";
+        }else{
+           String msg = service.reastPassword(email,code,newPassword);
+           return msg;
+        }
+    }
+
+    //注销账号
+    @DeleteMapping("/deleUser")
+    public String deleUser(Long user_id){
+        service.deleUser(user_id);
+        return "ok";
+    }
+
 }

@@ -56,6 +56,9 @@
             <template v-else-if="item.icon === 'bell'">
               <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/>
             </template>
+            <template v-else-if="item.icon === 'location'">
+              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" stroke="currentColor" stroke-width="1.5" fill="none"/><circle cx="12" cy="9" r="2.5" stroke="currentColor" stroke-width="1.5" fill="none"/>
+            </template>
             <template v-else-if="item.icon === 'settings'">
               <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" stroke="currentColor" stroke-width="1.5" fill="none"/>
             </template>
@@ -100,16 +103,6 @@
               v-model="editForm.nickName"
               type="text"
               placeholder="请输入昵称"
-              class="modal-input"
-            />
-          </div>
-
-          <div class="modal-input-group">
-            <label class="modal-label">新密码 <span class="optional">(留空则不修改)</span></label>
-            <input
-              v-model="editForm.password"
-              type="password"
-              placeholder="请输入新密码"
               class="modal-input"
             />
           </div>
@@ -173,6 +166,7 @@ const stats = reactive({ works: 0, following: 0, followers: 0, likes: 0 })
 const menuItems = [
   { label: '我发布的菜谱', route: '/my-recipes', icon: 'recipe' },
   { label: '我的购物车', route: '/cart', icon: 'cart' },
+  { label: '收货地址', route: '/address', icon: 'location' },
   { label: '我的订单', route: '/orders', icon: 'order' },
   { label: '消息通知', route: '/notifications', icon: 'bell' },
   { label: '账号设置', route: '/settings', icon: 'settings' },
@@ -186,7 +180,6 @@ const toast = reactive({ show: false, msg: '', type: 'success' })
 const editForm = reactive({
   username: '',
   nickName: '',
-  password: '',
   phone: '',
   email: '',
 })
@@ -230,7 +223,6 @@ function openEdit() {
   if (!user) return
   editForm.username = user.username || ''
   editForm.nickName = user.nickName || ''
-  editForm.password = ''
   editForm.phone = user.phone || ''
   editForm.email = user.email || ''
   showEdit.value = true
@@ -246,7 +238,7 @@ async function submitEdit() {
       userId: user.userId,
       username: editForm.username.trim(),
       nickName: editForm.nickName.trim(),
-      password: editForm.password,
+      password: '',
       phone: editForm.phone.trim(),
       email: editForm.email.trim(),
     })

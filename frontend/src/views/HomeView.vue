@@ -119,7 +119,7 @@
         <p class="empty-text">暂无上新商品</p>
       </div>
       <div class="daily-scroll" v-else>
-        <div v-for="item in recentProducts" :key="item.id" class="daily-card">
+        <div v-for="item in recentProducts" :key="item.id" class="daily-card" @click="goProduct(item.id)">
           <div class="daily-img-wrap">
             <img v-if="item.coverImage" :src="item.coverImage" class="daily-img" />
             <div v-else class="daily-img-bg"></div>
@@ -141,7 +141,7 @@
         <p class="empty-text">暂无商品</p>
       </div>
       <div class="sales-list" v-else>
-        <div v-for="(item, idx) in filteredSalesProducts" :key="item.id" class="sales-card">
+        <div v-for="(item, idx) in filteredSalesProducts" :key="item.id" class="sales-card" @click="goProduct(item.id)">
           <div class="sales-rank" :class="{ 'rank-top': idx < 3 }">{{ idx + 1 }}</div>
           <div class="sales-img-wrap">
             <img v-if="item.coverImage" :src="item.coverImage" class="sales-img" />
@@ -275,6 +275,10 @@ async function switchSalesCat(cat) {
   } catch (e) {
     console.error('切换分类失败:', e)
   }
+}
+
+function goProduct(id) {
+  router.push('/product/' + id)
 }
 
 function getCover(images) {

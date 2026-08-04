@@ -63,7 +63,7 @@
     </div>
 
     <div v-else class="tab-content">
-      <div class="menu-card">
+      <div class="menu-card" @click="goMenuPlan">
         <div class="menu-icon-wrap">
           <svg viewBox="0 0 24 24" width="40" height="40" fill="none">
             <rect x="3" y="3" width="18" height="18" rx="4" stroke="#C4B5AA" stroke-width="1.6"/>
@@ -142,6 +142,7 @@ function getCover(images) {
 function onImgError(e) { e.target.style.display = 'none' }
 
 function goDetail(id) { router.push('/recipe/' + id) }
+function goMenuPlan() { router.push('/menu-plan') }
 
 function handleRemoveFavorite(item) {
   removingItem.value = item
@@ -342,7 +343,10 @@ async function confirmRemove() {
   text-align: center;
   box-shadow: var(--shadow-xs);
   border: 1px solid rgba(0,0,0,0.03);
+  cursor: pointer;
+  transition: all 0.2s;
 }
+.menu-card:active { transform: scale(0.98); }
 
 .menu-icon-wrap { margin-bottom: 16px; }
 .menu-title { font-size: 18px; font-weight: 800; color: var(--text-primary); margin-bottom: 6px; }

@@ -18,4 +18,7 @@ public interface IUserService extends IService<User> {
     User emailLogin(String email, String code);
     void alterUserDeail(User user);
     boolean isFirstLogin(Long userId);
+    String findEmail(String email);
+    String reastPassword(String email,String code,String newPassword);
+    String deleUser(Long user_id);
 }

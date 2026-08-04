@@ -140,7 +140,12 @@ async function onPaySuccess() {
 
 function formatExpire(time) {
   if (!time) return ''
-  const d = new Date(time)
+  let d
+  if (Array.isArray(time)) {
+    d = new Date(time[0], time[1] - 1, time[2], time[3] || 0, time[4] || 0, time[5] || 0)
+  } else {
+    d = new Date(time)
+  }
   const pad = n => String(n).padStart(2, '0')
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
 }

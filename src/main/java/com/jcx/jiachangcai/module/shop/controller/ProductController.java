@@ -44,4 +44,10 @@ public class ProductController {
          return productOfCategory;
     }
 
+    //商品详情
+    @GetMapping("/getById")
+    public Product getById(Long id) {
+        return service.getById(id);
+    }
+
 }

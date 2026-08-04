@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jcx.jiachangcai.module.order.mealplan.mapper.MealPlanMapper">
+
+    <select id="selectPlanWithRecipe" resultType="com.jcx.jiachangcai.module.order.mealplan.entity.MealPlanVO">
+        SELECT mp.id              AS id,
+               mp.user_id         AS userId,
+               mp.plan_date       AS planDate,
+               mp.meal_type       AS mealType,
+               mp.recipe_id       AS recipeId,
+               mp.sort_order      AS sortOrder,
+               mp.create_time     AS createTime,
+               r.title            AS recipeTitle,
+               r.cover_images     AS recipeCoverImages,
+               r.rating           AS recipeRating,
+               r.description      AS recipeDescription,
+               COALESCE(f.cnt, 0) AS recipeFavoriteCount
+        FROM meal_plan mp
+        LEFT JOIN recipe r ON mp.recipe_id = r.recipe_id
+        LEFT JOIN (SELECT recipe_id, COUNT(*) AS cnt FROM favorite GROUP BY recipe_id) f ON r.recipe_id = f.recipe_id
+        WHERE mp.user_id = #{userId}
+          AND mp.plan_date = #{planDate}
+        ORDER BY mp.meal_type, mp.sort_order, mp.create_time
+    </select>
+
+    <select id="selectPlanDates" resultType="string">
+        SELECT DISTINCT DATE_FORMAT(plan_date, '%Y-%m-%d')
+        FROM meal_plan
+        WHERE user_id = #{userId}
+          AND DATE_FORMAT(plan_date, '%Y-%m') = #{yearMonth}
+        ORDER BY plan_date
+    </select>
+
+</mapper>

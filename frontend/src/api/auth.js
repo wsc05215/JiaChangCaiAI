@@ -28,6 +28,24 @@ export function isFirstLogin(userId) {
   return request.get('/user/isFirstLogin', { params: { userId } })
 }
 
+export function findEmail(email) {
+  const params = new URLSearchParams()
+  params.append('email', email)
+  return request.post('/user/findEmail', params)
+}
+
+export function reastPassword(email, code, newPassword) {
+  const params = new URLSearchParams()
+  params.append('email', email)
+  params.append('code', code)
+  params.append('newPassword', newPassword)
+  return request.post('/user/reastPassword', params)
+}
+
+export function deleteUser(userId) {
+  return request.delete('/user/deleUser', { params: { user_id: userId } })
+}
+
 export function alterUser(user) {
   const params = new URLSearchParams()
   params.append('userId', user.userId)

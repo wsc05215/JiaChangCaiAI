@@ -116,5 +116,44 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         User user = userMapper.selectById(userId);
         return user != null && (user.getPassword() == null || user.getPassword().isEmpty());
     }
+//查询邮箱是否存在
+    @Override
+    public String findEmail(String email) {
+        LambdaQueryWrapper<User> wrapper =new LambdaQueryWrapper<>();
+        wrapper.eq(User::getEmail,email);
+       User user =  userMapper.selectOne(wrapper);
+       if(user==null){
+           return "该用户不存在";
+       }else{
+           sendCode(email);
+           return "ok";
+       }
+    }
+//发送验证码 重置密码
+    @Override
+    public String reastPassword(String email, String code, String newPassword) {
+        if (!codeManager.verify(email, code)) {
+            return "验证码已经过期";
+        }
+        LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(User::getEmail, email);
+        User user = userMapper.selectOne(wrapper);
+        if (user == null) {
+            return "该用户不存在";
+        }
+        user.setPassword(newPassword);
+        user.setUpdateTime(LocalDateTime.now());
+        userMapper.updateById(user);
+        return "更改成功";
+    }
+
+    @Override
+    public String deleUser(Long user_id) {
+        LambdaQueryWrapper<User> wrapper =new LambdaQueryWrapper<>();
+        wrapper.eq(User::getUserId,user_id);
+         userMapper.delete(wrapper);
+         return "OK";
+    }
+
 
 }
