@@ -63,3 +63,26 @@ export function addOrder(orderData) {
 export function getOrderItems(userId) {
   return request.get('/order-item/getOrderitem', { params: { user_id: userId } })
 }
+
+export function confirmReceive(itemId) {
+  const params = new URLSearchParams()
+  params.append('itemId', itemId)
+  return request.post('/order-item/confirmReceive', params)
+}
+
+export function requestReturn(itemId, reason) {
+  const params = new URLSearchParams()
+  params.append('itemId', itemId)
+  params.append('reason', reason)
+  return request.post('/order-item/requestReturn', params)
+}
+
+export function cancelReturn(itemId) {
+  const params = new URLSearchParams()
+  params.append('itemId', itemId)
+  return request.post('/order-item/cancelReturn', params)
+}
+
+export function getReturnOrders(userId) {
+  return request.get('/order-item/getReturnOrders', { params: { user_id: userId } })
+}

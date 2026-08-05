@@ -3,8 +3,9 @@ package com.jcx.jiachangcai.module.user.controller;
 import com.jcx.jiachangcai.module.recipe.service.IRecipeService;
 import com.jcx.jiachangcai.module.user.entity.User;
 import com.jcx.jiachangcai.module.user.service.IUserService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.mail.MailSenderAutoConfiguration;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -19,12 +20,12 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/user")
 public class UserController {
 
+    private static final Logger log = LoggerFactory.getLogger(UserController.class);
+
     @Autowired
     private IUserService service;
     @Autowired
     private IRecipeService recipeService;
-    @Autowired
-    private MailSenderAutoConfiguration mailSenderAutoConfiguration;
 
     // 密码登录
     @PostMapping("/login")
@@ -45,7 +46,8 @@ public class UserController {
             service.sendCode(email);
             return "ok";
         } catch (Exception e) {
-            return "fail";
+            log.error("发送验证码失败: email={}", email, e);
+            return "fail:" + e.getMessage();
         }
     }
 

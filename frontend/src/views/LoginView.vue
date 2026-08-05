@@ -110,7 +110,7 @@
 
     <!-- 首次登录弹窗 -->
     <transition name="modal">
-      <div v-if="showFirstLogin" class="modal-overlay" @click.self="() => {}">
+      <div v-if="showFirstLogin" class="modal-overlay">
         <div class="modal-card">
           <h3 class="modal-title">完善个人信息</h3>
           <p class="modal-sub">首次登录，请设置您的账号信息</p>
@@ -158,8 +158,6 @@
           <button class="login-btn modal-btn" @click="submitFirstLogin" :disabled="firstLoginLoading">
             {{ firstLoginLoading ? '保存中...' : '完成设置' }}
           </button>
-
-          <button class="modal-skip" @click="skipFirstLogin">跳过，稍后设置</button>
         </div>
       </div>
     </transition>
@@ -317,14 +315,6 @@ async function submitFirstLogin() {
   }
 }
 
-function skipFirstLogin() {
-  showFirstLogin.value = false
-  showToast('登录成功')
-  setTimeout(() => {
-    router.push('/home')
-  }, 500)
-}
-
 async function sendCode() {
   if (!smsForm.email.trim()) return showToast('请输入邮箱', 'error')
   if (!smsForm.email.includes('@')) return showToast('请输入正确的邮箱', 'error')
@@ -339,7 +329,9 @@ async function sendCode() {
       }, 1000)
       showToast('验证码已发送')
     } else {
-      showToast('发送失败，请稍后重试', 'error')
+      // 显示后端返回的具体错误信息
+      const errMsg = typeof res.data === 'string' && res.data.startsWith('fail:') ? res.data.substring(5) : '发送失败，请稍后重试'
+      showToast(errMsg, 'error')
     }
   } catch {
     showToast('发送失败，请稍后重试', 'error')
@@ -708,17 +700,6 @@ if (savedUser && savedPwd) {
   margin-top: 6px;
   max-width: 100%;
 }
-
-.modal-skip {
-  display: block;
-  margin: 12px auto 0;
-  font-size: 13px;
-  color: var(--text-muted);
-  font-weight: 500;
-  transition: color 0.2s;
-}
-
-.modal-skip:active { color: var(--text-secondary); }
 
 /* Transitions */
 .fade-enter-active,

@@ -11,48 +11,181 @@
       <div class="nav-placeholder"></div>
     </div>
 
+    <!-- 标签切换 -->
+    <div class="tabs">
+      <div
+        class="tab"
+        :class="{ active: activeTab === 'all' }"
+        @click="activeTab = 'all'; loadOrders()"
+      >全部订单</div>
+      <div
+        class="tab"
+        :class="{ active: activeTab === 'return' }"
+        @click="activeTab = 'return'; loadReturnOrders()"
+      >退货记录</div>
+    </div>
+
     <!-- 加载中 -->
     <div v-if="loading" class="loading-wrap"><p>加载中...</p></div>
 
-    <!-- 空订单 -->
-    <div v-else-if="orders.length === 0" class="empty-wrap">
-      <svg viewBox="0 0 24 24" width="56" height="56">
-        <rect x="3" y="4" width="18" height="18" rx="2" stroke="#d5cfc7" stroke-width="1.5" fill="none"/>
-        <path d="M3 10h18M8 2v4M16 2v4" stroke="#d5cfc7" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-      </svg>
-      <p class="empty-text">暂无订单</p>
-    </div>
+    <!-- 全部订单 -->
+    <template v-if="activeTab === 'all'">
+      <div v-if="!loading && orders.length === 0" class="empty-wrap">
+        <svg viewBox="0 0 24 24" width="56" height="56">
+          <rect x="3" y="4" width="18" height="18" rx="2" stroke="#d5cfc7" stroke-width="1.5" fill="none"/>
+          <path d="M3 10h18M8 2v4M16 2v4" stroke="#d5cfc7" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+        </svg>
+        <p class="empty-text">暂无订单</p>
+      </div>
 
-    <!-- 订单列表 -->
-    <div v-else class="order-list">
-      <div v-for="order in orders" :key="order.orderId" class="order-group">
-        <!-- 订单头 -->
-        <div class="order-header">
-          <span class="order-no">订单号：{{ order.orderId }}</span>
-          <span class="order-time">{{ order.createTime }}</span>
-        </div>
+      <div v-else class="order-list">
+        <div v-for="order in orders" :key="order.orderId" class="order-group">
+          <!-- 订单头 -->
+          <div class="order-header">
+            <span class="order-no">订单号：{{ order.orderId }}</span>
+            <span class="order-time">{{ order.createTime }}</span>
+          </div>
 
-        <!-- 商品列表 -->
-        <div v-for="item in order.items" :key="item.itemId" class="order-item">
-          <img v-if="item.productImage" :src="item.productImage" class="item-img" />
-          <div v-else class="item-img-placeholder"></div>
-          <div class="item-info">
-            <div class="item-name">{{ item.productName }}</div>
-            <div class="item-price-qty">
-              <span class="item-price">¥{{ item.price }}</span>
-              <span class="item-qty">×{{ item.quantity }}</span>
+          <!-- 商品列表 -->
+          <div v-for="item in order.items" :key="item.itemId">
+            <div class="order-item">
+              <img v-if="item.productImage" :src="item.productImage" class="item-img" />
+              <div v-else class="item-img-placeholder"></div>
+              <div class="item-info">
+                <div class="item-name">{{ item.productName }}</div>
+                <div class="item-price-qty">
+                  <span class="item-price">¥{{ item.price }}</span>
+                  <span class="item-qty">×{{ item.quantity }}</span>
+                </div>
+                <!-- 退货状态标签 -->
+                <div v-if="item.returnStatus === 1" class="status-tag status-returning">退货中</div>
+                <div v-else-if="item.returnStatus === 2" class="status-tag status-returned">已退货</div>
+                <div v-else-if="item.receivedTime" class="status-tag status-received">已收货</div>
+              </div>
+              <div class="item-total">¥{{ item.totalPrice }}</div>
+            </div>
+            <!-- 操作按钮（每个商品独立操作） -->
+            <div class="order-actions">
+              <button
+                v-if="!item.receivedTime && item.returnStatus !== 2"
+                class="action-btn primary"
+                @click="handleConfirmReceive(item)"
+              >确认收货</button>
+              <button
+                v-if="item.receivedTime && item.returnStatus === 0 && getHoursSince(item.receivedTime) < 24"
+                class="action-btn danger"
+                @click="openReturnModal(item)"
+              >申请退货</button>
+              <button
+                v-if="item.returnStatus === 1"
+                class="action-btn"
+                @click="handleCancelReturn(item)"
+              >取消退货</button>
+              <span
+                v-if="item.receivedTime && item.returnStatus === 0 && getHoursSince(item.receivedTime) < 24"
+                class="timeout-hint"
+              >剩余 {{ getRemainingTime(item.receivedTime) }}</span>
+              <span
+                v-else-if="item.receivedTime && item.returnStatus === 0 && getHoursSince(item.receivedTime) >= 24"
+                class="timeout-hint expired"
+              >已过退货期限</span>
             </div>
           </div>
-          <div class="item-total">¥{{ item.totalPrice }}</div>
-        </div>
 
-        <!-- 合计 -->
-        <div class="order-footer">
-          <span class="order-total-label">合计：</span>
-          <span class="order-total">¥{{ order.total }}</span>
+          <!-- 合计 -->
+          <div class="order-footer">
+            <span class="order-total-label">合计：</span>
+            <span class="order-total">¥{{ order.total }}</span>
+          </div>
         </div>
       </div>
-    </div>
+    </template>
+
+    <!-- 退货记录 -->
+    <template v-if="activeTab === 'return'">
+      <div v-if="!loading && returnOrders.length === 0" class="empty-wrap">
+        <svg viewBox="0 0 24 24" width="56" height="56">
+          <path d="M3 12a9 9 0 119 9" stroke="#d5cfc7" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+          <path d="M3 12l3-3M3 12l3 3" stroke="#d5cfc7" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+        </svg>
+        <p class="empty-text">暂无退货记录</p>
+      </div>
+
+      <div v-else class="order-list">
+        <div v-for="item in returnOrders" :key="item.itemId" class="order-group">
+          <div class="order-header">
+            <span class="order-no">订单号：{{ item.orderId }}</span>
+            <span class="order-time">{{ item.createTime }}</span>
+          </div>
+          <div class="order-item">
+            <img v-if="item.productImage" :src="item.productImage" class="item-img" />
+            <div v-else class="item-img-placeholder"></div>
+            <div class="item-info">
+              <div class="item-name">{{ item.productName }}</div>
+              <div class="item-price-qty">
+                <span class="item-price">¥{{ item.price }}</span>
+                <span class="item-qty">×{{ item.quantity }}</span>
+              </div>
+              <div v-if="item.returnStatus === 1" class="status-tag status-returning">退货中</div>
+              <div v-else-if="item.returnStatus === 2" class="status-tag status-returned">已退货</div>
+            </div>
+            <div class="item-total">¥{{ item.totalPrice }}</div>
+          </div>
+          <div v-if="item.returnReason" class="return-reason">
+            <span class="reason-label">退货原因：</span>{{ item.returnReason }}
+          </div>
+          <div v-if="item.returnStatus === 1" class="order-actions">
+            <button class="action-btn" @click="handleCancelReturn(item)">取消退货</button>
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <!-- 退货原因弹窗 -->
+    <transition name="slide-up">
+      <div v-if="showReturnModal" class="modal-mask" @click.self="showReturnModal = false">
+        <div class="modal-panel">
+          <div class="modal-header">
+            <span class="modal-title">申请退货</span>
+            <div class="modal-close" @click="showReturnModal = false">
+              <svg viewBox="0 0 24 24" width="20" height="20">
+                <path d="M18 6L6 18M6 6l12 12" stroke="#5a524c" stroke-width="2" fill="none" stroke-linecap="round"/>
+              </svg>
+            </div>
+          </div>
+
+          <div class="modal-body">
+            <div class="return-item-preview">
+              <img v-if="returnTarget?.productImage" :src="returnTarget.productImage" class="preview-img" />
+              <div class="preview-info">
+                <div class="preview-name">{{ returnTarget?.productName }}</div>
+                <div class="preview-price">¥{{ returnTarget?.price }} × {{ returnTarget?.quantity }}</div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">退货原因</label>
+              <textarea
+                v-model="returnReason"
+                class="form-textarea"
+                placeholder="请填写退货原因（必填）"
+                rows="4"
+              ></textarea>
+            </div>
+
+            <div class="timeout-notice" v-if="returnTarget?.receivedTime">
+              订单已收货，剩余 <strong>{{ getRemainingTime(returnTarget.receivedTime) }}</strong> 可申请退货
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button class="save-btn" @click="submitReturn" :disabled="returnLoading">
+              {{ returnLoading ? '提交中...' : '提交退货申请' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </transition>
 
     <transition name="fade">
       <div v-if="toast.show" class="toast" :class="toast.type">{{ toast.msg }}</div>
@@ -61,17 +194,49 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { userStore } from '../store/user'
-import { getOrderItems } from '../api/shop'
+import { getOrderItems, confirmReceive, requestReturn, cancelReturn, getReturnOrders } from '../api/shop'
 
 const orders = ref([])
+const returnOrders = ref([])
 const loading = ref(true)
+const activeTab = ref('all')
 const toast = reactive({ show: false, msg: '', type: 'success' })
 
-onMounted(async () => {
+// 退货弹窗
+const showReturnModal = ref(false)
+const returnTarget = ref(null)
+const returnReason = ref('')
+const returnLoading = ref(false)
+
+// 定时器，用于刷新倒计时
+let timer = null
+const now = ref(Date.now())
+
+onMounted(() => {
+  loadOrders()
+  // 每分钟更新当前时间戳，触发倒计时重新渲染
+  timer = setInterval(() => {
+    now.value = Date.now()
+  }, 60000)
+})
+
+onUnmounted(() => {
+  if (timer) clearInterval(timer)
+})
+
+function showToast(msg, type = 'success') {
+  toast.msg = msg
+  toast.type = type
+  toast.show = true
+  setTimeout(() => { toast.show = false }, 2000)
+}
+
+async function loadOrders() {
   const uid = userStore.user?.userId
   if (!uid) { loading.value = false; return }
+  loading.value = true
   try {
     const res = await getOrderItems(uid)
     const items = res.data || []
@@ -98,14 +263,95 @@ onMounted(async () => {
       o.total = o.total.toFixed(2)
     }
   } catch {
-    toast.msg = '加载失败'
-    toast.type = 'error'
-    toast.show = true
-    setTimeout(() => { toast.show = false }, 2000)
+    showToast('加载失败', 'error')
   } finally {
     loading.value = false
   }
-})
+}
+
+async function loadReturnOrders() {
+  const uid = userStore.user?.userId
+  if (!uid) { loading.value = false; return }
+  loading.value = true
+  try {
+    const res = await getReturnOrders(uid)
+    returnOrders.value = res.data || []
+  } catch {
+    showToast('加载失败', 'error')
+  } finally {
+    loading.value = false
+  }
+}
+
+// 计算收货后的小时数（使用响应式时间戳触发重新计算）
+function getHoursSince(receivedTime) {
+  if (!receivedTime) return 99
+  const received = new Date(receivedTime)
+  return (now.value - received) / (1000 * 60 * 60)
+}
+
+// 计算剩余可退货时间
+function getRemainingTime(receivedTime) {
+  if (!receivedTime) return ''
+  const received = new Date(receivedTime)
+  const remainingMs = 24 * 60 * 60 * 1000 - (now.value - received)
+  if (remainingMs <= 0) return '已过期'
+  const hours = Math.floor(remainingMs / (1000 * 60 * 60))
+  const minutes = Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60))
+  return `${hours}小时${minutes}分钟`
+}
+
+async function handleConfirmReceive(item) {
+  try {
+    const res = await confirmReceive(item.itemId)
+    if (res.data === '确认收货成功') {
+      showToast('确认收货成功')
+      await loadOrders()
+    }
+  } catch (e) {
+    showToast(e.response?.data || '操作失败', 'error')
+  }
+}
+
+function openReturnModal(item) {
+  returnTarget.value = item
+  returnReason.value = ''
+  showReturnModal.value = true
+}
+
+async function submitReturn() {
+  if (!returnReason.value.trim()) {
+    return showToast('请填写退货原因', 'error')
+  }
+  returnLoading.value = true
+  try {
+    const res = await requestReturn(returnTarget.value.itemId, returnReason.value.trim())
+    if (res.data === '退货申请已提交') {
+      showToast('退货申请已提交')
+      showReturnModal.value = false
+      await loadOrders()
+    }
+  } catch (e) {
+    showToast(e.response?.data || '操作失败', 'error')
+  } finally {
+    returnLoading.value = false
+  }
+}
+
+async function handleCancelReturn(item) {
+  try {
+    const res = await cancelReturn(item.itemId)
+    if (res.data === '退货申请已取消') {
+      showToast('退货申请已取消')
+      await loadOrders()
+      if (activeTab.value === 'return') {
+        await loadReturnOrders()
+      }
+    }
+  } catch (e) {
+    showToast(e.response?.data || '操作失败', 'error')
+  }
+}
 </script>
 
 <style scoped>
@@ -131,6 +377,45 @@ onMounted(async () => {
 .back-btn { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 .nav-title { font-family: var(--font-heading); font-size: 17px; font-weight: 700; color: var(--text-primary); }
 .nav-placeholder { width: 36px; }
+
+/* 标签切换 */
+.tabs {
+  display: flex;
+  background: #fff;
+  margin: 0 16px;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-top: 12px;
+}
+
+.tab {
+  flex: 1;
+  text-align: center;
+  padding: 12px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.tab.active {
+  color: var(--primary);
+  background: rgba(255,122,51,0.06);
+}
+
+.tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--primary);
+}
 
 .loading-wrap { display: flex; justify-content: center; align-items: center; height: 60vh; color: var(--text-muted); }
 
@@ -221,6 +506,91 @@ onMounted(async () => {
   flex-shrink: 0;
 }
 
+/* 状态标签 */
+.status-tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-top: 4px;
+}
+
+.status-received {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.status-returning {
+  background: #fff3e0;
+  color: #e65100;
+}
+
+.status-returned {
+  background: #f3e5f5;
+  color: #6a1b9a;
+}
+
+/* 操作按钮 */
+.order-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-top: 1px solid #f5f0ea;
+  flex-wrap: wrap;
+}
+
+.action-btn {
+  padding: 6px 16px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1.5px solid var(--border);
+  color: var(--text-secondary);
+  background: #fff;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.action-btn:active { transform: scale(0.95); }
+
+.action-btn.primary {
+  background: var(--gradient-primary);
+  color: #fff;
+  border: none;
+  box-shadow: var(--shadow-primary);
+}
+
+.action-btn.danger {
+  border-color: #ff4d4f;
+  color: #ff4d4f;
+}
+
+.timeout-hint {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-left: auto;
+}
+
+.timeout-hint.expired {
+  color: #ff4d4f;
+}
+
+/* 退货原因展示 */
+.return-reason {
+  padding: 10px 14px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  background: #faf7f2;
+  border-top: 1px solid #f5f0ea;
+}
+
+.reason-label {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
 .order-footer {
   display: flex;
   align-items: baseline;
@@ -236,6 +606,171 @@ onMounted(async () => {
   font-weight: 800;
   color: var(--primary);
 }
+
+/* 退货弹窗 */
+.modal-mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 100;
+  display: flex;
+  align-items: flex-end;
+}
+
+.modal-panel {
+  width: 100%;
+  max-height: 85vh;
+  background: #FBF8F4;
+  border-radius: 20px 20px 0 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px 12px;
+  flex-shrink: 0;
+}
+
+.modal-title {
+  font-family: var(--font-heading);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.modal-close {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.04);
+  cursor: pointer;
+}
+
+.modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 16px;
+}
+
+/* 退货商品预览 */
+.return-item-preview {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #fff;
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 16px;
+}
+
+.preview-img {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: #F5F0E8;
+  flex-shrink: 0;
+}
+
+.preview-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.preview-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.preview-price {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.form-textarea {
+  width: 100%;
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+  font-size: 14px;
+  background: #fff;
+  box-sizing: border-box;
+  resize: vertical;
+  font-family: inherit;
+  line-height: 1.5;
+}
+
+.form-textarea:focus { border-color: var(--primary); outline: none; }
+
+.timeout-notice {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 8px;
+  background: #fff;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.timeout-notice strong {
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.modal-footer {
+  flex-shrink: 0;
+  padding: 12px 20px;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+}
+
+.save-btn {
+  width: 100%;
+  height: 48px;
+  border-radius: 24px;
+  background: var(--gradient-primary);
+  color: #fff;
+  font-family: var(--font-heading);
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  box-shadow: var(--shadow-primary);
+  transition: all 0.2s;
+  cursor: pointer;
+  border: none;
+}
+
+.save-btn:active { transform: scale(0.96); }
+.save-btn:disabled { opacity: 0.5; }
+
+/* 动画 */
+.slide-up-enter-active { transition: all 0.3s ease-out; }
+.slide-up-leave-active { transition: all 0.25s ease-in; }
+.slide-up-enter-from .modal-panel { transform: translateY(100%); }
+.slide-up-leave-to .modal-panel { transform: translateY(100%); }
+.slide-up-enter-from { background: transparent; }
+.slide-up-leave-to { background: transparent; }
 
 .toast {
   position: fixed;

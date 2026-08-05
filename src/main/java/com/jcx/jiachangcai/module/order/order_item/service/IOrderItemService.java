@@ -16,4 +16,8 @@ import java.util.List;
 public interface IOrderItemService extends IService<OrderItem> {
      String addOrder(OrderItem orderItem);
      List<OrderItem> getOrderitem(Long userId);
+     String confirmReceive(Long itemId);
+     String requestReturn(Long itemId, String reason);
+     String cancelReturn(Long itemId);
+     List<OrderItem> getReturnOrders(Long userId);
 }

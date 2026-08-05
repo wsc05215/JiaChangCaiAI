@@ -59,6 +59,15 @@ public class OrderItem implements Serializable {
     @Schema(description = "逻辑删除：0正常 1已删")
     private Integer isDeleted;
 
+    @Schema(description = "收货时间（用户确认收货的时间）")
+    private LocalDateTime receivedTime;
+
+    @Schema(description = "退货状态：0-未退货 1-退货中 2-已退货")
+    private Integer returnStatus;
+
+    @Schema(description = "退货原因")
+    private String returnReason;
+
     @Schema(description = "创建时间")
     private LocalDateTime createTime;
 
