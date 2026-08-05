@@ -29,14 +29,25 @@
           </div>
           <div class="welcome-glow"></div>
         </div>
-        <div class="welcome-msg">你好，我是你的饮食管家</div>
-        <div class="welcome-sub">有什么我可以帮助您的呢？</div>
-
-        <div class="quick-prompts">
-          <div class="prompt-chip" @click="quickAsk('今天吃什么好呢？')">今天吃什么？</div>
-          <div class="prompt-chip" @click="quickAsk('推荐几道低热量的家常菜')">低热量推荐</div>
-          <div class="prompt-chip" @click="quickAsk('帮我搭配一周的菜单')">一周菜单</div>
-        </div>
+        <template v-if="mode === 'customer_service'">
+          <div class="welcome-msg">你好，我是平台智能客服</div>
+          <div class="welcome-sub">有什么可以帮助您的？</div>
+          <div class="quick-prompts">
+            <div class="prompt-chip" @click="quickAsk('怎么修改密码？')">修改密码</div>
+            <div class="prompt-chip" @click="quickAsk('忘记密码怎么办？')">忘记密码</div>
+            <div class="prompt-chip" @click="quickAsk('如何查看我的订单？')">查看订单</div>
+            <div class="prompt-chip" @click="quickAsk('怎么申请退款？')">申请退款</div>
+          </div>
+        </template>
+        <template v-else>
+          <div class="welcome-msg">你好，我是你的饮食管家</div>
+          <div class="welcome-sub">有什么我可以帮助您的呢？</div>
+          <div class="quick-prompts">
+            <div class="prompt-chip" @click="quickAsk('今天吃什么好呢？')">今天吃什么？</div>
+            <div class="prompt-chip" @click="quickAsk('推荐几道低热量的家常菜')">低热量推荐</div>
+            <div class="prompt-chip" @click="quickAsk('帮我搭配一周的菜单')">一周菜单</div>
+          </div>
+        </template>
       </div>
 
       <div
@@ -72,7 +83,7 @@
     </div>
 
     <div class="bottom-area">
-      <div class="feature-btns">
+      <div v-if="mode !== 'customer_service'" class="feature-btns">
         <button class="feature-btn" :class="{ active: mode === 'recipe' }" @click="switchMode('recipe')">
           <span class="f-icon">&#x1F4D6;</span> 定制食谱
         </button>
@@ -121,19 +132,20 @@
 
 <script setup>
 import { ref, computed, nextTick, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { streamChat } from '../api/ai'
 import { checkMember, getExpireTime } from '../api/member'
 import { userStore } from '../store/user'
 import MemberPayModal from '../components/MemberPayModal.vue'
 
 const router = useRouter()
+const route = useRoute()
 const input = ref('')
 const messages = ref([])
 const streaming = ref(false)
 const streamingText = ref('')
 const msgList = ref(null)
-const mode = ref('chat')
+const mode = ref(route.query.mode || 'chat')
 const isMember = ref(false)
 const memberExpire = ref('')
 const showPayModal = ref(false)
@@ -145,14 +157,15 @@ const trialExhausted = computed(() => {
 let cancelStream = null
 
 const modeText = computed(() => {
-  return { chat: '饮食管家', recipe: '定制食谱', menu: '一键菜单' }[mode.value]
+  return { chat: '饮食管家', recipe: '定制食谱', menu: '一键菜单', customer_service: '服务与帮助' }[mode.value]
 })
 
 const inputPlaceholder = computed(() => {
   return {
     chat: '输入你的饮食需求...',
     recipe: '描述你想要什么类型的食谱...',
-    menu: '告诉我你想怎么搭配菜单...'
+    menu: '告诉我你想怎么搭配菜单...',
+    customer_service: '输入您遇到的问题，例如：怎么修改密码？'
   }[mode.value]
 })
 
@@ -192,7 +205,7 @@ function switchMode(newMode) {
 }
 
 function quickAsk(text) {
-  streamSend('chat', text)
+  streamSend(mode.value, text)
 }
 
 function streamSend(m, msg) {

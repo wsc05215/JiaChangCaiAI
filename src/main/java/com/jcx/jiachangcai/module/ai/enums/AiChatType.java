@@ -3,8 +3,8 @@ package com.jcx.jiachangcai.module.ai.enums;
 public enum AiChatType {
     CHEF("饮食管家"),
     RECIPE("定制食谱"),
-    MENU("一键菜单");
-
+    MENU("一键菜单"),
+    CUSTOMER_SERVICE("电商智能客服");
     private final String displayName;
 
     AiChatType(String displayName) {

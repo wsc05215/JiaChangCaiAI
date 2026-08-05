@@ -1,12 +1,14 @@
 const ENDPOINTS = {
   chat: '/chat/stream',
   recipe: '/RecipechatAI/stream',
-  menu: '/MyRecipeChatOfAI/stream'
+  menu: '/MyRecipeChatOfAI/stream',
+  customer_service: '/chat/stream'
 }
 
 export function streamChat(msg, mode, userId, onToken, onDone, onError) {
   const base = ENDPOINTS[mode] || ENDPOINTS.chat
-  const url = `${base}?msg=${encodeURIComponent(msg)}&userId=${userId}`
+  const typeParam = mode === 'customer_service' ? '&type=CUSTOMER_SERVICE' : ''
+  const url = `${base}?msg=${encodeURIComponent(msg)}&userId=${userId}${typeParam}`
   const es = new EventSource(url)
 
   let received = false

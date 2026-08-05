@@ -88,7 +88,35 @@
 			<version>1.0.0</version>
 		</dependency>
 
+		<!-- PostgreSQL JDBC 驱动 -->
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<version>42.7.5</version>
+			<scope>runtime</scope>
+		</dependency>
 
+		<!-- PGVector向量存储启动器（独立指定版本，不引入BOM） -->
+		<dependency>
+			<groupId>org.springframework.ai</groupId>
+			<artifactId>spring-ai-starter-vector-store-pgvector</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+
+		<!-- JDBC基础依赖（pgvector starter必需，独立指定版本） -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-jdbc</artifactId>
+			<version>3.5.14</version>
+		</dependency>
+
+		<!-- 文档解析，支持md/txt/pdf -->
+		<!-- Markdown文档解析 1.0.0 正确坐标 -->
+		<dependency>
+			<groupId>org.springframework.ai</groupId>
+			<artifactId>spring-ai-markdown-document-reader</artifactId>
+			<version>1.0.0</version>
+		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-mail</artifactId>

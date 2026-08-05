@@ -5,7 +5,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-@MapperScan({"com.jcx.jiachangcai.module.**.mapper", "com.jcx.jiachangcai.module.order.cart.mapper"})
+@MapperScan(basePackages = "com.jcx.jiachangcai.module.**.mapper", sqlSessionTemplateRef = "mysqlSqlSessionTemplate")
 public class JiachangcaiApplication {
 
     public static void main(String[] args) {

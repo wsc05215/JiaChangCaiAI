@@ -10,9 +10,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 
-/**
- * AI大厨对话 —— 教用户做某道菜
- */
 @RestController
 @RequestMapping("/chat")
 public class ChatController {
@@ -21,7 +18,16 @@ public class ChatController {
     private AiChatService aiChatService;
 
     @GetMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<String> streamChat(@RequestParam String msg, @RequestParam Long userId) {
-        return aiChatService.chat(userId, AiChatType.CHEF, msg);
+    public Flux<String> streamChat(
+            @RequestParam String msg,
+            @RequestParam Long userId,
+            @RequestParam(defaultValue = "CHEF") String type) {
+        AiChatType chatType;
+        try {
+            chatType = AiChatType.valueOf(type.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            chatType = AiChatType.CHEF;
+        }
+        return aiChatService.chat(userId, chatType, msg);
     }
 }
