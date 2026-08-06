@@ -128,4 +128,10 @@ public class UserController {
         return "ok";
     }
 
+    //注册新账号
+    @PostMapping("/addUser")
+    public String addUser(String email,String username,String password){
+      return   service.addUser(email,username,password);
+    }
+
 }

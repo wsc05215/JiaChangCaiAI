@@ -63,9 +63,14 @@
           </svg>
           <span>邮箱验证码登录</span>
         </div>
+
+        <div class="switch-mode">
+          <span>还没有账号？</span>
+          <span class="switch-link" @click="mode = 'register'">注册新账号</span>
+        </div>
       </template>
 
-      <template v-else>
+      <template v-else-if="mode === 'sms'">
         <svg class="back-arrow" viewBox="0 0 24 24" width="22" height="22" @click="mode = 'password'">
           <path d="M15 18l-6-6 6-6" stroke="#5a524c" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
@@ -105,6 +110,75 @@
         <button class="login-btn" @click="handleSmsLogin" :disabled="loading">
           {{ loading ? '登录中...' : '一键登录' }}
         </button>
+      </template>
+
+      <template v-else-if="mode === 'register'">
+        <svg class="back-arrow" viewBox="0 0 24 24" width="22" height="22" @click="mode = 'password'">
+          <path d="M15 18l-6-6 6-6" stroke="#5a524c" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+
+        <h2 class="welcome-text">创建账号</h2>
+        <p class="sub-text">注册佳尝菜，开启美食之旅</p>
+
+        <div class="input-wrapper">
+          <svg class="input-icon" viewBox="0 0 24 24" width="20" height="20">
+            <rect x="2" y="4" width="20" height="16" rx="2" stroke="#c4b8aa" stroke-width="1.8" fill="none"/>
+            <path d="M2 8l10 6 10-6" stroke="#c4b8aa" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <input
+            v-model="registerForm.email"
+            type="email"
+            placeholder="请输入邮箱"
+          />
+        </div>
+
+        <div class="input-wrapper">
+          <svg class="input-icon" viewBox="0 0 24 24" width="20" height="20">
+            <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" stroke="#c4b8aa" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+            <circle cx="12" cy="7" r="4" stroke="#c4b8aa" stroke-width="1.8" fill="none"/>
+          </svg>
+          <input
+            v-model="registerForm.username"
+            type="text"
+            placeholder="请输入用户名"
+            autocomplete="off"
+          />
+        </div>
+
+        <div class="input-wrapper">
+          <svg class="input-icon" viewBox="0 0 24 24" width="20" height="20">
+            <rect x="3" y="11" width="18" height="11" rx="2" stroke="#c4b8aa" stroke-width="1.8" fill="none"/>
+            <path d="M7 11V7a5 5 0 0110 0v4" stroke="#c4b8aa" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+          </svg>
+          <input
+            v-model="registerForm.password"
+            type="password"
+            placeholder="请设置密码"
+            autocomplete="new-password"
+          />
+        </div>
+
+        <div class="input-wrapper">
+          <svg class="input-icon" viewBox="0 0 24 24" width="20" height="20">
+            <rect x="3" y="11" width="18" height="11" rx="2" stroke="#c4b8aa" stroke-width="1.8" fill="none"/>
+            <path d="M7 11V7a5 5 0 0110 0v4" stroke="#c4b8aa" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+          </svg>
+          <input
+            v-model="registerForm.confirmPassword"
+            type="password"
+            placeholder="请确认密码"
+            autocomplete="new-password"
+          />
+        </div>
+
+        <button class="login-btn" @click="handleRegister" :disabled="loading">
+          {{ loading ? '注册中...' : '注册' }}
+        </button>
+
+        <div class="switch-mode">
+          <span>已有账号？</span>
+          <span class="switch-link" @click="mode = 'password'">去登录</span>
+        </div>
       </template>
     </div>
 
@@ -171,7 +245,7 @@
 <script setup>
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { login, sendEmailCode, emailLogin, isFirstLogin, alterUser } from '../api/auth'
+import { login, sendEmailCode, emailLogin, isFirstLogin, alterUser, register } from '../api/auth'
 import { userStore } from '../store/user'
 
 const router = useRouter()
@@ -197,6 +271,15 @@ const smsForm = reactive({
 const showFirstLogin = ref(false)
 const firstLoginLoading = ref(false)
 const pendingUser = ref(null)
+
+// 注册表单
+const registerForm = reactive({
+  email: '',
+  username: '',
+  password: '',
+  confirmPassword: '',
+})
+
 const firstLoginForm = reactive({
   username: '',
   nickName: '',
@@ -273,6 +356,37 @@ async function handleSmsLogin() {
       }, 500)
     } else {
       showToast('验证码错误或已过期', 'error')
+    }
+  } catch {
+    showToast('网络错误，请稍后重试', 'error')
+  } finally {
+    loading.value = false
+  }
+}
+
+async function handleRegister() {
+  const { email, username, password, confirmPassword } = registerForm
+  if (!email.trim()) return showToast('请输入邮箱', 'error')
+  if (!email.includes('@')) return showToast('请输入正确的邮箱格式', 'error')
+  if (!username.trim()) return showToast('请输入用户名', 'error')
+  if (!password.trim()) return showToast('请设置密码', 'error')
+  if (password.length < 6) return showToast('密码不能少于6位', 'error')
+  if (password !== confirmPassword) return showToast('两次密码不一致', 'error')
+
+  loading.value = true
+  try {
+    const res = await register(email.trim(), username.trim(), password)
+    if (res.data === 'ok') {
+      showToast('注册成功')
+      // 清空表单
+      registerForm.email = ''
+      registerForm.username = ''
+      registerForm.password = ''
+      registerForm.confirmPassword = ''
+      // 切换到密码登录
+      mode.value = 'password'
+    } else {
+      showToast(res.data || '注册失败', 'error')
     }
   } catch {
     showToast('网络错误，请稍后重试', 'error')
@@ -591,6 +705,23 @@ if (savedUser && savedPwd) {
   color: var(--primary);
   transform: scale(0.96);
 }
+
+.switch-mode {
+  text-align: center;
+  margin-top: 18px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.switch-link {
+  color: var(--primary);
+  font-weight: 700;
+  cursor: pointer;
+  margin-left: 4px;
+  transition: opacity 0.2s;
+}
+
+.switch-link:active { opacity: 0.6; }
 
 /* Toast */
 .toast {

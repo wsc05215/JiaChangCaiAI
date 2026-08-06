@@ -92,6 +92,15 @@
             </div>
           </div>
 
+          <!-- 批量退货按钮 -->
+          <div class="batch-return-section" v-if="showBatchReturnButton(order)">
+            <div class="divider"></div>
+            <button
+              class="action-btn batch-return-btn"
+              @click="openBatchReturnModal(order)"
+            >整单退货</button>
+          </div>
+
           <!-- 合计 -->
           <div class="order-footer">
             <span class="order-total-label">合计：</span>
@@ -187,6 +196,64 @@
       </div>
     </transition>
 
+    <!-- 批量退货原因弹窗 -->
+    <transition name="slide-up">
+      <div v-if="showBatchReturnModal" class="modal-mask" @click.self="showBatchReturnModal = false">
+        <div class="modal-panel">
+          <div class="modal-header">
+            <span class="modal-title">整单退货申请</span>
+            <div class="modal-close" @click="showBatchReturnModal = false">
+              <svg viewBox="0 0 24 24" width="20" height="20">
+                <path d="M18 6L6 18M6 6l12 12" stroke="#5a524c" stroke-width="2" fill="none" stroke-linecap="round"/>
+              </svg>
+            </div>
+          </div>
+
+          <div class="modal-body">
+            <div class="return-order-summary">
+              <div class="order-info">
+                <div class="order-summary">订单号：{{ batchReturnOrder?.orderId }}</div>
+                <div class="items-count">商品数量：{{ batchReturnOrder?.items.length }}件</div>
+              </div>
+            </div>
+
+            <div class="batch-items-preview">
+              <div class="batch-item" v-for="item in batchReturnOrder?.items" :key="item.itemId">
+                <img v-if="item.productImage" :src="item.productImage" class="batch-preview-img" />
+                <div class="batch-preview-info">
+                  <div class="batch-preview-name">{{ item.productName }}</div>
+                  <div class="batch-preview-price">¥{{ item.price }} × {{ item.quantity }}</div>
+                  <div v-if="item.returnStatus === 1" class="status-tag status-returning">退货中</div>
+                  <div v-else-if="item.returnStatus === 2" class="status-tag status-returned">已退货</div>
+                  <div v-else-if="item.receivedTime" class="status-tag status-received">已收货</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">退货原因</label>
+              <textarea
+                v-model="batchReturnReason"
+                class="form-textarea"
+                placeholder="请填写退货原因（必填）"
+                rows="4"
+              ></textarea>
+            </div>
+
+            <div class="timeout-notice" v-if="batchReturnOrder?.items.length > 0">
+              整单包含 {{ batchReturnOrder.items.filter(item => item.receivedTime && item.returnStatus === 0 && getHoursSince(item.receivedTime) < 24).length }} 件商品可以退货
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button class="save-btn" @click="submitBatchReturn" :disabled="batchReturnLoading">
+              {{ batchReturnLoading ? '提交中...' : '提交整单退货申请' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </transition>
+
     <transition name="fade">
       <div v-if="toast.show" class="toast" :class="toast.type">{{ toast.msg }}</div>
     </transition>
@@ -196,7 +263,7 @@
 <script setup>
 import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { userStore } from '../store/user'
-import { getOrderItems, confirmReceive, requestReturn, cancelReturn, getReturnOrders } from '../api/shop'
+import { getOrderItems, confirmReceive, requestReturn, cancelReturn, getReturnOrders, requestBatchReturn } from '../api/shop'
 
 const orders = ref([])
 const returnOrders = ref([])
@@ -209,6 +276,12 @@ const showReturnModal = ref(false)
 const returnTarget = ref(null)
 const returnReason = ref('')
 const returnLoading = ref(false)
+
+// 批量退货相关
+const showBatchReturnModal = ref(false)
+const batchReturnOrder = ref(null)
+const batchReturnReason = ref('')
+const batchReturnLoading = ref(false)
 
 // 定时器，用于刷新倒计时
 let timer = null
@@ -231,6 +304,15 @@ function showToast(msg, type = 'success') {
   toast.type = type
   toast.show = true
   setTimeout(() => { toast.show = false }, 2000)
+}
+
+function showBatchReturnButton(order) {
+  // 判断订单中是否有商品满足单个商品退货条件，但不是全部在退货状态
+  return order.items.some(item =>
+    item.receivedTime &&
+    item.returnStatus === 0 &&
+    getHoursSince(item.receivedTime) < 24
+  ) && order.items.length > 1;
 }
 
 async function loadOrders() {
@@ -309,7 +391,7 @@ async function handleConfirmReceive(item) {
       await loadOrders()
     }
   } catch (e) {
-    showToast(e.response?.data || '操作失败', 'error')
+    showToast(e.response?.data?.message || e.response?.data || '操作失败', 'error')
   }
 }
 
@@ -332,7 +414,7 @@ async function submitReturn() {
       await loadOrders()
     }
   } catch (e) {
-    showToast(e.response?.data || '操作失败', 'error')
+    showToast(e.response?.data?.message || e.response?.data || '操作失败', 'error')
   } finally {
     returnLoading.value = false
   }
@@ -349,7 +431,45 @@ async function handleCancelReturn(item) {
       }
     }
   } catch (e) {
-    showToast(e.response?.data || '操作失败', 'error')
+    showToast(e.response?.data?.message || e.response?.data || '操作失败', 'error')
+  }
+}
+
+function openBatchReturnModal(order) {
+  batchReturnOrder.value = order
+  batchReturnReason.value = ''
+  showBatchReturnModal.value = true
+}
+
+async function submitBatchReturn() {
+  if (!batchReturnReason.value.trim()) {
+    return showToast('请填写退货原因', 'error')
+  }
+
+  batchReturnLoading.value = true
+  try {
+    // 获取所有符合条件的itemIds
+    const itemIds = batchReturnOrder.value.items.filter(item =>
+      item.receivedTime &&
+      item.returnStatus === 0 &&
+      getHoursSince(item.receivedTime) < 24
+    ).map(item => item.itemId)
+
+    if (itemIds.length === 0) {
+      showToast('没有符合条件的商品可退货', 'error')
+      return
+    }
+
+    const res = await requestBatchReturn(itemIds, batchReturnReason.value.trim())
+    if (res.data === '批量退货申请已提交') {
+      showToast('批量退货申请已提交')
+      showBatchReturnModal.value = false
+      await loadOrders()
+    }
+  } catch (e) {
+    showToast(e.response?.data?.message || e.response?.data || '操作失败', 'error')
+  } finally {
+    batchReturnLoading.value = false
   }
 }
 </script>
@@ -589,6 +709,97 @@ async function handleCancelReturn(item) {
 .reason-label {
   font-weight: 600;
   color: var(--text-primary);
+}
+
+.batch-return-section {
+  padding: 10px 14px;
+  border-top: 1px solid #f5f0ea;
+  text-align: right;
+}
+
+.divider {
+  height: 1px;
+  background: #f5f0ea;
+  margin: 10px 0;
+}
+
+.batch-return-btn {
+  padding: 8px 16px;
+  border-radius: 16px;
+  font-size: 14px;
+  font-weight: 600;
+  border: 1.5px solid #ff4d4f;
+  color: #ff4d4f;
+  background: #fff;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.batch-return-btn:active {
+  transform: scale(0.95);
+}
+
+/* 批量退货预览 */
+.return-order-summary {
+  background: #fff;
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.order-summary {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.items-count {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+.batch-items-preview {
+  max-height: 200px;
+  overflow-y: auto;
+  margin-bottom: 16px;
+}
+
+.batch-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #faf7f2;
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 8px;
+}
+
+.batch-preview-img {
+  width: 40px;
+  height: 40px;
+  border-radius: 6px;
+  object-fit: cover;
+  background: #F5F0E8;
+  flex-shrink: 0;
+}
+
+.batch-preview-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.batch-preview-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.batch-preview-price {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  margin-top: 2px;
 }
 
 .order-footer {

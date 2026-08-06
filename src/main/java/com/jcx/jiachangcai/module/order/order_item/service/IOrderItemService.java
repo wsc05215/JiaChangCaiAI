@@ -19,5 +19,6 @@ public interface IOrderItemService extends IService<OrderItem> {
      String confirmReceive(Long itemId);
      String requestReturn(Long itemId, String reason);
      String cancelReturn(Long itemId);
+     String requestBatchReturn(List<Long> itemIds, String reason);
      List<OrderItem> getReturnOrders(Long userId);
 }

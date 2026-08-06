@@ -50,6 +50,7 @@ public class OrderItemServiceImpl extends ServiceImpl<OrderItemMapper, OrderItem
         productMapper.updateById(product);
         // 写订单明细
         orderItem.setCreateTime(LocalDateTime.now());
+        orderItem.setIsDeleted(0);
         orderItem.setReturnStatus(0);
         mapper.insert(orderItem);
         return "下单成功";
@@ -146,6 +147,65 @@ public class OrderItemServiceImpl extends ServiceImpl<OrderItemMapper, OrderItem
             }
         }
         return "退货申请已取消";
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public String requestBatchReturn(List<Long> itemIds, String reason) {
+        if (itemIds == null || itemIds.isEmpty()) {
+            throw new RuntimeException("请选择要退货的商品");
+        }
+
+        // 检查所有商品是否属于同一个订单
+        List<OrderItem> items = mapper.selectBatchIds(itemIds);
+        if (items.isEmpty()) {
+            throw new RuntimeException("订单项不存在");
+        }
+
+        Long firstOrderId = items.get(0).getOrderId();
+        for (OrderItem item : items) {
+            if (!firstOrderId.equals(item.getOrderId())) {
+                throw new RuntimeException("批量退货的商品必须属于同一个订单");
+            }
+
+            if (item == null) {
+                throw new RuntimeException("订单项不存在");
+            }
+            // 未收货不能退货
+            if (item.getReceivedTime() == null) {
+                throw new RuntimeException("请先确认收货后再申请退货");
+            }
+            // 检查是否超过24小时
+            long hoursSinceReceived = ChronoUnit.HOURS.between(item.getReceivedTime(), LocalDateTime.now());
+            if (hoursSinceReceived >= 24) {
+                throw new RuntimeException("已超过24小时退货期限（收货后24小时内可申请退货）");
+            }
+            // 检查是否已退货
+            if (item.getReturnStatus() != null && item.getReturnStatus() == 2) {
+                throw new RuntimeException("商品" + item.getProductName() + "已退货");
+            }
+            if (item.getReturnStatus() != null && item.getReturnStatus() == 1) {
+                throw new RuntimeException("商品" + item.getProductName() + "正在退货流程中，请勿重复申请");
+            }
+        }
+
+        // 批量更新退货状态
+        for (OrderItem item : items) {
+            LambdaUpdateWrapper<OrderItem> wrapper = new LambdaUpdateWrapper<>();
+            wrapper.eq(OrderItem::getItemId, item.getItemId())
+                   .set(OrderItem::getReturnStatus, 1)
+                   .set(OrderItem::getReturnReason, reason);
+            mapper.update(null, wrapper);
+
+            // 归还库存
+            Product product = productMapper.selectById(item.getProductId());
+            if (product != null) {
+                product.setStock(product.getStock() + item.getQuantity());
+                productMapper.updateById(product);
+            }
+        }
+
+        return "批量退货申请已提交";
     }
 
     @Override

@@ -46,6 +46,14 @@ export function deleteUser(userId) {
   return request.delete('/user/deleUser', { params: { user_id: userId } })
 }
 
+export function register(email, username, password) {
+  const params = new URLSearchParams()
+  params.append('email', email)
+  params.append('username', username)
+  params.append('password', password)
+  return request.post('/user/addUser', params)
+}
+
 export function alterUser(user) {
   const params = new URLSearchParams()
   params.append('userId', user.userId)

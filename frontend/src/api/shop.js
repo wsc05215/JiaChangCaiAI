@@ -83,6 +83,13 @@ export function cancelReturn(itemId) {
   return request.post('/order-item/cancelReturn', params)
 }
 
+export function requestBatchReturn(itemIds, reason) {
+  const params = new URLSearchParams()
+  itemIds.forEach(id => params.append('itemIds', id))
+  params.append('reason', reason)
+  return request.post('/order-item/requestBatchReturn', params)
+}
+
 export function getReturnOrders(userId) {
   return request.get('/order-item/getReturnOrders', { params: { user_id: userId } })
 }

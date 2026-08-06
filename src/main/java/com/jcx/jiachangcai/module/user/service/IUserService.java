@@ -21,4 +21,5 @@ public interface IUserService extends IService<User> {
     String findEmail(String email);
     String reastPassword(String email,String code,String newPassword);
     String deleUser(Long user_id);
+    String addUser(String email, String username, String password);
 }

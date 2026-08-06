@@ -17,4 +17,7 @@
                OR r.description LIKE CONCAT('%', #{keyword}, '%'))
         ORDER BY r.like_count DESC
     </select>
+    <select id="getProductByKeyword" resultType="com.jcx.jiachangcai.module.shop.entity.Product" parameterType="java.lang.String">
+        select * from product where name like concat("%",#{keyword},"%")
+    </select>
 </mapper>

@@ -47,6 +47,11 @@ public class OrderItemController {
         return service.requestReturn(itemId, reason);
     }
 
+    @PostMapping("/requestBatchReturn")
+    public String requestBatchReturn(@RequestParam List<Long> itemIds, @RequestParam String reason) {
+        return service.requestBatchReturn(itemIds, reason);
+    }
+
     @PostMapping("/cancelReturn")
     public String cancelReturn(@RequestParam Long itemId) {
         return service.cancelReturn(itemId);

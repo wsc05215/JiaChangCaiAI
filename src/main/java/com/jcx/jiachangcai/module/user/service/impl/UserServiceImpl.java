@@ -10,6 +10,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
@@ -67,6 +68,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public User emailLogin(String email, String code) {
         if (!codeManager.verify(email, code)) {
             return null;
@@ -77,6 +79,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         wrapper.eq(User::getUsername, email).or().eq(User::getEmail, email);
         User user = userMapper.selectOne(wrapper);
 
+        if (user != null) {
+            if (Integer.valueOf(1).equals(user.getIsDeleted())) {
+                return null;
+            }
+            return user;
+        }
+
+        // 防止并发：再次检查用户是否在此期间被创建
+        wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(User::getUsername, email).or().eq(User::getEmail, email);
+        user = userMapper.selectOne(wrapper);
         if (user != null) {
             if (Integer.valueOf(1).equals(user.getIsDeleted())) {
                 return null;
@@ -95,8 +108,22 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         user.setIsDeleted(0);
         user.setCreateTime(LocalDateTime.now());
         user.setUpdateTime(LocalDateTime.now());
-        userMapper.insert(user);
-        return user;
+
+        // 尝试插入用户，如果并发插入导致冲突则查询已存在的用户
+        try {
+            userMapper.insert(user);
+            // 获取自动生成的ID
+            return userMapper.selectById(user.getUserId());
+        } catch (Exception e) {
+            // 如果插入失败（可能是并发情况），重新查询用户
+            LambdaQueryWrapper<User> finalWrapper = new LambdaQueryWrapper<>();
+            finalWrapper.eq(User::getUsername, email).or().eq(User::getEmail, email);
+            User existingUser = userMapper.selectOne(finalWrapper);
+            if (existingUser != null && !Integer.valueOf(1).equals(existingUser.getIsDeleted())) {
+                return existingUser;
+            }
+            return null;
+        }
     }
 
     @Override
@@ -149,11 +176,46 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
 
     @Override
     public String deleUser(Long user_id) {
-        LambdaQueryWrapper<User> wrapper =new LambdaQueryWrapper<>();
-        wrapper.eq(User::getUserId,user_id);
-         userMapper.delete(wrapper);
-         return "OK";
+        LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(User::getUserId, user_id);
+        userMapper.delete(wrapper);
+        return "OK";
     }
 
+    @Override
+    public String addUser(String email, String username, String password) {
+        // 检查用户名是否已被注册
+        LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(User::getUsername, username);
+        if (userMapper.selectOne(wrapper) != null) {
+            return "用户名已被注册";
+        }
 
+        // 检查邮箱是否已被注册
+        wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(User::getEmail, email);
+        if (userMapper.selectOne(wrapper) != null) {
+            return "邮箱已被注册";
+        }
+
+        String nick = email.contains("@") ? email.substring(0, email.indexOf("@")) : email;
+        User newUser = new User();
+        newUser.setUsername(username);
+        newUser.setEmail(email);
+        newUser.setPassword(password);
+        newUser.setNickName(nick);
+        newUser.setMemberType(0);
+        newUser.setIsDeleted(0);
+        newUser.setCreateTime(LocalDateTime.now());
+        newUser.setUpdateTime(LocalDateTime.now());
+
+        try {
+            userMapper.insert(newUser);
+            return "ok";
+        } catch (Exception e) {
+            // 并发插入冲突，返回友好提示
+            return "用户已经被注册";
+        }
+    }
 }
+
