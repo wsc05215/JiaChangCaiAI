@@ -170,7 +170,7 @@ const menuItems = [
   { label: '我的订单', route: '/orders', icon: 'order' },
   { label: '消息通知', route: '/notifications', icon: 'bell' },
   { label: '账号设置', route: '/settings', icon: 'settings' },
-  { label: '服务与建议与帮助', route: '/ai-chat?mode=customer_service', icon: 'help' },
+  { label: '联系客服', route: '/ai-chat?mode=customer_service', icon: 'help' },
 ]
 
 const showEdit = ref(false)

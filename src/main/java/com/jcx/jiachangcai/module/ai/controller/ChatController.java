@@ -24,9 +24,13 @@ public class ChatController {
             @RequestParam(defaultValue = "CHEF") String type) {
         AiChatType chatType;
         try {
-            chatType = AiChatType.valueOf(type.toUpperCase());
+            chatType = AiChatType.valueOf(type);
         } catch (IllegalArgumentException e) {
-            chatType = AiChatType.CHEF;
+            try {
+                chatType = AiChatType.valueOf(type.toUpperCase());
+            } catch (IllegalArgumentException e2) {
+                chatType = AiChatType.CHEF;
+            }
         }
         return aiChatService.chat(userId, chatType, msg);
     }

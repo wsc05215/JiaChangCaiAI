@@ -7,6 +7,8 @@ import com.jcx.jiachangcai.module.user.service.CodeManager;
 import com.jcx.jiachangcai.module.user.service.EmailService;
 import com.jcx.jiachangcai.module.user.service.IUserService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
@@ -26,6 +28,8 @@ import java.time.LocalDateTime;
 @Service
 @Primary
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IUserService {
+
+    private static final Logger log = LoggerFactory.getLogger(UserServiceImpl.class);
 
     @Autowired
     private UserMapper userMapper;
@@ -68,9 +72,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public User emailLogin(String email, String code) {
+        log.info("邮箱登录: email={}, code={}", email, code);
         if (!codeManager.verify(email, code)) {
+            log.warn("验证码校验失败: email={}, code={}", email, code);
             return null;
         }
 
@@ -81,23 +86,29 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
 
         if (user != null) {
             if (Integer.valueOf(1).equals(user.getIsDeleted())) {
+                log.warn("用户已注销: email={}", email);
                 return null;
             }
+            log.info("用户已存在，直接返回: userId={}", user.getUserId());
             return user;
         }
 
+        log.info("用户不存在，准备自动注册: email={}", email);
         // 防止并发：再次检查用户是否在此期间被创建
         wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(User::getUsername, email).or().eq(User::getEmail, email);
         user = userMapper.selectOne(wrapper);
         if (user != null) {
             if (Integer.valueOf(1).equals(user.getIsDeleted())) {
+                log.warn("二次检查-用户已注销: email={}", email);
                 return null;
             }
+            log.info("二次检查-用户已存在: userId={}", user.getUserId());
             return user;
         }
 
         // 新用户自动注册
+        log.info("开始自动注册新用户: email={}", email);
         String nick = email.contains("@") ? email.substring(0, email.indexOf("@")) : email;
         user = new User();
         user.setUsername(email);
@@ -112,9 +123,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         // 尝试插入用户，如果并发插入导致冲突则查询已存在的用户
         try {
             userMapper.insert(user);
+            log.info("新用户插入成功: userId={}", user.getUserId());
             // 获取自动生成的ID
             return userMapper.selectById(user.getUserId());
         } catch (Exception e) {
+            log.error("新用户插入失败: email={}, error={}", email, e.getMessage(), e);
             // 如果插入失败（可能是并发情况），重新查询用户
             LambdaQueryWrapper<User> finalWrapper = new LambdaQueryWrapper<>();
             finalWrapper.eq(User::getUsername, email).or().eq(User::getEmail, email);

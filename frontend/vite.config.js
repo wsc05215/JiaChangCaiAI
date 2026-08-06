@@ -25,6 +25,8 @@ export default defineConfig({
       '/address': 'http://localhost:8080',
       '/order-item': 'http://localhost:8080',
       '/meal-plan': 'http://localhost:8080',
+      '/ingredient': 'http://localhost:8080',
+      '/custom': 'http://localhost:8080',
     },
   },
   build: {

@@ -1,14 +1,13 @@
-const ENDPOINTS = {
-  chat: '/chat/stream',
-  recipe: '/RecipechatAI/stream',
-  menu: '/MyRecipeChatOfAI/stream',
-  customer_service: '/chat/stream'
+function getTypeParam(mode) {
+  if (mode === 'customer_service') return 'CUSTOMER_SERVICE'
+  if (mode === 'fridge') return 'AiFridgeFoodService'
+  if (mode === 'customized_recipe') return 'CustomizedRecipe'
+  if (mode === 'oneclick_menu') return 'Oneclickmenu'
+  return 'CHEF'
 }
 
 export function streamChat(msg, mode, userId, onToken, onDone, onError) {
-  const base = ENDPOINTS[mode] || ENDPOINTS.chat
-  const typeParam = mode === 'customer_service' ? '&type=CUSTOMER_SERVICE' : ''
-  const url = `${base}?msg=${encodeURIComponent(msg)}&userId=${userId}${typeParam}`
+  const url = `/chat/stream?msg=${encodeURIComponent(msg)}&userId=${userId}&type=${getTypeParam(mode)}`
   const es = new EventSource(url)
 
   let received = false

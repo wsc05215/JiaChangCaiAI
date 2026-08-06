@@ -3,6 +3,9 @@ package com.jcx.jiachangcai.module.ai.service.impl;
 import com.jcx.jiachangcai.module.ai.enums.AiChatType;
 import com.jcx.jiachangcai.module.ai.prompt.AiPrompts;
 import com.jcx.jiachangcai.module.ai.service.AiChatService;
+import com.jcx.jiachangcai.module.ai.service.ICustomRecordService;
+import com.jcx.jiachangcai.module.ai.tool.IngredientTools;
+import com.jcx.jiachangcai.module.ingredient.mapper.IngredientMapper;
 import com.jcx.jiachangcai.module.member.service.IMemberService;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.memory.ChatMemory;
@@ -25,6 +28,12 @@ public class AiChatServiceImpl implements AiChatService {
 
     @Autowired
     private IMemberService memberService;
+
+    @Autowired
+    private ICustomRecordService customRecordService;
+
+    @Autowired
+    private IngredientMapper ingredientMapper;
 
     @Autowired
     private VectorStore vectorStore;
@@ -55,12 +64,37 @@ public class AiChatServiceImpl implements AiChatService {
             systemPrompt = AiPrompts.get(type);
         }
 
-        return chatClient.prompt()
+        // 收集完整回复用于自动存储
+        StringBuilder fullContent = new StringBuilder();
+
+        var prompt = chatClient.prompt()
                 .system(systemPrompt)
                 .user(message)
-                .advisors(a -> a.param(ChatMemory.CONVERSATION_ID, userId + "_" + type))
-                .stream()
-                .content();
+                .advisors(a -> a.param(ChatMemory.CONVERSATION_ID, userId + "_" + type));
+
+        // 食材相关模式：注入 per-request 工具实例（userId 通过构造器注入，无需 ThreadLocal）
+        if (type == AiChatType.AiFridgeFoodService
+                || type == AiChatType.Oneclickmenu
+                || type == AiChatType.CustomizedRecipe) {
+            prompt = prompt.tools(new IngredientTools(userId, ingredientMapper));
+        }
+
+        return prompt.stream()
+                .content()
+                .doOnNext(fullContent::append)
+                .doFinally(signalType -> {
+                    // 定制食谱和一键菜谱的回复自动存入记录
+                    if (type == AiChatType.CustomizedRecipe || type == AiChatType.Oneclickmenu) {
+                        String content = fullContent.toString();
+                        if (!content.isBlank()) {
+                            try {
+                                customRecordService.saveRecord(userId, type, content);
+                            } catch (Exception ignored) {
+                                // 存储失败不影响对话
+                            }
+                        }
+                    }
+                });
     }
 
     private String retrieveContext(String query) {

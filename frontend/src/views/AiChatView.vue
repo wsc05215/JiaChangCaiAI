@@ -7,9 +7,7 @@
         </svg>
       </div>
       <span class="nav-title">{{ modeText }}</span>
-      <div class="nav-placeholder">
-        <span v-if="isMember && memberExpire" class="member-expire">{{ memberExpire }} 到期</span>
-      </div>
+      <div class="nav-placeholder"></div>
     </div>
 
     <div class="msg-list" ref="msgList">
@@ -37,6 +35,33 @@
             <div class="prompt-chip" @click="quickAsk('忘记密码怎么办？')">忘记密码</div>
             <div class="prompt-chip" @click="quickAsk('如何查看我的订单？')">查看订单</div>
             <div class="prompt-chip" @click="quickAsk('怎么申请退款？')">申请退款</div>
+          </div>
+        </template>
+        <template v-else-if="mode === 'fridge'">
+          <div class="welcome-msg">AI食材管家</div>
+          <div class="welcome-sub">告诉我你买了什么食材，我帮你记录和管理</div>
+          <div class="quick-prompts">
+            <div class="prompt-chip" @click="quickAsk('帮我看看冰箱里有什么食材')">查看食材</div>
+            <div class="prompt-chip" @click="quickAsk('我买了鸡蛋、西红柿、青椒，帮我记一下')">记录食材</div>
+            <div class="prompt-chip" @click="quickAsk('哪些食材快过期了？')">临期提醒</div>
+          </div>
+        </template>
+        <template v-else-if="mode === 'customized_recipe'">
+          <div class="welcome-msg">定制食谱</div>
+          <div class="welcome-sub">告诉我你的口味和需求，为你量身定制专属食谱</div>
+          <div class="quick-prompts">
+            <div class="prompt-chip" @click="quickAsk('帮我定制一周减脂食谱，每天热量控制在1500卡以内')">一周减脂</div>
+            <div class="prompt-chip" @click="quickAsk('我是素食者，帮我定制三日食谱')">素食定制</div>
+            <div class="prompt-chip" @click="quickAsk('帮我定制适合老人和孩子的一周家常菜谱')">家庭定制</div>
+          </div>
+        </template>
+        <template v-else-if="mode === 'oneclick_menu'">
+          <div class="welcome-msg">一键菜谱</div>
+          <div class="welcome-sub">看看冰箱里有什么，一键生成美味菜谱</div>
+          <div class="quick-prompts">
+            <div class="prompt-chip" @click="quickAsk('帮我看看冰箱里有什么食材，推荐几道菜')">智能推荐</div>
+            <div class="prompt-chip" @click="quickAsk('根据我冰箱里的食材，帮我搭配今天的午餐和晚餐')">今日搭配</div>
+            <div class="prompt-chip" @click="quickAsk('有哪些食材需要尽快用掉？帮我出个菜谱')">临期处理</div>
           </div>
         </template>
         <template v-else>
@@ -83,18 +108,6 @@
     </div>
 
     <div class="bottom-area">
-      <div v-if="mode !== 'customer_service'" class="feature-btns">
-        <button class="feature-btn" :class="{ active: mode === 'recipe' }" @click="switchMode('recipe')">
-          <span class="f-icon">&#x1F4D6;</span> 定制食谱
-        </button>
-        <button class="feature-btn" :class="{ active: mode === 'menu' }" @click="switchMode('menu')">
-          <span class="f-icon">&#x1F4CB;</span> 一键菜单
-        </button>
-        <button class="feature-btn" @click="ingredientManage">
-          <span class="f-icon">&#x1F96C;</span> 食材管理
-        </button>
-      </div>
-
       <div class="input-row">
         <div class="input-card">
           <input
@@ -116,67 +129,38 @@
           </button>
         </div>
       </div>
-
-      <div v-if="trialExhausted" class="trial-link" @click="showPayModal = true">
-        开通会员解锁无限次数 &#x2192;
-      </div>
     </div>
-
-    <MemberPayModal
-      v-if="showPayModal"
-      @close="showPayModal = false"
-      @success="onPaySuccess"
-    />
   </div>
 </template>
 
 <script setup>
-import { ref, computed, nextTick, onMounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { ref, computed, nextTick } from 'vue'
+import { useRoute } from 'vue-router'
 import { streamChat } from '../api/ai'
-import { checkMember, getExpireTime } from '../api/member'
 import { userStore } from '../store/user'
-import MemberPayModal from '../components/MemberPayModal.vue'
 
-const router = useRouter()
 const route = useRoute()
 const input = ref('')
 const messages = ref([])
 const streaming = ref(false)
 const streamingText = ref('')
 const msgList = ref(null)
-const mode = ref(route.query.mode || 'chat')
-const isMember = ref(false)
-const memberExpire = ref('')
-const showPayModal = ref(false)
-
-const trialExhausted = computed(() => {
-  return messages.value.some(m => m.role === 'ai' && m.content.includes('额度已用完'))
-})
+const mode = ref(route.query.mode || 'chef')
 
 let cancelStream = null
 
 const modeText = computed(() => {
-  return { chat: '饮食管家', recipe: '定制食谱', menu: '一键菜单', customer_service: '服务与帮助' }[mode.value]
+  if (mode.value === 'customer_service') return '联系客服'
+  if (mode.value === 'fridge') return 'AI食材管家'
+  if (mode.value === 'customized_recipe') return '定制食谱'
+  if (mode.value === 'oneclick_menu') return '一键菜谱'
+  return 'AI饮食管家'
 })
 
 const inputPlaceholder = computed(() => {
-  return {
-    chat: '输入你的饮食需求...',
-    recipe: '描述你想要什么类型的食谱...',
-    menu: '告诉我你想怎么搭配菜单...',
-    customer_service: '输入您遇到的问题，例如：怎么修改密码？'
-  }[mode.value]
-})
-
-onMounted(async () => {
-  const uid = userStore.user?.userId
-  if (uid) {
-    isMember.value = await checkMember(uid)
-    if (isMember.value) {
-      memberExpire.value = formatExpire(await getExpireTime(uid))
-    }
-  }
+  return mode.value === 'customer_service'
+    ? '输入您遇到的问题，例如：怎么修改密码？'
+    : '输入你的饮食需求...'
 })
 
 function scrollBottom() {
@@ -190,18 +174,6 @@ function scrollBottom() {
 function addMessage(role, content) {
   messages.value.push({ role, content })
   scrollBottom()
-}
-
-function switchMode(newMode) {
-  if (!isMember.value) {
-    showPayModal.value = true
-    return
-  }
-  if (mode.value === newMode) {
-    mode.value = 'chat'
-    return
-  }
-  mode.value = newMode
 }
 
 function quickAsk(text) {
@@ -246,37 +218,6 @@ function send() {
   input.value = ''
   streamSend(mode.value, text)
 }
-
-function ingredientManage() {
-  if (!isMember.value) {
-    showPayModal.value = true
-    return
-  }
-  streamSend('chat', '帮我看看家里的食材，哪些需要尽快用掉？有什么推荐的处理方法吗？')
-}
-
-async function onPaySuccess() {
-  showPayModal.value = false
-  const uid = userStore.user?.userId
-  if (uid) {
-    isMember.value = await checkMember(uid)
-    if (isMember.value) {
-      memberExpire.value = formatExpire(await getExpireTime(uid))
-    }
-  }
-}
-
-function formatExpire(time) {
-  if (!time) return ''
-  let d
-  if (Array.isArray(time)) {
-    d = new Date(time[0], time[1] - 1, time[2], time[3] || 0, time[4] || 0, time[5] || 0)
-  } else {
-    d = new Date(time)
-  }
-  const pad = n => String(n).padStart(2, '0')
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
-}
 </script>
 
 <style scoped>
@@ -314,12 +255,6 @@ function formatExpire(time) {
 }
 
 .nav-placeholder { width: 36px; }
-
-.member-expire {
-  font-size: 10px; font-weight: 600;
-  color: var(--gold);
-  white-space: nowrap;
-}
 
 /* msg list */
 .msg-list {
@@ -495,42 +430,6 @@ function formatExpire(time) {
   border-top: 1px solid rgba(0,0,0,0.04);
 }
 
-.feature-btns {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 10px;
-}
-
-.feature-btn {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  background: #fff;
-  border: 1.5px solid var(--border);
-  border-radius: 12px;
-  padding: 11px 0;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: all 0.25s var(--ease-smooth);
-  box-shadow: var(--shadow-xs);
-}
-
-.f-icon { font-size: 14px; }
-
-.feature-btn:active { transform: scale(0.96); }
-
-.feature-btn.active {
-  border-color: var(--primary);
-  color: var(--primary);
-  background: var(--primary-bg);
-  font-weight: 800;
-  box-shadow: 0 2px 12px rgba(230,126,34,0.08);
-}
-
 .input-row {
   display: flex;
   gap: 8px;
@@ -580,14 +479,5 @@ function formatExpire(time) {
 
 .send-btn:active {
   transform: scale(0.85);
-}
-
-.trial-link {
-  text-align: center;
-  font-size: 12px;
-  color: var(--primary);
-  padding: 8px 0 0;
-  cursor: pointer;
-  font-weight: 700;
 }
 </style>

@@ -36,6 +36,30 @@
         </div>
       </div>
 
+      <div class="ai-card" @click="router.push('/ai-chat')">
+        <div class="ai-card-body">
+          <div class="ai-card-icon">
+            <div class="ai-icon-glow"></div>
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none">
+              <path d="M12 2l2.5 8.5L23 13l-8.5 2.5L12 24l-2.5-8.5L1 13l8.5-2.5z" fill="url(#aiStarGrad)"/>
+              <defs>
+                <linearGradient id="aiStarGrad" x1="1" y1="2" x2="23" y2="24">
+                  <stop stop-color="#E8783D"/>
+                  <stop offset="1" stop-color="#F0A060"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+          <div class="ai-card-text">
+            <div class="ai-card-title">AI 饮食管家</div>
+            <div class="ai-card-desc">想知道某道菜怎么做？问我吧</div>
+          </div>
+          <svg viewBox="0 0 16 16" width="16" height="16" class="ai-card-arrow">
+            <path d="M6 3l5 5-5 5" stroke="#C4B5AA" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </div>
+
       <div class="section-header">
         <span class="section-title">精选食谱</span>
         <span class="section-more">查看全部 ›</span>
@@ -353,6 +377,77 @@ function goDetail(id) {
   font-family: var(--font-body);
   font-size: 14px;
   color: var(--text-placeholder);
+}
+
+/* AI card */
+.ai-card {
+  margin-top: 18px;
+  background: #fff;
+  border-radius: 16px;
+  cursor: pointer;
+  box-shadow: 0 2px 14px rgba(30, 21, 15, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  transition: all 0.25s ease;
+}
+
+.ai-card:active {
+  transform: scale(0.985);
+  box-shadow: 0 4px 22px rgba(30, 21, 15, 0.08);
+}
+
+.ai-card-body {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 16px;
+}
+
+.ai-card-icon {
+  position: relative;
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+  background: linear-gradient(135deg, #FFF2E8, #FFE4D0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.ai-icon-glow {
+  position: absolute;
+  inset: -3px;
+  border-radius: 16px;
+  background: transparent;
+  box-shadow: 0 0 12px rgba(230, 126, 34, 0.25);
+  animation: iconGlow 2.5s ease-in-out infinite;
+}
+
+@keyframes iconGlow {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+
+.ai-card-text {
+  flex: 1;
+}
+
+.ai-card-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-bottom: 3px;
+}
+
+.ai-card-desc {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.ai-card-arrow {
+  flex-shrink: 0;
+  opacity: 0.35;
 }
 
 /* tabs */

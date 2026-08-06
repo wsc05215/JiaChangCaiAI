@@ -18,6 +18,8 @@ import PayView from '../views/PayView.vue'
 import OrderView from '../views/OrderView.vue'
 import MenuPlanView from '../views/MenuPlanView.vue'
 import SettingsView from '../views/SettingsView.vue'
+import IngredientRecord from '../views/IngredientRecord.vue'
+import CustomView from '../views/CustomView.vue'
 
 const routes = [
   { path: '/address', name: 'AddressList', component: AddressListView },
@@ -32,13 +34,15 @@ const routes = [
   { path: '/recipe/:id', name: 'RecipeDetail', component: RecipeDetail },
   { path: '/my-recipes', name: 'MyRecipes', component: MyRecipesView },
   { path: '/ai-chat', name: 'AiChat', component: AiChatView },
-  { path: '/member', name: 'Member', component: MemberView },
+  { path: '/member', redirect: '/custom' },
+  { path: '/custom', name: 'Custom', component: CustomView },
   { path: '/favorites', name: 'Favorites', component: FavoritesView },
   { path: '/search', name: 'Search', component: SearchView },
   { path: '/upload-recipe', name: 'UploadRecipe', component: UploadRecipeView },
   { path: '/product/:id', name: 'ProductDetail', component: ProductDetailView },
   { path: '/menu-plan', name: 'MenuPlan', component: MenuPlanView },
   { path: '/settings', name: 'Settings', component: SettingsView },
+  { path: '/ingredient-record', name: 'IngredientRecord', component: IngredientRecord },
 ]
 
 const router = createRouter({

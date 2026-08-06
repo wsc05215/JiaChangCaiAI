@@ -7,11 +7,11 @@
       <span>首页</span>
     </router-link>
 
-    <router-link to="/member" class="tab-item" :class="{ active: $route.path === '/member' }">
+    <router-link to="/custom" class="tab-item" :class="{ active: $route.path === '/custom' }">
       <svg viewBox="0 0 24 24" width="24" height="24">
         <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 2H5v1a1 1 0 001 1h12a1 1 0 001-1v-1z" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
-      <span>会员</span>
+      <span>定制</span>
     </router-link>
 
     <div class="tab-item tab-add" @click="showMenu = true">
@@ -20,7 +20,6 @@
           <path d="M12 5v14M5 12h14" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/>
         </svg>
       </div>
-      <span>发布</span>
     </div>
 
     <router-link to="/favorites" class="tab-item" :class="{ active: $route.path === '/favorites' }">
@@ -90,6 +89,7 @@ function goUploadRecipe() {
   showMenu.value = false
   router.push('/upload-recipe')
 }
+
 </script>
 
 <style scoped>

@@ -352,6 +352,7 @@ async function confirmRemove() {
 .menu-title { font-size: 18px; font-weight: 800; color: var(--text-primary); margin-bottom: 6px; }
 .menu-desc { font-size: 13px; color: var(--text-muted); }
 
+
 /* modal */
 .modal-overlay {
   position: fixed; inset: 0;

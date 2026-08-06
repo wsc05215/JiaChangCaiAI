@@ -44,6 +44,7 @@ public class UserController {
         }
         try {
             service.sendCode(email);
+            log.info("验证码已发送: email={}", email);
             return "ok";
         } catch (Exception e) {
             log.error("发送验证码失败: email={}", email, e);

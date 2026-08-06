@@ -357,8 +357,9 @@ async function handleSmsLogin() {
     } else {
       showToast('验证码错误或已过期', 'error')
     }
-  } catch {
-    showToast('网络错误，请稍后重试', 'error')
+  } catch (e) {
+    console.error(e)
+    showToast(e.response?.data?.message || e.response?.data || '网络错误，请稍后重试', 'error')
   } finally {
     loading.value = false
   }
