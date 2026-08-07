@@ -1,0 +1,65 @@
+workflows:
+  ios-build:
+    name: iOS Build (佳尝菜)
+    max_build_duration: 30
+    environment:
+      xcode: latest
+      cocoapods: default
+      node: 20
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: master
+          include: true
+    scripts:
+      - name: Install frontend dependencies
+        working_directory: frontend
+        script: npm install
+
+      - name: Build web app
+        working_directory: frontend
+        script: npm run build:app
+
+      - name: Sync Capacitor to iOS
+        working_directory: frontend
+        script: npx cap sync ios
+
+      - name: Install CocoaPods dependencies
+        working_directory: frontend/ios/App
+        script: pod install
+
+      - name: Build & export IPA (Automatic signing)
+        working_directory: frontend/ios/App
+        script: |
+          # 创建 exportOptions plist（开发版 IPA）
+          cat > "$CM_BUILD_DIR/ExportOptions.plist" <<< '<?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>method</key>
+              <string>development</string>
+              <key>teamID</key>
+              <string>${APPLE_DEVELOPER_TEAM}</string>
+              <key>signingStyle</key>
+              <string>automatic</string>
+          </dict>
+          </plist>'
+
+          xcodebuild archive \
+            -workspace App.xcworkspace \
+            -scheme App \
+            -sdk iphoneos \
+            -configuration Debug \
+            -archivePath "$CM_BUILD_DIR/App.xcarchive" \
+            CODE_SIGN_STYLE=Automatic \
+            DEVELOPMENT_TEAM="${APPLE_DEVELOPER_TEAM}" \
+            -allowProvisioningUpdates
+
+          xcodebuild -exportArchive \
+            -archivePath "$CM_BUILD_DIR/App.xcarchive" \
+            -exportPath "$CM_BUILD_DIR/ipa" \
+            -exportOptionsPlist "$CM_BUILD_DIR/ExportOptions.plist"
+
+    artifacts:
+      - $CM_BUILD_DIR/ipa/*.ipa

@@ -1,0 +1,11 @@
+{
+  "appId": "com.jiachangcai.app",
+  "appName": "佳尝菜",
+  "webDir": "dist",
+  "server": {
+    "cleartext": true
+  },
+  "ios": {
+    "contentInset": "always"
+  }
+}
