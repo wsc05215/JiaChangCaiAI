@@ -38,7 +38,7 @@ workflows:
             -workspace App.xcworkspace \
             -scheme App \
             -sdk iphoneos \
-            -configuration Debug \
+            -configuration Release \
             -derivedDataPath "$CM_BUILD_DIR/DerivedData" \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
