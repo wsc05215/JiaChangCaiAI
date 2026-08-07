@@ -98,6 +98,7 @@ import { userStore } from '../store/user'
 import { getAllRecipes } from '../api/recipe'
 import { getFavoriteRecipeIds, removeFavorite } from '../api/favorite'
 import AppTabbar from '../components/AppTabbar.vue'
+import { resolveImageUrl } from '../utils/imageUrl'
 
 const router = useRouter()
 const activeTab = ref('recipe')
@@ -136,7 +137,7 @@ onMounted(async () => {
 
 function getCover(images) {
   if (!images) return ''
-  try { const arr = JSON.parse(images); return arr[0] || '' } catch { return images }
+  try { const arr = JSON.parse(images); return resolveImageUrl(arr[0] || '') } catch { return resolveImageUrl(images) }
 }
 
 function onImgError(e) { e.target.style.display = 'none' }

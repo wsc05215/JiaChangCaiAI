@@ -40,6 +40,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { userStore } from '../store/user'
 import { getOwnRecipes } from '../api/recipe'
+import { resolveImageUrl } from '../utils/imageUrl'
 
 const router = useRouter()
 const recipes = ref([])
@@ -60,7 +61,7 @@ onMounted(async () => {
 
 function getCover(images) {
   if (!images) return ''
-  try { const arr = JSON.parse(images); return arr[0] || '' } catch { return images }
+  try { const arr = JSON.parse(images); return resolveImageUrl(arr[0] || '') } catch { return resolveImageUrl(images) }
 }
 
 function formatCount(n) {

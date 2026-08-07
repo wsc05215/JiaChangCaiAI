@@ -37,26 +37,28 @@
       </div>
 
       <div class="ai-card" @click="router.push('/ai-chat')">
+        <div class="ai-card-glow"></div>
         <div class="ai-card-body">
-          <div class="ai-card-icon">
-            <div class="ai-icon-glow"></div>
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none">
-              <path d="M12 2l2.5 8.5L23 13l-8.5 2.5L12 24l-2.5-8.5L1 13l8.5-2.5z" fill="url(#aiStarGrad)"/>
-              <defs>
-                <linearGradient id="aiStarGrad" x1="1" y1="2" x2="23" y2="24">
-                  <stop stop-color="#E8783D"/>
-                  <stop offset="1" stop-color="#F0A060"/>
-                </linearGradient>
-              </defs>
-            </svg>
+          <div class="ai-icon-ring">
+            <div class="ai-icon-inner">
+              <svg viewBox="0 0 20 20" width="14" height="14" fill="none">
+                <path d="M6 15V8a4 4 0 018 0v7" fill="#fff" opacity="0.9"/>
+                <rect x="3" y="15" width="14" height="2.5" rx="1.2" fill="#fff"/>
+                <circle cx="10" cy="5.5" r="1.5" fill="#fff" opacity="0.5"/>
+                <circle cx="7" cy="4" r="1" fill="#fff" opacity="0.35"/>
+                <circle cx="13" cy="4" r="1" fill="#fff" opacity="0.35"/>
+              </svg>
+            </div>
           </div>
           <div class="ai-card-text">
-            <div class="ai-card-title">AI 饮食管家</div>
+            <div class="ai-card-title">AI烹饪助手</div>
             <div class="ai-card-desc">想知道某道菜怎么做？问我吧</div>
           </div>
-          <svg viewBox="0 0 16 16" width="16" height="16" class="ai-card-arrow">
-            <path d="M6 3l5 5-5 5" stroke="#C4B5AA" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
+          <div class="ai-sparkle-row">
+            <span class="ai-sparkle"></span>
+            <span class="ai-sparkle delay-1"></span>
+            <span class="ai-sparkle delay-2"></span>
+          </div>
         </div>
       </div>
 
@@ -145,7 +147,7 @@
       <div class="daily-scroll" v-else>
         <div v-for="item in recentProducts" :key="item.id" class="daily-card" @click="goProduct(item.id)">
           <div class="daily-img-wrap">
-            <img v-if="item.coverImage" :src="item.coverImage" class="daily-img" />
+            <img v-if="item.coverImage" :src="resolveImg(item.coverImage)" class="daily-img" />
             <div v-else class="daily-img-bg"></div>
           </div>
           <div class="daily-info">
@@ -168,7 +170,7 @@
         <div v-for="(item, idx) in filteredSalesProducts" :key="item.id" class="sales-card" @click="goProduct(item.id)">
           <div class="sales-rank" :class="{ 'rank-top': idx < 3 }">{{ idx + 1 }}</div>
           <div class="sales-img-wrap">
-            <img v-if="item.coverImage" :src="item.coverImage" class="sales-img" />
+            <img v-if="item.coverImage" :src="resolveImg(item.coverImage)" class="sales-img" />
           </div>
           <div class="sales-info">
             <div class="sales-name">{{ item.name }}</div>
@@ -192,6 +194,7 @@ import { userStore } from '../store/user'
 import { getAllRecipes, getFollowRecipes } from '../api/recipe'
 import { getRecentProducts, getSalesRanking, getSalesRankingByCategory } from '../api/shop'
 import AppTabbar from '../components/AppTabbar.vue'
+import { resolveImageUrl } from '../utils/imageUrl'
 
 const router = useRouter()
 const activeTab = ref('recommend')
@@ -309,10 +312,14 @@ function getCover(images) {
   if (!images) return ''
   try {
     const arr = JSON.parse(images)
-    return arr[0] || ''
+    return resolveImageUrl(arr[0] || '')
   } catch {
-    return images
+    return resolveImageUrl(images)
   }
+}
+
+function resolveImg(url) {
+  return resolveImageUrl(url)
 }
 
 function formatCount(n) {
@@ -381,51 +388,69 @@ function goDetail(id) {
 
 /* AI card */
 .ai-card {
+  position: relative;
   margin-top: 18px;
-  background: #fff;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
   border-radius: 16px;
   cursor: pointer;
-  box-shadow: 0 2px 14px rgba(30, 21, 15, 0.04);
-  border: 1px solid rgba(0, 0, 0, 0.04);
-  transition: all 0.25s ease;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.07);
+  transition: all 0.3s;
 }
 
 .ai-card:active {
   transform: scale(0.985);
-  box-shadow: 0 4px 22px rgba(30, 21, 15, 0.08);
+}
+
+.ai-card-glow {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 30% 50%, rgba(139,92,246,0.14) 0%, transparent 55%),
+    radial-gradient(ellipse at 80% 70%, rgba(59,130,246,0.08) 0%, transparent 45%);
+  animation: glowPulse 4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes glowPulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
 }
 
 .ai-card-body {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 16px 16px;
+  gap: 14px;
+  padding: 18px 16px;
 }
 
-.ai-card-icon {
-  position: relative;
-  width: 42px;
-  height: 42px;
-  border-radius: 13px;
-  background: linear-gradient(135deg, #FFF2E8, #FFE4D0);
+/* rotating conic ring */
+.ai-icon-ring {
+  width: 46px; height: 46px;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, #8B5CF6, #3B82F6, #06B6D4, #8B5CF6);
+  animation: ringSpin 3s linear infinite;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 2.5px;
   flex-shrink: 0;
 }
 
-.ai-icon-glow {
-  position: absolute;
-  inset: -3px;
-  border-radius: 16px;
-  background: transparent;
-  box-shadow: 0 0 12px rgba(230, 126, 34, 0.25);
-  animation: iconGlow 2.5s ease-in-out infinite;
+@keyframes ringSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
-@keyframes iconGlow {
-  0%, 100% { opacity: 0.3; }
-  50% { opacity: 1; }
+.ai-icon-inner {
+  width: 100%; height: 100%;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1e1b4b, #1e293b);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .ai-card-text {
@@ -434,20 +459,49 @@ function goDetail(id) {
 
 .ai-card-title {
   font-size: 15px;
-  font-weight: 800;
-  color: var(--text-primary);
+  font-weight: 700;
+  color: #e2e8f0;
   margin-bottom: 3px;
+  letter-spacing: 0.4px;
 }
 
 .ai-card-desc {
-  font-size: 11px;
-  color: var(--text-muted);
+  font-size: 12px;
+  color: #94a3b8;
   font-weight: 500;
 }
 
-.ai-card-arrow {
+/* sparkle dots */
+.ai-sparkle-row {
+  display: flex;
+  gap: 5px;
   flex-shrink: 0;
-  opacity: 0.35;
+  margin-right: 2px;
+}
+
+.ai-sparkle {
+  width: 3.5px; height: 3.5px;
+  border-radius: 50%;
+  background: #8B5CF6;
+  animation: sparkleBounce 1.8s ease-in-out infinite;
+  box-shadow: 0 0 5px rgba(139,92,246,0.55);
+}
+
+.ai-sparkle.delay-1 {
+  animation-delay: 0.3s;
+  background: #3B82F6;
+  box-shadow: 0 0 5px rgba(59,130,246,0.55);
+}
+
+.ai-sparkle.delay-2 {
+  animation-delay: 0.6s;
+  background: #06B6D4;
+  box-shadow: 0 0 5px rgba(6,182,212,0.55);
+}
+
+@keyframes sparkleBounce {
+  0%, 100% { transform: scale(1); opacity: 0.4; }
+  50% { transform: scale(1.8); opacity: 1; }
 }
 
 /* tabs */

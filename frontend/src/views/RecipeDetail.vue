@@ -145,6 +145,7 @@ import { checkFavorited, addFavorite, removeFavorite } from '../api/favorite'
 import { follow, unfollow, checkFollowing } from '../api/follow'
 import { getComments, addComment } from '../api/comment'
 import { getUserDetail } from '../api/auth'
+import { resolveImageUrl } from '../utils/imageUrl'
 
 const route = useRoute()
 const router = useRouter()
@@ -200,7 +201,7 @@ function parseJson(val) {
 
 function getCover(images) {
   if (!images) return ''
-  try { const arr = JSON.parse(images); return arr[0] || '' } catch { return images }
+  try { const arr = JSON.parse(images); return resolveImageUrl(arr[0] || '') } catch { return resolveImageUrl(images) }
 }
 
 function onImgError(e) { e.target.style.display = 'none' }
@@ -581,15 +582,16 @@ async function handleComment() {
   left: 50%;
   transform: translateX(-50%);
   width: 100%;
-  max-width: 375px;
+  max-width: 420px;
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px 16px;
-  background: rgba(255,255,255,0.9);
+  padding: 12px 14px;
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+  background: rgba(255,255,255,0.95);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border-top: 1px solid rgba(0,0,0,0.05);
+  border-top: 1px solid rgba(0,0,0,0.06);
   z-index: 100;
 }
 
@@ -598,39 +600,46 @@ async function handleComment() {
   flex-direction: column;
   align-items: center;
   gap: 2px;
-  font-size: 11px;
+  font-size: 10px;
   color: var(--text-secondary);
   cursor: pointer;
   font-weight: 600;
   transition: color 0.2s;
+  flex-shrink: 0;
+  min-width: 36px;
 }
 
 .action-item.liked { color: var(--primary); }
 
 .comment-input {
   flex: 1;
-  height: 38px;
-  border-radius: var(--radius-full);
-  background: #FFFBF7;
+  height: 46px;
+  min-width: 0;
+  border-radius: 23px;
+  background: #F5F0E8;
   border: 1.5px solid var(--border);
-  padding: 0 16px;
-  font-size: 13px;
+  padding: 0 18px;
+  font-size: 15px;
+  outline: none;
   transition: all 0.2s;
 }
 
 .comment-input:focus {
   background: #fff;
   border-color: var(--primary);
-  box-shadow: 0 0 0 4px rgba(230,126,34,0.06);
+  box-shadow: 0 0 0 3px rgba(230,126,34,0.08);
 }
 
 .send-comment-btn {
-  padding: 8px 18px;
-  border-radius: var(--radius-full);
+  height: 46px;
+  padding: 0 20px;
+  border-radius: 23px;
   background: var(--gradient-primary);
   color: #fff;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
   box-shadow: var(--shadow-primary);
   transition: all 0.2s;
 }
