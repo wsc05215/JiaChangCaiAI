@@ -48,8 +48,8 @@ workflows:
         script: |
           mkdir -p Payload
           cp -R "$CM_BUILD_DIR/App.xcarchive/Products/Applications/App.app" Payload/
-          zip -r "佳尝菜.ipa" Payload
+          zip -r "jiachangcai.ipa" Payload
           rm -rf Payload
 
     artifacts:
-      - 佳尝菜.ipa
+      - jiachangcai.ipa
