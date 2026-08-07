@@ -31,40 +31,47 @@ workflows:
         working_directory: ios/App
         script: pod install
 
-      - name: Build app (unsigned)
+      - name: Build app (Release unsigned)
         working_directory: ios/App
         script: |
-          xcodebuild \
+          xcodebuild build \
             -workspace App.xcworkspace \
             -scheme App \
             -sdk iphoneos \
-            -configuration Debug \
+            -configuration Release \
             -derivedDataPath "$CM_BUILD_DIR/DerivedData" \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
-            ONLY_ACTIVE_ARCH=NO
+            ONLY_ACTIVE_ARCH=NO \
+            SWIFT_OPTIMIZATION_LEVEL="-Onone"
 
-      - name: Clean & package IPA
+      - name: Strip & package IPA
         script: |
-          APP_PATH=$(find "$CM_BUILD_DIR/DerivedData" -name "App.app" -type d -not -path "*/Previews/*" | head -1)
-          echo "=== Before cleanup ==="
-          ls -la "$APP_PATH"
-
-          # 删除 debug 动态库，这些会导致 Sideloadly 报错
-          rm -f "$APP_PATH/__preview.dylib" 2>/dev/null
-          rm -f "$APP_PATH/App.debug.dylib" 2>/dev/null
-          # 删除 SwiftUI preview 相关
-          rm -rf "$APP_PATH/Contents" 2>/dev/null
-
-          echo "=== After cleanup ==="
+          APP_PATH=$(find "$CM_BUILD_DIR/DerivedData" -name "App.app" -type d -not -path "*/Previews/*" -not -path "*iphonesimulator*" | head -1)
+          echo "=== Found: $APP_PATH ==="
           ls -la "$APP_PATH"
           echo ""
-          echo "=== Packaging ==="
+
+          # Strip debug symbols from binary
+          BIN="$APP_PATH/App"
+          if [ -f "$BIN" ]; then
+            echo "=== Stripping debug symbols ==="
+            strip -Sx "$BIN" 2>&1 || true
+            file "$BIN"
+          fi
+
+          echo ""
+          echo "=== Packaging IPA ==="
           mkdir -p Payload
           cp -R "$APP_PATH" Payload/
           zip -rq "jiachangcai.ipa" Payload
           ls -lh jiachangcai.ipa
+          echo ""
+
+          # Verify IPA structure
+          echo "=== IPA contents ==="
+          unzip -l jiachangcai.ipa | head -20
 
     artifacts:
       - jiachangcai.ipa
