@@ -3,7 +3,7 @@ workflows:
     name: iOS Build (佳尝菜)
     max_build_duration: 30
     environment:
-      xcode: latest
+      xcode: 16.4
       cocoapods: default
       node: 20
     triggering:
@@ -76,6 +76,7 @@ workflows:
           cp -R "$APP_PATH" Payload/
           zip -rq "jiachangcai.ipa" Payload
           ls -lh jiachangcai.ipa
+          echo "MD5: $(md5 -q jiachangcai.ipa)"
 
     artifacts:
       - jiachangcai.ipa
