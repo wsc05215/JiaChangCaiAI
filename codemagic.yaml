@@ -43,35 +43,39 @@ workflows:
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
-            ONLY_ACTIVE_ARCH=NO \
-            SWIFT_OPTIMIZATION_LEVEL="-Onone"
+            ONLY_ACTIVE_ARCH=NO
 
-      - name: Strip & package IPA
+      - name: Diagnostic & package
         script: |
           APP_PATH=$(find "$CM_BUILD_DIR/DerivedData" -name "App.app" -type d -not -path "*/Previews/*" -not -path "*iphonesimulator*" | head -1)
-          echo "=== Found: $APP_PATH ==="
-          ls -la "$APP_PATH"
+          echo "=== 1. App location ==="
+          echo "$APP_PATH"
           echo ""
 
-          # Strip debug symbols from binary
+          echo "=== 2. Binary info ==="
           BIN="$APP_PATH/App"
-          if [ -f "$BIN" ]; then
-            echo "=== Stripping debug symbols ==="
-            strip -Sx "$BIN" 2>&1 || true
-            file "$BIN"
-          fi
-
+          file "$BIN"
+          lipo -info "$BIN" 2>/dev/null || true
+          otool -l "$BIN" 2>/dev/null | grep -E "cmd |LC_|minos|sdk" | head -10 || true
           echo ""
-          echo "=== Packaging IPA ==="
+
+          echo "=== 3. Frameworks ==="
+          ls -la "$APP_PATH/Frameworks/" 2>/dev/null || echo "No Frameworks dir"
+          echo ""
+
+          echo "=== 4. All files ==="
+          find "$APP_PATH" -type f | sort
+          echo ""
+
+          echo "=== 5. Info.plist (readable) ==="
+          plutil -p "$APP_PATH/Info.plist" 2>/dev/null || plistutil -i "$APP_PATH/Info.plist" 2>/dev/null || echo "Cannot parse plist"
+          echo ""
+
+          echo "=== 6. Package ==="
           mkdir -p Payload
           cp -R "$APP_PATH" Payload/
           zip -rq "jiachangcai.ipa" Payload
           ls -lh jiachangcai.ipa
-          echo ""
-
-          # Verify IPA structure
-          echo "=== IPA contents ==="
-          unzip -l jiachangcai.ipa | head -20
 
     artifacts:
       - jiachangcai.ipa
