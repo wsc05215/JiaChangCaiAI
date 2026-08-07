@@ -31,31 +31,36 @@ workflows:
         working_directory: ios/App
         script: pod install
 
-      - name: Build app
+      - name: Build app (unsigned)
         working_directory: ios/App
         script: |
           xcodebuild \
             -workspace App.xcworkspace \
             -scheme App \
             -sdk iphoneos \
-            -configuration Release \
+            -configuration Debug \
             -derivedDataPath "$CM_BUILD_DIR/DerivedData" \
-            CODE_SIGN_IDENTITY="-" \
-            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
             ONLY_ACTIVE_ARCH=NO
 
-      - name: Ad-hoc sign & package IPA
+      - name: Clean & package IPA
         script: |
           APP_PATH=$(find "$CM_BUILD_DIR/DerivedData" -name "App.app" -type d -not -path "*/Previews/*" | head -1)
-          echo "=== App: $APP_PATH ==="
+          echo "=== Before cleanup ==="
+          ls -la "$APP_PATH"
+
+          # 删除 debug 动态库，这些会导致 Sideloadly 报错
+          rm -f "$APP_PATH/__preview.dylib" 2>/dev/null
+          rm -f "$APP_PATH/App.debug.dylib" 2>/dev/null
+          # 删除 SwiftUI preview 相关
+          rm -rf "$APP_PATH/Contents" 2>/dev/null
+
+          echo "=== After cleanup ==="
+          ls -la "$APP_PATH"
           echo ""
-          echo "=== Ad-hoc signing ==="
-          codesign --force --sign - --timestamp=none "$APP_PATH" 2>&1
-          echo ""
-          echo "=== Verify signature ==="
-          codesign -dvvv "$APP_PATH" 2>&1 || true
-          echo ""
-          echo "=== Package IPA ==="
+          echo "=== Packaging ==="
           mkdir -p Payload
           cp -R "$APP_PATH" Payload/
           zip -rq "jiachangcai.ipa" Payload
