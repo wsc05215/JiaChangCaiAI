@@ -31,39 +31,33 @@ workflows:
         working_directory: ios/App
         script: pod install
 
-      - name: Build app (unsigned)
+      - name: Archive
         working_directory: ios/App
         script: |
-          xcodebuild \
+          xcodebuild archive \
             -workspace App.xcworkspace \
             -scheme App \
             -sdk iphoneos \
             -configuration Release \
-            -derivedDataPath "$CM_BUILD_DIR/DerivedData" \
+            -archivePath "$CM_BUILD_DIR/App.xcarchive" \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
             ONLY_ACTIVE_ARCH=NO
 
-      - name: Verify .app exists
+      - name: Package IPA (ditto)
         script: |
-          echo "=== Looking for .app ==="
-          find "$CM_BUILD_DIR/DerivedData" -name "*.app" -type d
-          APP_PATH=$(find "$CM_BUILD_DIR/DerivedData" -name "*.app" -type d | head -1)
+          APP_PATH="$CM_BUILD_DIR/App.xcarchive/Products/Applications/App.app"
           echo "=== App contents ==="
-          ls -la "$APP_PATH" 2>/dev/null || echo "No .app found"
-          echo "=== Info.plist ==="
-          cat "$APP_PATH/Info.plist" 2>/dev/null || echo "No Info.plist"
-
-      - name: Package IPA
-        script: |
-          APP_PATH=$(find "$CM_BUILD_DIR/DerivedData" -name "*.app" -type d | head -1)
-          echo "App path: $APP_PATH"
+          ls -la "$APP_PATH"
+          echo ""
+          echo "=== Packaging with ditto ==="
           mkdir -p Payload
           cp -R "$APP_PATH" Payload/
-          zip -r "jiachangcai.ipa" Payload
-          echo "IPA size:"
+          ditto -c -k --sequesterRsrc --keepParent Payload jiachangcai.ipa
+          echo "=== Result ==="
           ls -lh jiachangcai.ipa
+          file jiachangcai.ipa
 
     artifacts:
       - jiachangcai.ipa
