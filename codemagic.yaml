@@ -31,33 +31,35 @@ workflows:
         working_directory: ios/App
         script: pod install
 
-      - name: Archive
+      - name: Build app
         working_directory: ios/App
         script: |
-          xcodebuild archive \
+          xcodebuild \
             -workspace App.xcworkspace \
             -scheme App \
             -sdk iphoneos \
             -configuration Release \
-            -archivePath "$CM_BUILD_DIR/App.xcarchive" \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO \
+            -derivedDataPath "$CM_BUILD_DIR/DerivedData" \
+            CODE_SIGN_IDENTITY="-" \
+            CODE_SIGN_STYLE=Manual \
             ONLY_ACTIVE_ARCH=NO
 
-      - name: Package IPA (ditto)
+      - name: Ad-hoc sign & package IPA
         script: |
-          APP_PATH="$CM_BUILD_DIR/App.xcarchive/Products/Applications/App.app"
-          echo "=== App contents ==="
-          ls -la "$APP_PATH"
+          APP_PATH=$(find "$CM_BUILD_DIR/DerivedData" -name "App.app" -type d -not -path "*/Previews/*" | head -1)
+          echo "=== App: $APP_PATH ==="
           echo ""
-          echo "=== Packaging with ditto ==="
+          echo "=== Ad-hoc signing ==="
+          codesign --force --sign - --timestamp=none "$APP_PATH" 2>&1
+          echo ""
+          echo "=== Verify signature ==="
+          codesign -dvvv "$APP_PATH" 2>&1 || true
+          echo ""
+          echo "=== Package IPA ==="
           mkdir -p Payload
           cp -R "$APP_PATH" Payload/
-          ditto -c -k --sequesterRsrc --keepParent Payload jiachangcai.ipa
-          echo "=== Result ==="
+          zip -rq "jiachangcai.ipa" Payload
           ls -lh jiachangcai.ipa
-          file jiachangcai.ipa
 
     artifacts:
       - jiachangcai.ipa
