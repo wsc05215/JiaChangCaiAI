@@ -41,3 +41,4 @@ frontend/dist/
 
 ### Capacitor (keep ios/ for Codemagic) ###
 node_modules/
+.npm-cache/
