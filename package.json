@@ -1,0 +1,13 @@
+{
+  "name": "jiachangcai",
+  "private": true,
+  "scripts": {
+    "build:app": "cd frontend && npm run build:app",
+    "cap:sync": "npx cap sync ios"
+  },
+  "dependencies": {
+    "@capacitor/cli": "^7.6.8",
+    "@capacitor/core": "^8.5.0",
+    "@capacitor/ios": "^8.5.0"
+  }
+}

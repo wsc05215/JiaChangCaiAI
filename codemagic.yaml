@@ -13,6 +13,9 @@ workflows:
         - pattern: master
           include: true
     scripts:
+      - name: Install dependencies
+        script: npm install
+
       - name: Install frontend dependencies
         working_directory: frontend
         script: npm install
@@ -22,17 +25,15 @@ workflows:
         script: npm run build:app
 
       - name: Sync Capacitor to iOS
-        working_directory: frontend
         script: npx cap sync ios
 
       - name: Install CocoaPods dependencies
-        working_directory: frontend/ios/App
+        working_directory: ios/App
         script: pod install
 
       - name: Build & export IPA (Automatic signing)
-        working_directory: frontend/ios/App
+        working_directory: ios/App
         script: |
-          # 创建 exportOptions plist（开发版 IPA）
           cat > "$CM_BUILD_DIR/ExportOptions.plist" <<< '<?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
           <plist version="1.0">
