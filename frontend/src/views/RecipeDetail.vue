@@ -201,6 +201,7 @@ import { follow, unfollow, checkFollowing } from '../api/follow'
 import { getComments, addComment, toggleCommentLike as toggleLikeApi, checkCommentLiked } from '../api/comment'
 import { getUserDetail } from '../api/auth'
 import { deleteRecipe } from '../api/recipe'
+import request from '../utils/request'
 
 const route = useRoute()
 const router = useRouter()
@@ -251,8 +252,9 @@ function onTouchEnd(e) {
 onMounted(async () => {
   const id = route.params.id
   try {
-    const res = await fetch('/recipe/getAllRecipe')
-    const data = await res.json()
+    // 走 request 拦截器,原生环境自动补后端地址并重写封面/视频为绝对路径
+    const res = await request.get('/recipe/getAllRecipe')
+    const data = res.data
     const found = data.find(r => r.recipeId == id)
     if (found) {
       recipe.value = found

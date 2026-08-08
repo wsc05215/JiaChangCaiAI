@@ -1,3 +1,5 @@
+import { resolveUrl } from '../utils/native'
+
 function getTypeParam(mode) {
   if (mode === 'customer_service') return 'CUSTOMER_SERVICE'
   if (mode === 'fridge') return 'AiFridgeFoodService'
@@ -7,7 +9,8 @@ function getTypeParam(mode) {
 }
 
 export function streamChat(msg, mode, userId, onToken, onDone, onError) {
-  const url = `/chat/stream?msg=${encodeURIComponent(msg)}&userId=${userId}&type=${getTypeParam(mode)}`
+  // EventSource 不走 axios,原生 App 环境必须手动拼上后端地址
+  const url = resolveUrl(`/chat/stream?msg=${encodeURIComponent(msg)}&userId=${userId}&type=${getTypeParam(mode)}`)
   const es = new EventSource(url)
 
   let received = false
