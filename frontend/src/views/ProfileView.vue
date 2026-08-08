@@ -291,14 +291,14 @@ function handleMenuClick(item) {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 0 var(--container-padding) 80px;
+  padding: max(env(safe-area-inset-top), 44px) var(--container-padding) 80px;
 }
 
 .header-section {
   display: flex;
   align-items: center;
   width: 100%;
-  margin-top: 44px;
+  margin-top: 0;
 }
 
 .avatar-wrapper {

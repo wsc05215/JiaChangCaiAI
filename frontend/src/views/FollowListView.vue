@@ -56,7 +56,9 @@ function goUser(id) {
 <style scoped>
 .follow-list-page {
   min-height: 100vh;
+  min-height: 100dvh;
   background: var(--bg);
+  padding-top: max(env(safe-area-inset-top), 0px);
 }
 
 .nav-bar {

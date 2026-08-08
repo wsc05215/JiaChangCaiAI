@@ -378,7 +378,7 @@ onMounted(async () => {
 
 <style scoped>
 .menu-plan-page {
-  padding: 0 0 80px;
+  padding: max(env(safe-area-inset-top), 0) 0 80px;
   min-height: 100vh;
   min-height: 100dvh;
   background: var(--gradient-page);

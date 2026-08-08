@@ -6,6 +6,6 @@
     "cleartext": true
   },
   "ios": {
-    "contentInset": "always"
+    "contentInset": "never"
   }
 }

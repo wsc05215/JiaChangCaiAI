@@ -446,7 +446,7 @@ async function handleComment() {
 
 .top-bar {
   position: absolute;
-  top: 12px;
+  top: max(env(safe-area-inset-top), 12px);
   left: 12px;
   right: 12px;
   z-index: 10;

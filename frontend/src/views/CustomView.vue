@@ -913,6 +913,7 @@ function aiSend() {
   min-height: 100vh;
   min-height: 100dvh;
   background: linear-gradient(180deg, #F5F0E8 0%, #F9F7F2 25%, #F8F4ED 100%);
+  padding-top: max(env(safe-area-inset-top), 14px);
   padding-bottom: 80px;
 }
 

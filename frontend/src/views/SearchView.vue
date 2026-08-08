@@ -145,7 +145,8 @@ function goProduct(id) { router.push('/product/' + id) }
 .search-page {
   background: var(--gradient-page);
   min-height: 100vh;
-  padding: 14px 15px;
+  min-height: 100dvh;
+  padding: max(env(safe-area-inset-top), 14px) 15px;
 }
 
 .search-bar {
