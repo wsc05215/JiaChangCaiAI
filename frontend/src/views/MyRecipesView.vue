@@ -79,7 +79,7 @@ function goDetail(id) { router.push('/recipe/' + id) }
   min-height: 100vh;
   min-height: 100dvh;
   background: var(--gradient-page);
-  padding: max(env(safe-area-inset-top), 0) 15px 20px;
+  padding: env(safe-area-inset-top, 0px) 15px 20px;
 }
 
 .nav-bar {

@@ -469,7 +469,7 @@ if (savedUser && savedPwd) {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: max(env(safe-area-inset-top), 0) 16px;
+  padding: env(safe-area-inset-top, 0px) 16px;
   position: relative;
   overflow: hidden;
 }

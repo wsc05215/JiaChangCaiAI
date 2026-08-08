@@ -291,7 +291,7 @@ function handleMenuClick(item) {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: max(env(safe-area-inset-top), 44px) var(--container-padding) 80px;
+  padding: calc(44px + env(safe-area-inset-top, 0px)) var(--container-padding) 80px;
 }
 
 .header-section {

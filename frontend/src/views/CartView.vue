@@ -133,7 +133,7 @@ function handleCheckout() {
   min-height: 100vh;
   min-height: 100dvh;
   background: #FBF8F4;
-  padding-top: max(env(safe-area-inset-top), 0px);
+  padding-top: env(safe-area-inset-top, 0px);
   padding-bottom: 80px;
 }
 

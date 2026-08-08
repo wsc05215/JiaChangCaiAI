@@ -167,7 +167,7 @@ async function confirmRemove() {
   min-height: 100vh;
   min-height: 100dvh;
   background: var(--gradient-page);
-  padding: max(env(safe-area-inset-top), 0) 15px 70px;
+  padding: env(safe-area-inset-top, 0px) 15px 70px;
 }
 
 .search-bar {

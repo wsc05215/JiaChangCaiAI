@@ -474,7 +474,7 @@ function goDetail(id) {
   min-height: 100vh;
   min-height: 100dvh;
   background: var(--gradient-page);
-  padding: max(env(safe-area-inset-top), 14px) var(--container-padding) 70px;
+  padding: calc(14px + env(safe-area-inset-top, 0px)) var(--container-padding) 70px;
 }
 
 /* search */

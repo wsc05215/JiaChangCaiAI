@@ -239,7 +239,7 @@ async function handleSubmit() {
   min-height: 100vh;
   min-height: 100dvh;
   background: var(--gradient-page);
-  padding-top: max(env(safe-area-inset-top), 0px);
+  padding-top: env(safe-area-inset-top, 0px);
 }
 
 .nav-bar {
