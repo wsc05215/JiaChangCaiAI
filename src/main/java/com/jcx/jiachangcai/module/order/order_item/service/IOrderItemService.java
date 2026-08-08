@@ -11,6 +11,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
  * @author wsc
  * @since 2026-08-03
  */
+import com.jcx.jiachangcai.module.order.order_item.entity.OrderDetailVO;
 import java.util.List;
 
 public interface IOrderItemService extends IService<OrderItem> {
@@ -21,4 +22,5 @@ public interface IOrderItemService extends IService<OrderItem> {
      String cancelReturn(Long itemId);
      String requestBatchReturn(List<Long> itemIds, String reason);
      List<OrderItem> getReturnOrders(Long userId);
+     OrderDetailVO getOrderDetail(Long orderId);
 }

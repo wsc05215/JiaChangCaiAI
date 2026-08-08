@@ -1,6 +1,9 @@
 package com.jcx.jiachangcai.module.social.comment.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.jcx.jiachangcai.module.recipe.entity.Recipe;
+import com.jcx.jiachangcai.module.recipe.mapper.RecipeMapper;
 import com.jcx.jiachangcai.module.social.comment.entity.Comment;
 import com.jcx.jiachangcai.module.social.comment.mapper.CommentMapper;
 import com.jcx.jiachangcai.module.social.comment.service.ICommentService;
@@ -25,6 +28,9 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
     @Autowired
     private CommentMapper mapper;
 
+    @Autowired
+    private RecipeMapper recipeMapper;
+
     @Override
     public List<Comment> getCommentOfRecipe(Long recipe_id) {
         LambdaQueryWrapper<Comment> wrapper = new LambdaQueryWrapper<>();
@@ -39,6 +45,21 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
         comment.setCreateTime(LocalDateTime.now());
         comment.setIsDeleted(0);
         mapper.insert(comment);
+        // 同步更新菜谱评论数
+        LambdaUpdateWrapper<Recipe> uw = new LambdaUpdateWrapper<>();
+        uw.eq(Recipe::getRecipeId, comment.getRecipeId())
+          .setSql("comment_count = COALESCE(comment_count, 0) + 1");
+        recipeMapper.update(null, uw);
+    }
+
+    //查看菜谱评论数量
+    @Override
+    public Long getCountOfRecipe(Recipe recipe) {
+       Long recipeid =  recipe.getRecipeId();
+       LambdaQueryWrapper<Comment> wrapper = new LambdaQueryWrapper<>();
+       wrapper.eq(Comment::getRecipeId, recipeid)
+              .eq(Comment::getIsDeleted, 0);
+       return mapper.selectCount(wrapper);
     }
 
 

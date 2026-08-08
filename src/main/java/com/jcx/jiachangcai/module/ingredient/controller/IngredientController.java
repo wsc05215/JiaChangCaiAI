@@ -31,9 +31,11 @@ public class IngredientController {
     public Map<String, Object> stats(@RequestParam Long userId) {
         long total = service.countByUserId(userId);
         long nearExpiry = service.countNearExpiry(userId);
+        long expired = service.countExpired(userId);
         Map<String, Object> result = new HashMap<>();
         result.put("total", total);
         result.put("nearExpiry", nearExpiry);
+        result.put("expired", expired);
         return result;
     }
 

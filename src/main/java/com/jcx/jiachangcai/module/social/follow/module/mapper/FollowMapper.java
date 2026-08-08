@@ -2,16 +2,11 @@ package com.jcx.jiachangcai.module.social.follow.module.mapper;
 
 import com.jcx.jiachangcai.module.social.follow.module.entity.Follow;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.jcx.jiachangcai.module.user.entity.User;
 
-/**
- * <p>
- * 用户关注表 Mapper 接口
- * </p>
- *
- * @author wsc
- * @since 2026-07-27
- */
+import java.util.List;
+
 public interface FollowMapper extends BaseMapper<Follow> {
-    Long selectFollowingCount(Long id);
-    Long selectFollowerCount(Long id);
+    List<User> getFollowing(Long followerId);
+    List<User> getFollowers(Long followeeId);
 }

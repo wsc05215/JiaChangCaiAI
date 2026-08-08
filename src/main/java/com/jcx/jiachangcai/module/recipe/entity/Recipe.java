@@ -90,4 +90,6 @@ public class Recipe implements Serializable {
     @TableField(exist = false)
     private String authorAvatar;
 
+   @Schema(description = "菜谱教程视频")
+    private String video;
 }

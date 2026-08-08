@@ -5,20 +5,19 @@ import com.jcx.jiachangcai.module.social.follow.module.entity.Follow;
 import com.jcx.jiachangcai.module.social.follow.module.mapper.FollowMapper;
 import com.jcx.jiachangcai.module.social.follow.module.service.IFollowService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.jcx.jiachangcai.module.user.entity.User;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
-/**
- * <p>
- * 用户关注表 服务实现类
- * </p>
- *
- * @author wsc
- * @since 2026-07-27
- */
+import java.util.List;
+
 @Service
 @Primary
 public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow> implements IFollowService {
+
+    @Autowired
+    private FollowMapper mapper;
 
     @Override
     public Long getFollowingCount(Long id) {
@@ -33,7 +32,7 @@ public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow> impleme
         wrapper.eq(Follow::getFolloweeId, id);
         return count(wrapper);
     }
-//新增关注
+
     @Override
     public boolean follow(Long followerId, Long followeeId) {
         if (followerId.equals(followeeId)) {
@@ -47,7 +46,7 @@ public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow> impleme
         follow.setFolloweeId(followeeId);
         return save(follow);
     }
-//取消关注
+
     @Override
     public boolean unfollow(Long followerId, Long followeeId) {
         LambdaQueryWrapper<Follow> wrapper = new LambdaQueryWrapper<>();
@@ -55,7 +54,7 @@ public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow> impleme
                .eq(Follow::getFolloweeId, followeeId);
         return remove(wrapper);
     }
-    //判断是否关注
+
     @Override
     public boolean isFollowing(Long followerId, Long followeeId) {
         LambdaQueryWrapper<Follow> wrapper = new LambdaQueryWrapper<>();
@@ -64,4 +63,13 @@ public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow> impleme
         return count(wrapper) > 0;
     }
 
+    @Override
+    public List<User> getFollowing(Long followerId) {
+        return mapper.getFollowing(followerId);
+    }
+
+    @Override
+    public List<User> getFollowers(Long followeeId) {
+        return mapper.getFollowers(followeeId);
+    }
 }

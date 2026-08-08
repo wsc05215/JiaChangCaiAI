@@ -2,7 +2,7 @@
   <div class="order-page">
     <!-- 导航 -->
     <div class="nav-bar">
-      <div class="back-btn" @click="$router.back()">
+      <div class="back-btn" @click="$goBack()">
         <svg viewBox="0 0 24 24" width="22" height="22">
           <path d="M15 18l-6-6 6-6" stroke="#5a524c" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
@@ -39,7 +39,7 @@
       </div>
 
       <div v-else class="order-list">
-        <div v-for="order in orders" :key="order.orderId" class="order-group">
+        <div v-for="order in orders" :key="order.orderId" class="order-group" @click="goOrderDetail(order.orderId)">
           <!-- 订单头 -->
           <div class="order-header">
             <span class="order-no">订单号：{{ order.orderId }}</span>
@@ -69,17 +69,17 @@
               <button
                 v-if="!item.receivedTime && item.returnStatus !== 2"
                 class="action-btn primary"
-                @click="handleConfirmReceive(item)"
+                @click.stop="handleConfirmReceive(item)"
               >确认收货</button>
               <button
                 v-if="item.receivedTime && item.returnStatus === 0 && getHoursSince(item.receivedTime) < 24"
                 class="action-btn danger"
-                @click="openReturnModal(item)"
+                @click.stop="openReturnModal(item)"
               >申请退货</button>
               <button
                 v-if="item.returnStatus === 1"
                 class="action-btn"
-                @click="handleCancelReturn(item)"
+                @click.stop="handleCancelReturn(item)"
               >取消退货</button>
               <span
                 v-if="item.receivedTime && item.returnStatus === 0 && getHoursSince(item.receivedTime) < 24"
@@ -97,7 +97,7 @@
             <div class="divider"></div>
             <button
               class="action-btn batch-return-btn"
-              @click="openBatchReturnModal(order)"
+              @click.stop="openBatchReturnModal(order)"
             >整单退货</button>
           </div>
 
@@ -262,8 +262,11 @@
 
 <script setup>
 import { ref, reactive, onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { userStore } from '../store/user'
 import { getOrderItems, confirmReceive, requestReturn, cancelReturn, getReturnOrders, requestBatchReturn } from '../api/shop'
+
+const router = useRouter()
 
 const orders = ref([])
 const returnOrders = ref([])
@@ -435,6 +438,10 @@ async function handleCancelReturn(item) {
   }
 }
 
+function goOrderDetail(orderId) {
+  router.push('/order/' + orderId)
+}
+
 function openBatchReturnModal(order) {
   batchReturnOrder.value = order
   batchReturnReason.value = ''
@@ -556,7 +563,11 @@ async function submitBatchReturn() {
   background: #fff;
   border-radius: 14px;
   overflow: hidden;
+  cursor: pointer;
+  transition: all 0.2s;
 }
+
+.order-group:active { transform: scale(0.98); }
 
 .order-header {
   display: flex;

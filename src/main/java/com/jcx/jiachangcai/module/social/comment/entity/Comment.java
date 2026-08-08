@@ -46,6 +46,9 @@ public class Comment implements Serializable {
     @Schema(description = "逻辑删除 0正常 1已删除")
     private Integer isDeleted;
 
+    @Schema(description = "点赞数")
+    private Integer likeCount;
+
     @Schema(description = "创建时间")
     private LocalDateTime createTime;
 

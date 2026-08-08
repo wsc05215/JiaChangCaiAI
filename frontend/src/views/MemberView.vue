@@ -1,7 +1,7 @@
 <template>
   <div class="member-page">
     <div class="nav-bar">
-      <div class="back-btn" @click="$router.back()">
+      <div class="back-btn" @click="goBack">
         <svg viewBox="0 0 24 24" width="24" height="24">
           <path d="M15 18l-6-6 6-6" stroke="#6B5E52" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
@@ -10,7 +10,12 @@
       <div class="nav-placeholder"></div>
     </div>
 
-    <div v-if="isMember" class="member-card">
+    <div v-if="!memberChecked" class="loading-state">
+      <div class="loading-spinner"></div>
+    </div>
+
+    <template v-else-if="isMember">
+    <div class="member-card">
       <div class="member-card-shine"></div>
       <div class="member-card-inner">
         <div class="member-avatar">
@@ -24,8 +29,10 @@
         <div class="member-badge">尊享会员</div>
       </div>
     </div>
+    </template>
 
-    <div v-else class="non-member-hint">
+    <template v-else>
+    <div class="non-member-hint">
       <div class="hint-crown">&#x1F451;</div>
       <div class="hint-text">开通会员，解锁全部AI功能</div>
     </div>
@@ -80,7 +87,9 @@
       </div>
     </div>
 
-    <div v-else class="already-member">
+    </template>
+
+    <div v-if="isMember" class="already-member">
       <div class="already-icon">&#x2714;</div>
       <div>您已是尊享会员，尽情享受所有功能</div>
     </div>
@@ -96,10 +105,12 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { userStore } from '../store/user'
-import { checkMember, getExpireTime } from '../api/member'
+import { checkMember, getExpireTime, getMemberInfo } from '../api/member'
+import { goBack } from '../router'
 import MemberPayModal from '../components/MemberPayModal.vue'
 
 const isMember = ref(false)
+const memberChecked = ref(false)
 const showPayModal = ref(false)
 const memberInfo = ref({
   avatar: '',
@@ -115,11 +126,16 @@ const initial = computed(() => {
 
 onMounted(async () => {
   const uid = userStore.user?.userId
-  if (!uid) return
+  if (!uid) { memberChecked.value = true; return }
   isMember.value = await checkMember(uid)
+  memberChecked.value = true
   if (isMember.value) {
     memberInfo.value.avatar = userStore.user?.avatar || ''
     memberInfo.value.expireTime = formatExpire(await getExpireTime(uid))
+    try {
+      const info = await getMemberInfo(uid)
+      memberInfo.value.level = info.level || ''
+    } catch { /* ignore */ }
   }
 })
 
@@ -131,9 +147,15 @@ async function onPaySuccess() {
   showPayModal.value = false
   const uid = userStore.user?.userId
   if (uid) {
+    memberChecked.value = false
     isMember.value = await checkMember(uid)
+    memberChecked.value = true
     if (isMember.value) {
       memberInfo.value.expireTime = formatExpire(await getExpireTime(uid))
+      try {
+        const info = await getMemberInfo(uid)
+        memberInfo.value.level = info.level || ''
+      } catch { /* ignore */ }
     }
   }
 }
@@ -175,16 +197,35 @@ function formatExpire(time) {
 .nav-title { font-size: 18px; font-weight: 800; color: var(--text-primary); letter-spacing: 0.5px; }
 .nav-placeholder { width: 36px; }
 
+/* loading */
+.loading-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+}
+
+.loading-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid #EDE8DF;
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
 /* member card */
 .member-card {
   margin: 20px 16px 0;
-  background: var(--gradient-dark);
+  background: linear-gradient(135deg, #FFF7ED 0%, #FFF1E0 40%, #FFE8D0 100%);
   border-radius: var(--radius-2xl);
   padding: 28px 22px;
-  color: #fff;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 10px 40px rgba(30,21,15,0.3);
+  box-shadow: 0 4px 16px rgba(255, 122, 51, 0.10);
+  border: 1px solid #FDD8B8;
 }
 
 .member-card-shine {
@@ -193,7 +234,7 @@ function formatExpire(time) {
   right: -30%;
   width: 200px;
   height: 200px;
-  background: radial-gradient(circle, rgba(245,195,75,0.12) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(255, 122, 51, 0.08) 0%, transparent 70%);
   border-radius: 50%;
 }
 
@@ -212,26 +253,26 @@ function formatExpire(time) {
   background: #555;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
-  border: 2.5px solid rgba(245,195,75,0.5);
-  box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+  border: 2.5px solid #FDD8B8;
+  box-shadow: 0 4px 14px rgba(255, 122, 51, 0.10);
   overflow: hidden;
 }
 
 .avatar-img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
-.avatar-text { font-size: 24px; font-weight: 800; color: #DDD0C0; }
+.avatar-text { font-size: 24px; font-weight: 800; color: #C89460; }
 
 .member-info { flex: 1; position: relative; z-index: 1; }
-.member-level { font-size: 20px; font-weight: 800; letter-spacing: 1px; }
-.member-expire { font-size: 12px; color: #A09080; margin-top: 6px; }
+.member-level { font-size: 20px; font-weight: 800; letter-spacing: 1px; color: #5C3D1A; }
+.member-expire { font-size: 12px; color: #B08860; margin-top: 6px; }
 
 .member-badge {
-  background: var(--gradient-gold);
+  background: var(--gradient-primary);
   color: #fff;
   font-size: 12px; font-weight: 800;
   padding: 7px 16px;
   border-radius: var(--radius-full);
   letter-spacing: 1.5px;
-  box-shadow: 0 3px 12px rgba(240,165,0,0.4);
+  box-shadow: var(--shadow-primary);
   position: relative; z-index: 1;
 }
 

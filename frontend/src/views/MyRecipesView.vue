@@ -1,7 +1,7 @@
 <template>
   <div class="my-recipes-page">
     <div class="nav-bar">
-      <svg class="back-icon" viewBox="0 0 24 24" width="24" height="24" @click="$router.back()">
+      <svg class="back-icon" viewBox="0 0 24 24" width="24" height="24" @click="$goBack()">
         <path d="M15 18l-6-6 6-6" stroke="#6B5E52" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
       <span class="nav-title">我发布的菜谱</span>
@@ -40,7 +40,6 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { userStore } from '../store/user'
 import { getOwnRecipes } from '../api/recipe'
-import { resolveImageUrl } from '../utils/imageUrl'
 
 const router = useRouter()
 const recipes = ref([])
@@ -61,7 +60,7 @@ onMounted(async () => {
 
 function getCover(images) {
   if (!images) return ''
-  try { const arr = JSON.parse(images); return resolveImageUrl(arr[0] || '') } catch { return resolveImageUrl(images) }
+  try { const arr = JSON.parse(images); return arr[0] || '' } catch { return images }
 }
 
 function formatCount(n) {

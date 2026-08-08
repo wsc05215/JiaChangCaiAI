@@ -17,15 +17,15 @@
     </div>
 
     <div class="stats-card">
-      <div class="stat-item">
+      <div class="stat-item" @click="goWorks">
         <div class="stat-num">{{ stats.works }}</div>
         <div class="stat-label">作品</div>
       </div>
-      <div class="stat-item">
+      <div class="stat-item" @click="goFollowing">
         <div class="stat-num">{{ stats.following }}</div>
         <div class="stat-label">关注</div>
       </div>
-      <div class="stat-item">
+      <div class="stat-item" @click="goFollowers">
         <div class="stat-num">{{ stats.followers }}</div>
         <div class="stat-label">粉丝</div>
       </div>
@@ -46,6 +46,9 @@
           <svg class="menu-icon-svg" viewBox="0 0 24 24" width="20" height="20">
             <template v-if="item.icon === 'recipe'">
               <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+            </template>
+            <template v-else-if="item.icon === 'vip'">
+              <path d="M12 2l2.5 6.5L21 9l-5 4.5L17.5 21 12 17l-5.5 4L8 13.5 3 9l6.5-.5z" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linejoin="round"/>
             </template>
             <template v-else-if="item.icon === 'cart'">
               <circle cx="9" cy="21" r="1" fill="currentColor"/><circle cx="20" cy="21" r="1" fill="currentColor"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/>
@@ -164,7 +167,7 @@ const initial = computed(() => {
 const stats = reactive({ works: 0, following: 0, followers: 0, likes: 0 })
 
 const menuItems = [
-  { label: '我发布的菜谱', route: '/my-recipes', icon: 'recipe' },
+  { label: '会员权益', route: '/member', icon: 'vip' },
   { label: '我的购物车', route: '/cart', icon: 'cart' },
   { label: '收货地址', route: '/address', icon: 'location' },
   { label: '我的订单', route: '/orders', icon: 'order' },
@@ -216,6 +219,21 @@ function showToast(msg, type = 'success') {
   toast.type = type
   toast.show = true
   setTimeout(() => { toast.show = false }, 2000)
+}
+
+function goWorks() {
+  const user = userStore.user
+  if (user) router.push('/my-recipes')
+}
+
+function goFollowing() {
+  const user = userStore.user
+  if (user) router.push('/following/' + user.userId)
+}
+
+function goFollowers() {
+  const user = userStore.user
+  if (user) router.push('/followers/' + user.userId)
 }
 
 function openEdit() {

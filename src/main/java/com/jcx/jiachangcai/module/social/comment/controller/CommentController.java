@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import org.springframework.web.bind.annotation.RestController;
 
@@ -36,6 +37,14 @@ public class CommentController {
     public String addComment(Comment comment){
         service.addComment(comment);
         return "Commentok";
+    }
+
+    //获取菜谱评论数量
+    @GetMapping("/count")
+    public Long getCount(@RequestParam Long recipeId) {
+        com.jcx.jiachangcai.module.recipe.entity.Recipe recipe = new com.jcx.jiachangcai.module.recipe.entity.Recipe();
+        recipe.setRecipeId(recipeId);
+        return service.getCountOfRecipe(recipe);
     }
 
 

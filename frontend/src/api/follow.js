@@ -11,3 +11,11 @@ export function unfollow(followerId, followeeId) {
 export function checkFollowing(followerId, followeeId) {
   return request.get('/follow/check', { params: { followerId, followeeId } })
 }
+
+export function getFollowingList(userId) {
+  return request.get('/follow/getFollowing', { params: { followerId: userId } })
+}
+
+export function getFollowersList(userId) {
+  return request.get('/follow/getFollowers', { params: { followeeId: userId } })
+}

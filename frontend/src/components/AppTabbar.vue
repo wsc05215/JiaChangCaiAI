@@ -96,11 +96,9 @@ function goUploadRecipe() {
 .tabbar {
   position: fixed;
   bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 0;
   width: 100%;
-  max-width: 375px;
-  height: 64px;
+  min-height: 64px;
   background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(24px) saturate(1.4);
   -webkit-backdrop-filter: blur(24px) saturate(1.4);
@@ -109,7 +107,7 @@ function goUploadRecipe() {
   align-items: center;
   justify-content: space-around;
   padding: 0 8px;
-  padding-bottom: env(safe-area-inset-bottom, 0);
+  padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
   z-index: 100;
 }
 
@@ -186,7 +184,7 @@ function goUploadRecipe() {
 
 .menu-sheet {
   width: 100%;
-  max-width: 420px;
+  max-width: 500px;
   background: #FFFDFA;
   border-radius: 24px 24px 0 0;
   padding: 12px 20px 30px;

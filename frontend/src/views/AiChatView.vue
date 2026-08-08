@@ -1,12 +1,12 @@
 <template>
   <div class="ai-page">
     <div class="nav-bar">
-      <div class="back-btn" @click="$router.back()">
+      <div class="back-btn" @click="$goBack()">
         <svg viewBox="0 0 24 24" width="24" height="24">
           <path d="M15 18l-6-6 6-6" stroke="#6B5E52" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </div>
-      <span class="nav-title">{{ modeText }}</span>
+      <span class="nav-title">{{ isCustomerService ? 'AI智能客服' : 'AI烹饪助手' }}</span>
       <div class="nav-placeholder"></div>
     </div>
 
@@ -27,52 +27,8 @@
           </div>
           <div class="welcome-glow"></div>
         </div>
-        <template v-if="mode === 'customer_service'">
-          <div class="welcome-msg">你好，我是平台智能客服</div>
-          <div class="welcome-sub">有什么可以帮助您的？</div>
-          <div class="quick-prompts">
-            <div class="prompt-chip" @click="quickAsk('怎么修改密码？')">修改密码</div>
-            <div class="prompt-chip" @click="quickAsk('忘记密码怎么办？')">忘记密码</div>
-            <div class="prompt-chip" @click="quickAsk('如何查看我的订单？')">查看订单</div>
-            <div class="prompt-chip" @click="quickAsk('怎么申请退款？')">申请退款</div>
-          </div>
-        </template>
-        <template v-else-if="mode === 'fridge'">
-          <div class="welcome-msg">AI食材管家</div>
-          <div class="welcome-sub">告诉我你买了什么食材，我帮你记录和管理</div>
-          <div class="quick-prompts">
-            <div class="prompt-chip" @click="quickAsk('帮我看看冰箱里有什么食材')">查看食材</div>
-            <div class="prompt-chip" @click="quickAsk('我买了鸡蛋、西红柿、青椒，帮我记一下')">记录食材</div>
-            <div class="prompt-chip" @click="quickAsk('哪些食材快过期了？')">临期提醒</div>
-          </div>
-        </template>
-        <template v-else-if="mode === 'customized_recipe'">
-          <div class="welcome-msg">定制食谱</div>
-          <div class="welcome-sub">告诉我你的口味和需求，为你量身定制专属食谱</div>
-          <div class="quick-prompts">
-            <div class="prompt-chip" @click="quickAsk('帮我定制一周减脂食谱，每天热量控制在1500卡以内')">一周减脂</div>
-            <div class="prompt-chip" @click="quickAsk('我是素食者，帮我定制三日食谱')">素食定制</div>
-            <div class="prompt-chip" @click="quickAsk('帮我定制适合老人和孩子的一周家常菜谱')">家庭定制</div>
-          </div>
-        </template>
-        <template v-else-if="mode === 'oneclick_menu'">
-          <div class="welcome-msg">一键菜谱</div>
-          <div class="welcome-sub">看看冰箱里有什么，一键生成美味菜谱</div>
-          <div class="quick-prompts">
-            <div class="prompt-chip" @click="quickAsk('帮我看看冰箱里有什么食材，推荐几道菜')">智能推荐</div>
-            <div class="prompt-chip" @click="quickAsk('根据我冰箱里的食材，帮我搭配今天的午餐和晚餐')">今日搭配</div>
-            <div class="prompt-chip" @click="quickAsk('有哪些食材需要尽快用掉？帮我出个菜谱')">临期处理</div>
-          </div>
-        </template>
-        <template v-else>
-          <div class="welcome-msg">你好，我是你的饮食管家</div>
-          <div class="welcome-sub">有什么我可以帮助您的呢？</div>
-          <div class="quick-prompts">
-            <div class="prompt-chip" @click="quickAsk('今天吃什么好呢？')">今天吃什么？</div>
-            <div class="prompt-chip" @click="quickAsk('推荐几道低热量的家常菜')">低热量推荐</div>
-            <div class="prompt-chip" @click="quickAsk('帮我搭配一周的菜单')">一周菜单</div>
-          </div>
-        </template>
+        <div class="welcome-msg">{{ isCustomerService ? '你好，我是AI智能客服' : '你好，我是AI烹饪助手' }}</div>
+        <div class="welcome-sub">{{ isCustomerService ? '有什么使用问题可以问我' : '告诉我你想做什么菜？' }}</div>
       </div>
 
       <div
@@ -108,12 +64,35 @@
     </div>
 
     <div class="bottom-area">
+      <div v-if="!speech.supported.value" class="mic-hint">当前浏览器不支持语音输入，请使用 Chrome 或 Edge</div>
+      <div v-if="speech.error.value" class="mic-hint mic-error">{{ speech.error.value }}</div>
       <div class="input-row">
-        <div class="input-card">
+        <div class="input-card" :class="{ recording: speech.isListening.value || speech.isRecognizing.value }">
+          <button
+            class="mic-btn"
+            :class="{ on: speech.isListening.value, recognizing: speech.isRecognizing.value }"
+            @click="toggleMic"
+            :disabled="streaming || speech.isRecognizing.value"
+            :title="speech.isListening.value ? '点击停止' : speech.isRecognizing.value ? '识别中...' : '语音输入'"
+          >
+            <svg v-show="!speech.isListening.value && !speech.isRecognizing.value" viewBox="0 0 24 24" width="20" height="20" key="mic-idle">
+              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" :fill="streaming ? '#D4CBC1' : '#8B7B6B'"/>
+              <path d="M19 10v2a7 7 0 0 1-6 6.92V21h3v2H8v-2h3v-2.08A7 7 0 0 1 5 12v-2h2v2a5 5 0 0 0 10 0v-2z" :fill="streaming ? '#D4CBC1' : '#8B7B6B'"/>
+            </svg>
+            <svg v-show="speech.isListening.value" viewBox="0 0 24 24" width="20" height="20" class="pulse-icon" key="mic-recording">
+              <circle cx="12" cy="12" r="11" fill="none" stroke="#E84518" stroke-width="1.5" opacity="0.3"/>
+              <circle cx="12" cy="12" r="7" fill="#E84518" opacity="0.15"/>
+              <path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3z" fill="#E84518"/>
+              <path d="M17 10v2a5 5 0 0 1-10 0v-2" stroke="#E84518" stroke-width="2" fill="none" stroke-linecap="round"/>
+            </svg>
+            <svg v-show="speech.isRecognizing.value" viewBox="0 0 24 24" width="20" height="20" class="spin-icon" key="mic-spinner">
+              <circle cx="12" cy="12" r="10" fill="none" stroke="#8B7B6B" stroke-width="2" stroke-dasharray="32 32" stroke-linecap="round"/>
+            </svg>
+          </button>
           <input
             v-model="input"
             class="text-input"
-            :placeholder="inputPlaceholder"
+            :placeholder="speech.isListening.value ? '正在聆听...' : speech.isRecognizing.value ? '识别中...' : isCustomerService ? '输入您的问题...' : '输入菜名，如：番茄炒蛋怎么做？'"
             @keyup.enter="send"
             :disabled="streaming"
           />
@@ -138,30 +117,32 @@ import { ref, computed, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { streamChat } from '../api/ai'
 import { userStore } from '../store/user'
+import { useSpeechRecognition } from '../composables/useSpeechRecognition'
 
 const route = useRoute()
+const isCustomerService = computed(() => route.query.mode === 'customer_service')
+
 const input = ref('')
 const messages = ref([])
 const streaming = ref(false)
 const streamingText = ref('')
 const msgList = ref(null)
-const mode = ref(route.query.mode || 'chef')
+
+const speech = useSpeechRecognition()
 
 let cancelStream = null
 
-const modeText = computed(() => {
-  if (mode.value === 'customer_service') return '联系客服'
-  if (mode.value === 'fridge') return 'AI食材管家'
-  if (mode.value === 'customized_recipe') return '定制食谱'
-  if (mode.value === 'oneclick_menu') return '一键菜谱'
-  return 'AI饮食管家'
-})
-
-const inputPlaceholder = computed(() => {
-  return mode.value === 'customer_service'
-    ? '输入您遇到的问题，例如：怎么修改密码？'
-    : '输入你的饮食需求...'
-})
+async function toggleMic() {
+  if (speech.isListening.value) {
+    const text = await speech.stop()
+    if (text) {
+      input.value = text
+    }
+  } else {
+    speech.reset()
+    speech.start()
+  }
+}
 
 function scrollBottom() {
   nextTick(() => {
@@ -176,17 +157,13 @@ function addMessage(role, content) {
   scrollBottom()
 }
 
-function quickAsk(text) {
-  streamSend(mode.value, text)
-}
-
-function streamSend(m, msg) {
+function streamSend(msg) {
   addMessage('user', msg)
   streaming.value = true
   streamingText.value = ''
 
   const uid = userStore.user?.userId
-  cancelStream = streamChat(msg, m, uid,
+  cancelStream = streamChat(msg, isCustomerService.value ? 'customer_service' : 'chef', uid,
     (token) => {
       streamingText.value += token
       scrollBottom()
@@ -216,7 +193,7 @@ function send() {
   const text = input.value.trim()
   if (!text || streaming.value) return
   input.value = ''
-  streamSend(mode.value, text)
+  streamSend(text)
 }
 </script>
 
@@ -256,7 +233,6 @@ function send() {
 
 .nav-placeholder { width: 36px; }
 
-/* msg list */
 .msg-list {
   flex: 1;
   overflow-y: auto;
@@ -309,34 +285,6 @@ function send() {
 .welcome-sub {
   font-size: 14px;
   color: var(--text-muted);
-  margin-bottom: 24px;
-}
-
-.quick-prompts {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-.prompt-chip {
-  padding: 10px 18px;
-  background: #fff;
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius-full);
-  font-size: 13px;
-  color: var(--text-secondary);
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-  box-shadow: var(--shadow-xs);
-}
-
-.prompt-chip:active {
-  background: var(--primary-bg);
-  border-color: var(--primary);
-  color: var(--primary);
-  transform: scale(0.96);
 }
 
 /* messages */
@@ -441,7 +389,7 @@ function send() {
   align-items: center;
   background: #fff;
   border-radius: 26px;
-  padding: 0 6px 0 20px;
+  padding: 0 6px 0 6px;
   box-shadow: 0 4px 24px rgba(30,21,15,0.05);
   border: 1.5px solid var(--border);
   transition: all 0.25s;
@@ -450,6 +398,67 @@ function send() {
 .input-card:focus-within {
   border-color: var(--primary);
   box-shadow: 0 4px 24px rgba(230,126,34,0.1);
+}
+
+.input-card.recording {
+  border-color: #E84518;
+  box-shadow: 0 4px 24px rgba(232,69,24,0.12);
+  animation: recordingGlow 1.5s ease-in-out infinite;
+}
+
+@keyframes recordingGlow {
+  0%, 100% { box-shadow: 0 4px 24px rgba(232,69,24,0.08); }
+  50% { box-shadow: 0 4px 28px rgba(232,69,24,0.18); }
+}
+
+/* mic button */
+.mic-btn {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.3s var(--ease-bounce);
+  background: transparent;
+}
+
+.mic-btn:active {
+  transform: scale(0.85);
+}
+
+.mic-btn.on {
+  background: rgba(232,69,24,0.08);
+}
+
+.pulse-icon {
+  animation: micPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes micPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.08); }
+}
+
+.spin-icon {
+  animation: micSpin 1s linear infinite;
+}
+
+@keyframes micSpin {
+  to { transform: rotate(360deg); }
+}
+
+.mic-btn.recognizing {
+  background: rgba(139, 123, 107, 0.06);
+}
+
+.mic-hint {
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-muted);
+  padding-bottom: 4px;
+}
+
+.mic-error {
+  color: #D1523F;
 }
 
 .text-input {

@@ -2,6 +2,7 @@ package com.jcx.jiachangcai.module.order.order_item.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.jcx.jiachangcai.module.order.order_item.entity.OrderDetailVO;
 import com.jcx.jiachangcai.module.order.order_item.entity.OrderItem;
 import com.jcx.jiachangcai.module.order.order_item.mapper.OrderItemMapper;
 import com.jcx.jiachangcai.module.order.order_item.service.IOrderItemService;
@@ -12,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -206,6 +208,31 @@ public class OrderItemServiceImpl extends ServiceImpl<OrderItemMapper, OrderItem
         }
 
         return "批量退货申请已提交";
+    }
+
+    @Override
+    public OrderDetailVO getOrderDetail(Long orderId) {
+        LambdaQueryWrapper<OrderItem> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(OrderItem::getOrderId, orderId)
+               .eq(OrderItem::getIsDeleted, 0)
+               .orderByDesc(OrderItem::getCreateTime);
+        List<OrderItem> items = mapper.selectList(wrapper);
+        if (items.isEmpty()) {
+            throw new RuntimeException("订单不存在");
+        }
+        OrderDetailVO vo = new OrderDetailVO();
+        vo.setOrderId(orderId);
+        vo.setCreateTime(items.get(0).getCreateTime());
+        vo.setItems(items);
+        // 合计
+        BigDecimal total = items.stream()
+                .map(OrderItem::getTotalPrice)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        vo.setTotal(total);
+        // 取第一个商品的发货地址
+        Product product = productMapper.selectById(items.get(0).getProductId());
+        vo.setDeliveryAddress(product != null ? product.getDeliveryAddress() : "");
+        return vo;
     }
 
     @Override

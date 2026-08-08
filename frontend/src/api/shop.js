@@ -93,3 +93,7 @@ export function requestBatchReturn(itemIds, reason) {
 export function getReturnOrders(userId) {
   return request.get('/order-item/getReturnOrders', { params: { user_id: userId } })
 }
+
+export function getOrderDetail(orderId) {
+  return request.get('/order-item/getOrderDetail', { params: { orderId } })
+}

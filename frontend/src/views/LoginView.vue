@@ -57,11 +57,10 @@
         </div>
 
         <div class="other-login" @click="mode = 'sms'">
-          <svg viewBox="0 0 24 24" width="20" height="20">
-            <rect x="2" y="4" width="20" height="16" rx="2" stroke="#5a524c" stroke-width="1.5" fill="none"/>
-            <path d="M2 8l10 6 10-6" stroke="#5a524c" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          <svg viewBox="0 0 24 24" width="24" height="24">
+            <rect x="2" y="4" width="20" height="16" rx="2" stroke="#8B7B6B" stroke-width="1.6" fill="none"/>
+            <path d="M2 8l10 6 10-6" stroke="#8B7B6B" stroke-width="1.3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
-          <span>邮箱验证码登录</span>
         </div>
 
         <div class="switch-mode">
@@ -710,7 +709,7 @@ if (savedUser && savedPwd) {
 .switch-mode {
   text-align: center;
   margin-top: 18px;
-  font-size: 13px;
+  font-size: 12px;
   color: var(--text-muted);
 }
 

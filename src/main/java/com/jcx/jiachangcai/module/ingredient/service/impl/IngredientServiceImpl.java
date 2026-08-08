@@ -48,8 +48,25 @@ public class IngredientServiceImpl extends ServiceImpl<IngredientMapper, Ingredi
 
     @Override
     public long countNearExpiry(Long userId) {
-        java.util.List<Ingredient> list = listByUserId(userId);
-        return list.stream().filter(Ingredient::isNearExpiry).count();
+        java.time.LocalDate today = java.time.LocalDate.now();
+        com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<Ingredient> wrapper =
+                new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<>();
+        wrapper.eq(Ingredient::getUserId, userId)
+               .isNotNull(Ingredient::getExpireDate)
+               .apply("DATE(expire_date) >= {0}", today)
+               .apply("DATE(expire_date) <= {0}", today.plusDays(1));
+        return mapper.selectCount(wrapper);
+    }
+
+    @Override
+    public long countExpired(Long userId) {
+        java.time.LocalDate today = java.time.LocalDate.now();
+        com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<Ingredient> wrapper =
+                new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<>();
+        wrapper.eq(Ingredient::getUserId, userId)
+               .isNotNull(Ingredient::getExpireDate)
+               .apply("DATE(expire_date) < {0}", today);
+        return mapper.selectCount(wrapper);
     }
 
     @Override

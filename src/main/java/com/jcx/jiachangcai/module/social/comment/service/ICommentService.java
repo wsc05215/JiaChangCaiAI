@@ -1,5 +1,6 @@
 package com.jcx.jiachangcai.module.social.comment.service;
 
+import com.jcx.jiachangcai.module.recipe.entity.Recipe;
 import com.jcx.jiachangcai.module.social.comment.entity.Comment;
 import com.baomidou.mybatisplus.extension.service.IService;
 
@@ -16,4 +17,5 @@ import java.util.List;
 public interface ICommentService extends IService<Comment> {
         List<Comment> getCommentOfRecipe(Long recipe_id);
         void addComment(Comment comment);
+        Long getCountOfRecipe(Recipe recipe);
 }

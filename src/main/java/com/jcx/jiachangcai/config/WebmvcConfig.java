@@ -21,6 +21,9 @@ public class WebmvcConfig implements WebMvcConfigurer {
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry.addResourceHandler("/uploads/**")
                 .addResourceLocations("file:./uploads/");
+        // 兼容数据库中旧数据可能存储的 /recipes/xxx 路径（缺少 /uploads 前缀）
+        registry.addResourceHandler("/recipes/**")
+                .addResourceLocations("file:./uploads/recipes/");
     }
 
 }

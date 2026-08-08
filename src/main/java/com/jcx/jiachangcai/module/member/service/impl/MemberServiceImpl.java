@@ -75,4 +75,15 @@ public class MemberServiceImpl extends ServiceImpl<MemberMapper, Member> impleme
         return member != null ? member.getExpireTime() : null;
     }
 
+    @Override
+    public Member getActiveMember(Long userId) {
+        LambdaQueryWrapper<Member> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Member::getUserId, userId)
+               .eq(Member::getStatus, 1)
+               .gt(Member::getExpireTime, LocalDateTime.now())
+               .orderByDesc(Member::getExpireTime)
+               .last("LIMIT 1");
+        return mapper.selectOne(wrapper);
+    }
+
 }

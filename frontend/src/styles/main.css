@@ -79,7 +79,7 @@ html {
 
 body {
   font-family: var(--font-body);
-  background: #EDE8E2;
+  background: #F5F0E8;
   color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -87,14 +87,12 @@ body {
 }
 
 #app {
-  max-width: 375px;
+  width: 100%;
   min-height: 100vh;
   min-height: 100dvh;
-  margin: 0 auto;
   background: var(--bg);
   position: relative;
   overflow-x: hidden;
-  box-shadow: 0 0 80px rgba(255, 122, 51, 0.08);
 }
 
 input {

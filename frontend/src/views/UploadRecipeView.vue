@@ -1,15 +1,12 @@
 <template>
   <div class="upload-page">
     <div class="nav-bar">
-      <div class="back-btn" @click="$router.back()">
+      <div class="back-btn" @click="$goBack()">
         <svg viewBox="0 0 24 24" width="24" height="24">
           <path d="M15 18l-6-6 6-6" stroke="#6B5E52" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </div>
       <span class="nav-title">发布菜谱</span>
-      <button class="submit-btn" @click="handleSubmit" :disabled="submitting || !canSubmit">
-        {{ submitting ? '发布中...' : '发布' }}
-      </button>
     </div>
 
     <div class="form-body">
@@ -27,6 +24,23 @@
             <input type="file" accept="image/*" multiple hidden @change="onFilesChange" />
             <svg viewBox="0 0 24 24" width="28" height="28"><path d="M12 5v14M5 12h14" stroke="#C4B5AA" stroke-width="2" stroke-linecap="round"/></svg>
             <span v-if="uploading" class="image-uploading">上传中</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- 视频 -->
+      <div class="form-section">
+        <div class="section-label">烹饪视频 <span class="hint">(选填，mp4/webm/mov)</span></div>
+        <div class="video-area">
+          <div v-if="videoUrl" class="video-preview-wrap">
+            <video :src="videoUrl" controls class="video-preview"></video>
+            <div class="video-remove" @click="removeVideo">×</div>
+          </div>
+          <label v-else class="video-add-btn">
+            <input type="file" accept="video/*" hidden @change="onVideoChange" />
+            <svg viewBox="0 0 24 24" width="28" height="28"><path d="M12 5v14M5 12h14" stroke="#C4B5AA" stroke-width="2" stroke-linecap="round"/></svg>
+            <span v-if="uploadingVideo" class="image-uploading">上传中</span>
+            <span v-else class="video-add-text">添加视频</span>
           </label>
         </div>
       </div>
@@ -103,7 +117,13 @@
         </div>
       </div>
 
-      <div style="height: 40px;"></div>
+      <div style="height: 80px;"></div>
+    </div>
+
+    <div class="bottom-bar">
+      <button class="submit-btn" @click="handleSubmit" :disabled="submitting || !canSubmit">
+        {{ submitting ? '发布中...' : '发布' }}
+      </button>
     </div>
   </div>
 </template>
@@ -111,12 +131,14 @@
 <script setup>
 import { ref, reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { uploadImages, createRecipe } from '../api/recipe'
+import { uploadImages, uploadVideo, createRecipe } from '../api/recipe'
 import { userStore } from '../store/user'
 
 const router = useRouter()
 const images = ref([])
+const videoUrl = ref('')
 const uploading = ref(false)
+const uploadingVideo = ref(false)
 const submitting = ref(false)
 
 const form = reactive({
@@ -154,6 +176,26 @@ function removeImage(i) {
   images.value.splice(i, 1)
 }
 
+async function onVideoChange(e) {
+  const file = e.target.files[0]
+  if (!file) return
+  uploadingVideo.value = true
+  try {
+    const res = await uploadVideo(file)
+    videoUrl.value = res.data
+  } catch (e) {
+    console.error('视频上传失败:', e)
+    alert('视频上传失败，请重试')
+  } finally {
+    uploadingVideo.value = false
+    e.target.value = ''
+  }
+}
+
+function removeVideo() {
+  videoUrl.value = ''
+}
+
 async function handleSubmit() {
   if (!canSubmit.value || submitting.value) return
 
@@ -172,6 +214,7 @@ async function handleSubmit() {
       difficulty: form.difficulty,
       calories: form.calories.trim(),
       coverImages: JSON.stringify(images.value),
+      video: videoUrl.value,
       ingredients: JSON.stringify(
         form.ingredients.filter(i => i.name.trim()).map(i => ({ name: i.name.trim(), amount: i.amount.trim() }))
       ),
@@ -201,8 +244,8 @@ async function handleSubmit() {
 .nav-bar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 8px 8px;
+  gap: 12px;
+  padding: 8px 12px;
   background: rgba(249,247,242,0.88);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
@@ -218,14 +261,30 @@ async function handleSubmit() {
 
 .nav-title { font-size: 17px; font-weight: 800; color: var(--text-primary); }
 
+.bottom-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 12px 16px;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  background: rgba(249,247,242,0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(0,0,0,0.06);
+  z-index: 10;
+}
+
 .submit-btn {
-  padding: 7px 18px;
-  border-radius: 20px;
+  width: 100%;
+  padding: 14px 24px;
+  border-radius: 14px;
   background: var(--gradient-primary);
   color: #fff;
-  font-size: 13px; font-weight: 800;
-  box-shadow: 0 3px 12px rgba(255,122,51,0.25);
+  font-size: 16px; font-weight: 800;
+  box-shadow: 0 4px 16px rgba(255,122,51,0.3);
   transition: all 0.2s;
+  letter-spacing: 1px;
 }
 
 .submit-btn:disabled {
@@ -233,7 +292,7 @@ async function handleSubmit() {
   box-shadow: none;
 }
 
-.submit-btn:active:not(:disabled) { transform: scale(0.94); }
+.submit-btn:active:not(:disabled) { transform: scale(0.97); }
 
 .form-body { padding: 20px 16px; }
 
@@ -296,6 +355,54 @@ async function handleSubmit() {
 .image-add:active { border-color: var(--primary); background: var(--primary-bg); }
 
 .image-uploading { font-size: 10px; color: var(--primary); font-weight: 600; }
+
+/* video */
+.video-area { display: flex; }
+
+.video-preview-wrap {
+  position: relative;
+  width: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.video-preview {
+  width: 100%;
+  max-height: 200px;
+  border-radius: 12px;
+  background: #000;
+}
+
+.video-remove {
+  position: absolute;
+  top: 8px; right: 8px;
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.6);
+  color: #fff;
+  font-size: 16px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+}
+
+.video-add-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 100%;
+  height: 80px;
+  border: 2px dashed var(--border);
+  border-radius: 12px;
+  cursor: pointer;
+  background: #fff;
+  transition: all 0.2s;
+}
+
+.video-add-btn:active { border-color: var(--primary); background: var(--primary-bg); }
+
+.video-add-text { font-size: 12px; color: var(--text-muted); }
 
 /* inputs */
 .input {

@@ -1,185 +1,138 @@
 <template>
   <div class="custom-page">
-    <!-- 会员状态 -->
-    <template v-if="isMember">
-      <!-- AI 智能卡片 -->
-      <div class="ai-hero-card" @click="openAiChat">
-        <div class="ai-glow-bg"></div>
-        <div class="ai-hero-content">
-          <div class="ai-icon-ring">
-            <div class="ai-icon-inner">
-              <svg viewBox="0 0 28 28" width="17" height="17" fill="none">
-                <circle cx="14" cy="14" r="12" stroke="#fff" stroke-width="1.8"/>
-                <path d="M14 5l1.5 5.5L21 12l-5.5 1.5L14 19l-1.5-5.5L7 12l5.5-1.5z" fill="#fff"/>
-              </svg>
+    <!-- AI 智能卡片 -->
+    <div class="ai-hero-card" @click="openAiChat">
+      <div class="ai-hero-content">
+        <div class="ai-icon-ring">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none">
+            <path d="M5 12h14v4a2 2 0 01-2 2H7a2 2 0 01-2-2v-4z" fill="#fff" fill-opacity="0.92"/>
+            <rect x="4" y="11" width="16" height="2" rx="1" fill="#fff" fill-opacity="0.95"/>
+            <!-- 蒸汽 -->
+            <path class="steam steam-1" d="M8.5 10c-0.4-1.8 1-2.9 0.6-4.8" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>
+            <path class="steam steam-2" d="M12 10V5.4" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>
+            <path class="steam steam-3" d="M15.5 10c0.4-1.8-1-2.9-0.6-4.8" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="ai-hero-text">
+          <div class="ai-hero-greeting">你好，我是你的"烹饪助手"~</div>
+          <div class="ai-hero-sub">有什么我可以帮助您的呢</div>
+        </div>
+        <div class="ai-sparkle-row">
+          <span class="ai-sparkle"></span>
+          <span class="ai-sparkle delay-1"></span>
+          <span class="ai-sparkle delay-2"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 三个Tab -->
+    <div class="tabs-row">
+      <span class="tab" :class="{ active: activeTab === 'recipe' }" @click="activeTab = 'recipe'">定制食谱</span>
+      <span class="tab" :class="{ active: activeTab === 'menu' }" @click="activeTab = 'menu'">一键菜谱</span>
+      <span class="tab" :class="{ active: activeTab === 'fridge' }" @click="activeTab = 'fridge'">食材管理</span>
+    </div>
+
+    <!-- Tab: 我的食谱 -->
+    <div v-if="activeTab === 'recipe'" class="tab-content">
+      <div v-if="recipeRecords.length === 0" class="empty-state">
+        <div class="empty-icon">&#x1F4D6;</div>
+        <div class="empty-text">还没有定制食谱记录</div>
+        <div class="empty-sub">点击上方烹饪助手定制食谱功能</div>
+      </div>
+      <div v-else class="record-list">
+        <div v-for="rec in recipeRecords" :key="rec.id" class="record-card" :class="{ 'weekly-card': isWeekly(rec) }" @click="openDetail(rec)">
+          <div class="card-top">
+            <span class="card-icon">{{ isWeekly(rec) ? '📅' : '🍲' }}</span>
+            <div class="card-info">
+              <div class="record-title">{{ rec.title }}</div>
+              <div class="card-meta" v-if="rec.cookTime || rec.difficulty || rec.ingredients">
+                <span v-if="rec.cookTime" class="meta-tag">&#x23F2; {{ rec.cookTime }}</span>
+                <span v-if="rec.difficulty" class="meta-tag">&#x1F3AF; {{ rec.difficulty }}</span>
+                <span v-if="rec.ingredients" class="meta-tag">&#x1F96C; {{ ingredientCount(rec.ingredients) }}种食材</span>
+              </div>
             </div>
           </div>
-          <div class="ai-hero-text">
-            <div class="ai-hero-greeting">你好，我是你的"饮食管家"~</div>
-            <div class="ai-hero-sub">有什么我可以帮助您的呢</div>
+          <div class="record-time">{{ formatTime(rec.createTime) }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: 一键菜谱 -->
+    <div v-if="activeTab === 'menu'" class="tab-content">
+      <div v-if="menuRecords.length === 0" class="empty-state">
+        <div class="empty-icon">&#x1F4CB;</div>
+        <div class="empty-text">还没有一键菜谱记录</div>
+        <div class="empty-sub">点击上方烹饪助手一键菜谱功能</div>
+      </div>
+      <div v-else class="record-list">
+        <div v-for="rec in menuRecords" :key="rec.id" class="record-card" @click="openDetail(rec)">
+          <div class="card-top">
+            <span class="card-icon">&#x1F372;</span>
+            <div class="card-info">
+              <div class="record-title">{{ rec.title }}</div>
+              <div class="card-meta" v-if="rec.cookTime || rec.difficulty || rec.ingredients">
+                <span v-if="rec.cookTime" class="meta-tag">&#x23F2; {{ rec.cookTime }}</span>
+                <span v-if="rec.difficulty" class="meta-tag">&#x1F3AF; {{ rec.difficulty }}</span>
+                <span v-if="rec.ingredients" class="meta-tag">&#x1F96C; {{ ingredientCount(rec.ingredients) }}种食材</span>
+              </div>
+            </div>
           </div>
-          <div class="ai-sparkle-row">
-            <span class="ai-sparkle"></span>
-            <span class="ai-sparkle delay-1"></span>
-            <span class="ai-sparkle delay-2"></span>
-          </div>
+          <div class="record-time">{{ formatTime(rec.createTime) }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: 食材管理 -->
+    <div v-if="activeTab === 'fridge'" class="tab-content">
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-num">{{ stats.total }}</div>
+          <div class="stat-label">现有食材</div>
+        </div>
+        <div class="stat-card stat-warn">
+          <div class="stat-num">{{ stats.nearExpiry }}</div>
+          <div class="stat-label">临近过期</div>
+        </div>
+        <div class="stat-card stat-danger">
+          <div class="stat-num">{{ stats.expired }}</div>
+          <div class="stat-label">已过期</div>
         </div>
       </div>
 
-
-      <!-- 三个Tab -->
-      <div class="tabs-row">
-        <span class="tab" :class="{ active: activeTab === 'recipe' }" @click="activeTab = 'recipe'">我的食谱</span>
-        <span class="tab" :class="{ active: activeTab === 'menu' }" @click="activeTab = 'menu'">一键菜谱</span>
-        <span class="tab" :class="{ active: activeTab === 'fridge' }" @click="activeTab = 'fridge'">食材管理</span>
+      <div class="category-scroll" ref="catScroll"
+           @mousedown="onCatDragStart" @mousemove="onCatDragMove" @mouseup="onCatDragEnd" @mouseleave="onCatDragEnd"
+           @touchstart="onCatDragStart" @touchmove="onCatDragMove" @touchend="onCatDragEnd">
+        <span v-for="cat in ['全部', ...categories]" :key="cat"
+              class="filter-chip" :class="{ active: activeCat === cat }"
+              @click="selectCat(cat)">{{ cat }}</span>
       </div>
 
-      <!-- Tab: 我的食谱 -->
-      <div v-if="activeTab === 'recipe'" class="tab-content">
-        <div v-if="recipeRecords.length === 0" class="empty-state">
-          <div class="empty-icon">&#x1F4D6;</div>
-          <div class="empty-text">还没有定制食谱记录</div>
-          <div class="empty-sub">点击上方"定制食谱"，说出你的饮食需求</div>
-        </div>
-        <div v-else class="record-list">
-          <div v-for="rec in recipeRecords" :key="rec.id" class="record-card" @click="openDetail(rec)">
-            <div class="record-title">{{ rec.title }}</div>
-            <div class="record-preview">{{ getPreview(rec.content) }}</div>
-            <div class="record-time">{{ formatTime(rec.createTime) }}</div>
+      <div v-if="filteredIngredients.length === 0" class="empty-state small">
+        <div class="empty-text">暂无食材记录</div>
+        <div class="empty-sub">点击上方烹饪助手食材管理功能</div>
+      </div>
+      <div v-else class="ingredient-list">
+        <div v-for="ing in filteredIngredients" :key="ing.ingredientId" class="ingredient-row"
+             :class="{ expired: ing.expired, near: ing.nearExpiry && !ing.expired }">
+          <div class="ing-icon">{{ getIngIcon(ing.category) }}</div>
+          <div class="ing-info">
+            <div class="ing-name">
+              {{ ing.name }}
+              <span v-if="ing.expired" class="ing-badge badge-expired">已过期</span>
+              <span v-else-if="ing.nearExpiry" class="ing-badge badge-near">临期</span>
+            </div>
+            <div class="ing-meta">{{ ing.category }} · {{ formatExpiry(ing) }}</div>
           </div>
-        </div>
-      </div>
-
-      <!-- Tab: 一键菜谱 -->
-      <div v-if="activeTab === 'menu'" class="tab-content">
-        <div v-if="menuRecords.length === 0" class="empty-state">
-          <div class="empty-icon">&#x1F4CB;</div>
-          <div class="empty-text">还没有一键菜谱记录</div>
-          <div class="empty-sub">点击上方"一键菜谱"，AI根据冰箱食材生成菜谱</div>
-        </div>
-        <div v-else class="record-list">
-          <div v-for="rec in menuRecords" :key="rec.id" class="record-card" @click="openDetail(rec)">
-            <div class="record-title">{{ rec.title }}</div>
-            <div class="record-preview">{{ getPreview(rec.content) }}</div>
-            <div class="record-time">{{ formatTime(rec.createTime) }}</div>
+          <div class="ing-del" @click.stop="handleDeleteIngredient(ing.ingredientId)">
+            <svg viewBox="0 0 20 20" width="16" height="16">
+              <path d="M6 6l8 8M14 6l-8 8" stroke="#C4B5AA" stroke-width="2" stroke-linecap="round"/>
+            </svg>
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- Tab: 食材管理 -->
-      <div v-if="activeTab === 'fridge'" class="tab-content">
-        <div class="stats-row">
-          <div class="stat-card">
-            <div class="stat-num">{{ stats.total }}</div>
-            <div class="stat-label">现有食材</div>
-          </div>
-          <div class="stat-card stat-warn">
-            <div class="stat-num">{{ stats.nearExpiry }}</div>
-            <div class="stat-label">临近过期</div>
-          </div>
-          <div class="stat-card stat-ok">
-            <div class="stat-num">{{ canCookCount }}</div>
-            <div class="stat-label">可做菜品</div>
-          </div>
-        </div>
-
-        <div class="category-filters">
-          <span v-for="cat in ['全部', ...categories]" :key="cat"
-                class="filter-chip" :class="{ active: activeCat === cat }"
-                @click="activeCat = cat">{{ cat }}</span>
-        </div>
-
-        <div v-if="filteredIngredients.length === 0" class="empty-state small">
-          <div class="empty-text">暂无食材记录</div>
-          <div class="empty-sub">点击上方"食材管理"，告诉AI你有什么食材</div>
-        </div>
-        <div v-else class="ingredient-list">
-          <div v-for="ing in filteredIngredients" :key="ing.ingredientId" class="ingredient-row"
-               :class="{ expired: ing.expired, near: ing.nearExpiry && !ing.expired }">
-            <div class="ing-icon">{{ getIngIcon(ing.category) }}</div>
-            <div class="ing-info">
-              <div class="ing-name">{{ ing.name }}</div>
-              <div class="ing-meta">{{ ing.category }} · {{ formatExpiry(ing) }}</div>
-            </div>
-            <div class="ing-del" @click.stop="handleDeleteIngredient(ing.ingredientId)">
-              <svg viewBox="0 0 20 20" width="16" height="16">
-                <path d="M6 6l8 8M14 6l-8 8" stroke="#C4B5AA" stroke-width="2" stroke-linecap="round"/>
-              </svg>
-            </div>
-          </div>
-        </div>
-      </div>
-    </template>
-
-    <!-- 非会员状态 -->
-    <template v-else>
-      <div class="non-member-area">
-        <div class="nm-hero">
-          <div class="nm-crown">&#x1F451;</div>
-          <div class="nm-title">厨艺会员</div>
-          <div class="nm-sub">解锁全部专属内容·畅享定制化饮食</div>
-        </div>
-
-        <div class="section-title">会员专属权益</div>
-        <div class="benefits-row">
-          <div class="benefit-card">
-            <div class="benefit-icon">&#x1F4D6;</div>
-            <div class="benefit-name">专属食谱</div>
-            <div class="benefit-desc">根据你的需求为你定制专属食谱</div>
-          </div>
-          <div class="benefit-card">
-            <div class="benefit-icon">&#x1F4CB;</div>
-            <div class="benefit-name">一键配餐</div>
-            <div class="benefit-desc">用普通的食材做出不普通的美食</div>
-          </div>
-          <div class="benefit-card">
-            <div class="benefit-icon">&#x1F96C;</div>
-            <div class="benefit-name">食材管理</div>
-            <div class="benefit-desc">食材记录管理过期自动提醒</div>
-          </div>
-        </div>
-
-        <div class="section-title">选择套餐</div>
-        <div class="plans">
-          <div class="plan-card">
-            <div class="plan-badge">次卡</div>
-            <div class="plan-info">
-              <div class="plan-name">食谱定制会员</div>
-              <div class="plan-desc">根据您的需求和口味偏好定制一周食谱</div>
-            </div>
-            <div class="plan-price"><span class="price-num">¥5.9</span>/次</div>
-            <button class="plan-btn" @click="handleBuy">开通</button>
-          </div>
-          <div class="plan-card">
-            <div class="plan-badge">月卡</div>
-            <div class="plan-info">
-              <div class="plan-name">食材管理会员</div>
-              <div class="plan-desc">帮您管理家中食材 根据食材推荐食谱</div>
-            </div>
-            <div class="plan-price"><span class="price-num">¥18</span>/月</div>
-            <button class="plan-btn" @click="handleBuy">开通</button>
-          </div>
-          <div class="plan-card plan-premium">
-            <div class="plan-badge plan-badge-gold">推荐</div>
-            <div class="plan-info">
-              <div class="plan-name">尊享会员</div>
-              <div class="plan-sub">享以上两种会员待遇 性价比之选</div>
-            </div>
-            <div class="plan-price"><span class="price-num price-num-gold">¥128</span>/年</div>
-            <button class="plan-btn plan-btn-gold" @click="handleBuy">立即开通</button>
-          </div>
-        </div>
-      </div>
-    </template>
-
-    <!-- 支付弹窗 -->
-    <MemberPayModal
-      v-if="showPayModal"
-      @close="showPayModal = false"
-      @success="onPaySuccess"
-    />
-
-    <!-- 记录详情弹窗 -->
+    <!-- 记录详情弹窗（菜谱样式） -->
     <teleport to="body">
       <div v-if="detailRecord" class="detail-overlay" @click="detailRecord = null">
         <div class="detail-card" @click.stop>
@@ -187,7 +140,101 @@
             <span class="detail-title">{{ detailRecord.title }}</span>
             <span class="detail-close" @click="detailRecord = null">&times;</span>
           </div>
-          <div class="detail-body">{{ detailRecord.content }}</div>
+          <div class="detail-body">
+            <!-- 7天完整方案 -->
+            <template v-if="parsedRecipe.isWeekly">
+              <div v-if="parsedRecipe.summary" class="weekly-summary">{{ parsedRecipe.summary }}</div>
+
+              <div v-for="(day, di) in parsedRecipe.days" :key="di" class="day-folder">
+                <div class="day-folder-header" @click="expandedDays.has(di) ? expandedDays.delete(di) : expandedDays.add(di); expandedDays = new Set(expandedDays)">
+                  <span class="day-num">第{{ di + 1 }}天</span>
+                  <span class="day-label">{{ day.label.replace(/^第[一二三四五六七]+天[，、\s]*/, '') }}</span>
+                  <span class="day-arrow" :class="{ open: expandedDays.has(di) }">›</span>
+                </div>
+                <div v-if="expandedDays.has(di)" class="day-meals">
+                  <div v-for="(meal, mi) in day.meals" :key="mi" class="meal-card">
+                    <div class="meal-header">
+                      <span class="meal-type">{{ meal.type }}</span>
+                      <span class="meal-name">{{ meal.name }}</span>
+                    </div>
+                    <div class="meal-body">
+                      <div v-if="meal.ingredients" class="meal-row">
+                        <span class="meal-label">食材</span>
+                        <span class="meal-value">{{ meal.ingredients }}</span>
+                      </div>
+                      <div v-if="meal.instructions" class="meal-row">
+                        <span class="meal-label">做法</span>
+                        <span class="meal-value">{{ meal.instructions }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div v-if="parsedRecipe.shoppingList" class="rp-section" style="margin-top:16px">
+                <div class="rp-section-title">一周采购清单</div>
+                <div class="rp-raw">{{ parsedRecipe.shoppingList }}</div>
+              </div>
+              <div v-if="parsedRecipe.tips" class="rp-section">
+                <div class="rp-section-title">营养建议</div>
+                <div class="rp-raw">{{ parsedRecipe.tips }}</div>
+              </div>
+            </template>
+
+            <!-- 单道菜谱 -->
+            <template v-else>
+              <!-- 菜品简介 -->
+              <div v-if="parsedRecipe.description" class="rp-desc">{{ parsedRecipe.description }}</div>
+
+              <!-- 基本信息 -->
+              <div v-if="parsedRecipe.infoItems.length" class="rp-section">
+                <div class="rp-section-title">基本信息</div>
+                <div class="rp-info-grid">
+                  <div v-for="item in parsedRecipe.infoItems" :key="item.label" class="rp-info-item">
+                    <span class="rp-info-label">{{ item.label }}</span>
+                    <span class="rp-info-value">{{ item.value }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 食材清单 -->
+              <div v-if="parsedRecipe.ingredients.length" class="rp-section">
+                <div class="rp-section-title">食材清单</div>
+                <div class="rp-ingredients">
+                  <div v-for="(ing, i) in parsedRecipe.ingredients" :key="i" class="rp-ing-item">
+                    <span class="rp-ing-dot"></span>
+                    <span class="rp-ing-name">{{ ing.name }}</span>
+                    <span class="rp-ing-amount">{{ ing.amount }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 烹饪步骤 -->
+              <div v-if="parsedRecipe.steps.length" class="rp-section">
+                <div class="rp-section-title">烹饪步骤</div>
+                <div class="rp-steps">
+                  <div v-for="(step, i) in parsedRecipe.steps" :key="i" class="rp-step-item">
+                    <div class="rp-step-num">{{ i + 1 }}</div>
+                    <div class="rp-step-text">{{ step }}</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 小贴士 -->
+              <div v-if="parsedRecipe.tips.length" class="rp-section">
+                <div class="rp-section-title">小贴士</div>
+                <div class="rp-tips">
+                  <div v-for="(tip, i) in parsedRecipe.tips" :key="i" class="rp-tip-item">
+                    <span class="rp-tip-bulb">&#x1F4A1;</span>
+                    <span>{{ tip }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 兜底：老数据没有结构化格式，显示原文 -->
+              <div v-if="!parsedRecipe.hasStructure" class="rp-raw">{{ detailRecord.content }}</div>
+            </template>
+          </div>
           <div class="detail-footer">
             <span class="detail-time">{{ formatTime(detailRecord.createTime) }}</span>
             <button class="detail-del" @click="deleteRecord(detailRecord.id)">删除记录</button>
@@ -219,7 +266,7 @@
                     <defs><radialGradient id="awg" cx="38%" cy="32%"><stop offset="0%" stop-color="#FF7E55"/><stop offset="100%" stop-color="#E84518"/></radialGradient></defs>
                   </svg>
                 </div>
-                <div class="ai-welcome-title">你好，我是你的"饮食管家"~</div>
+                <div class="ai-welcome-title">你好，我是你的"烹饪助手"~</div>
                 <div class="ai-welcome-msg">请选择你想要的功能</div>
                 <div class="mode-chips">
                   <div class="mode-chip chip-recipe" @click="selectMode('recipe')">
@@ -256,8 +303,31 @@
               <div class="ai-msg-text">{{ aiStreamingText || '思考中...' }}</div>
             </div>
           </div>
-          <div class="ai-input-row">
-            <input v-model="aiInput" class="ai-input" :placeholder="aiPlaceholder"
+          <div v-if="!speech.supported.value && currentAiMode" class="ai-mic-hint">当前浏览器不支持语音输入，请使用 Chrome 或 Edge</div>
+          <div v-if="speech.error.value" class="ai-mic-hint ai-mic-error">{{ speech.error.value }}</div>
+          <div class="ai-input-row" :class="{ recording: speech.isListening.value || speech.isRecognizing.value }">
+            <button
+              class="ai-mic-btn"
+              :class="{ on: speech.isListening.value, recognizing: speech.isRecognizing.value }"
+              @click="toggleMic"
+              :disabled="aiStreaming || !currentAiMode || speech.isRecognizing.value"
+              :title="speech.isListening.value ? '点击停止' : speech.isRecognizing.value ? '识别中...' : '语音输入'"
+            >
+              <svg v-show="!speech.isListening.value && !speech.isRecognizing.value" viewBox="0 0 24 24" width="18" height="18" key="mic-idle">
+                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" :fill="(aiStreaming || !currentAiMode) ? '#D4CBC1' : '#8B7B6B'"/>
+                <path d="M19 10v2a7 7 0 0 1-6 6.92V21h3v2H8v-2h3v-2.08A7 7 0 0 1 5 12v-2h2v2a5 5 0 0 0 10 0v-2z" :fill="(aiStreaming || !currentAiMode) ? '#D4CBC1' : '#8B7B6B'"/>
+              </svg>
+              <svg v-show="speech.isListening.value" viewBox="0 0 24 24" width="18" height="18" class="ai-pulse-icon" key="mic-recording">
+                <circle cx="12" cy="12" r="11" fill="none" stroke="#E84518" stroke-width="1.5" opacity="0.3"/>
+                <circle cx="12" cy="12" r="7" fill="#E84518" opacity="0.15"/>
+                <path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3z" fill="#E84518"/>
+                <path d="M17 10v2a5 5 0 0 1-10 0v-2" stroke="#E84518" stroke-width="2" fill="none" stroke-linecap="round"/>
+              </svg>
+              <svg v-show="speech.isRecognizing.value" viewBox="0 0 24 24" width="18" height="18" class="ai-spin-icon" key="mic-spinner">
+                <circle cx="12" cy="12" r="10" fill="none" stroke="#8B7B6B" stroke-width="2" stroke-dasharray="32 32" stroke-linecap="round"/>
+              </svg>
+            </button>
+            <input v-model="aiInput" class="ai-input" :placeholder="speech.isListening.value ? '正在聆听...' : speech.isRecognizing.value ? '识别中...' : aiPlaceholder"
                    @keyup.enter="aiSend" :disabled="aiStreaming || !currentAiMode" />
             <button class="ai-send-btn" @click="aiSend" :disabled="!aiInput.trim() || aiStreaming || !currentAiMode">
               <svg viewBox="0 0 24 24" width="18" height="18">
@@ -268,6 +338,9 @@
         </div>
       </div>
     </teleport>
+
+    <!-- 底部导航 -->
+    <AppTabbar />
   </div>
 </template>
 
@@ -275,17 +348,13 @@
 import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { userStore } from '../store/user'
-import { checkMember, getExpireTime } from '../api/member'
 import { listCustomRecords, deleteCustomRecord } from '../api/custom'
 import { listIngredients, deleteIngredient, getIngredientStats } from '../api/ingredient'
 import { streamChat } from '../api/ai'
-import MemberPayModal from '../components/MemberPayModal.vue'
+import { useSpeechRecognition } from '../composables/useSpeechRecognition'
+import AppTabbar from '../components/AppTabbar.vue'
 
 const router = useRouter()
-
-const isMember = ref(false)
-const expireTime = ref('')
-const showPayModal = ref(false)
 
 const activeTab = ref('recipe')
 const categories = ['蔬菜', '生禽', '蛋类', '水产', '豆制品', '其他']
@@ -296,8 +365,36 @@ const menuRecords = ref([])
 const ingredients = ref([])
 const stats = ref({ total: 0, nearExpiry: 0 })
 const activeCat = ref('全部')
+const catScroll = ref(null)
+let catDragging = false, catStartX = 0, catScrollLeft = 0, catMoved = false
+
+function onCatDragStart(e) {
+  catDragging = true
+  catMoved = false
+  catStartX = (e.touches ? e.touches[0].pageX : e.pageX) - catScroll.value.offsetLeft
+  catScrollLeft = catScroll.value.scrollLeft
+}
+
+function onCatDragMove(e) {
+  if (!catDragging) return
+  const x = (e.touches ? e.touches[0].pageX : e.pageX) - catScroll.value.offsetLeft
+  const dist = Math.abs(x - catStartX)
+  if (dist > 5) catMoved = true
+  if (catMoved) e.preventDefault()
+  catScroll.value.scrollLeft = catScrollLeft - (x - catStartX) * 1.5
+}
+
+function onCatDragEnd() {
+  catDragging = false
+}
+
+function selectCat(cat) {
+  if (catMoved) return
+  activeCat.value = cat
+}
 
 const detailRecord = ref(null)
+const expandedDays = ref(new Set([0]))
 
 const showAiOverlay = ref(false)
 const aiMessages = ref([])
@@ -308,17 +405,26 @@ const aiMsgList = ref(null)
 const currentAiMode = ref(null)
 let cancelStream = null
 
+const speech = useSpeechRecognition()
+
+// No need to watch speech text — stop() returns recognized text directly
+// (interim results are not available with MediaRecorder approach)
+
+async function toggleMic() {
+  if (speech.isListening.value) {
+    const text = await speech.stop()
+    if (text) {
+      aiInput.value = text
+    }
+  } else {
+    speech.reset()
+    speech.start()
+  }
+}
+
 const filteredIngredients = computed(() => {
   if (activeCat.value === '全部') return ingredients.value
   return ingredients.value.filter(i => i.category === activeCat.value)
-})
-
-const canCookCount = computed(() => {
-  const total = stats.value.total
-  if (total >= 6) return '10+'
-  if (total >= 3) return '5-8'
-  if (total >= 1) return '1-3'
-  return '0'
 })
 
 const aiModeText = computed(() => {
@@ -342,15 +448,11 @@ const aiPlaceholder = computed(() => {
   return '如：我买了鸡蛋、西红柿...'
 })
 
-onMounted(async () => {
+onMounted(() => {
   const uid = userStore.user?.userId
   if (!uid) return
-  isMember.value = await checkMember(uid)
-  if (isMember.value) {
-    expireTime.value = formatExpire(await getExpireTime(uid))
-    loadRecords(uid)
-    loadIngredients(uid)
-  }
+  loadRecords(uid)
+  loadIngredients(uid)
 })
 
 async function loadRecords(uid) {
@@ -371,20 +473,293 @@ async function loadIngredients(uid) {
       getIngredientStats(uid)
     ])
     const list = listRes.data || []
-    ingredients.value = list.map(ing => ({
-      ...ing,
-      expired: ing.expired !== undefined ? ing.expired : (ing.daysUntilExpiry != null && ing.daysUntilExpiry < 0),
-      nearExpiry: ing.nearExpiry !== undefined ? ing.nearExpiry : (ing.daysUntilExpiry != null && ing.daysUntilExpiry >= 0 && ing.daysUntilExpiry <= 1)
-    }))
-    stats.value = statsRes.data || { total: 0, nearExpiry: 0 }
+    ingredients.value = list.map(ing => {
+      const days = calcDaysUntil(ing.expireDate)
+      return {
+        ...ing,
+        expired: days != null && days < 0,
+        nearExpiry: days != null && days >= 0 && days <= 1
+      }
+    })
+    stats.value = statsRes.data || { total: 0, nearExpiry: 0, expired: 0 }
   } catch { /* ignore */ }
 }
 
 function getPreview(content) {
   if (!content) return ''
+  // 提取菜品简介段落（# 标题之后、## 第一个章节之前的内容）
+  const lines = content.split('\n')
+  let inDesc = false
+  let descParts = []
+  for (const line of lines) {
+    const trimmed = line.trim()
+    if (!trimmed) continue
+    if (trimmed.startsWith('# ') && !inDesc) {
+      inDesc = true
+      continue
+    }
+    if (trimmed.startsWith('## ')) break
+    if (inDesc && !trimmed.startsWith('#')) {
+      descParts.push(trimmed)
+      if (descParts.join(' ').length > 80) break
+    }
+  }
+  if (descParts.length) {
+    const desc = descParts.join(' ').replace(/\*\*/g, '').trim()
+    return desc.length > 100 ? desc.substring(0, 100) + '...' : desc
+  }
+  // 兜底：老数据没有结构化格式
   const text = content.replace(/#{1,6}\s/g, '').replace(/\*\*/g, '').trim()
   return text.length > 100 ? text.substring(0, 100) + '...' : text
 }
+
+function parseRecipeMarkdown(content) {
+  if (!content) return { hasStructure: false }
+  // 检测7天完整方案（有多天标题 + 早餐/午餐/晚餐结构）
+  if (/##\s*第一天/.test(content) && /###\s*(早餐|午餐|晚餐)/.test(content)) {
+    return parseWeeklyFull(content)
+  }
+  const lines = content.split('\n')
+  let title = ''
+  let description = ''
+  const infoItems = []
+  const ingredients = []
+  const steps = []
+  const tips = []
+  let currentSection = null
+
+  // 判断是否为标题行
+  function isHeading(line) {
+    return /^#{1,3}\s/.test(line)
+  }
+
+  for (const line of lines) {
+    const trimmed = line.trim()
+    if (!trimmed) continue
+
+    // 主标题（菜名）——第一个 # 或 ## 开头的行
+    if (isHeading(trimmed) && !title && currentSection === null) {
+      title = trimmed.replace(/^#{1,3}\s/, '').trim()
+      continue
+    }
+
+    // 识别章节标题（仅在 #/## 开头的行中匹配，避免正文中的关键词误触发）
+    if (isHeading(trimmed)) {
+      if (trimmed.includes('菜品简介') || trimmed.includes('简介')) {
+        currentSection = 'description'
+        continue
+      }
+      if (trimmed.includes('基本信息')) {
+        currentSection = 'info'
+        continue
+      }
+      if (trimmed.includes('食材清单') || trimmed.includes('食材')) {
+        currentSection = 'ingredients'
+        continue
+      }
+      if (trimmed.includes('烹饪步骤') || trimmed.includes('制作步骤')) {
+        currentSection = 'steps'
+        continue
+      }
+      if (trimmed.includes('小贴士') || trimmed.includes('贴士') || trimmed.includes('提示')) {
+        currentSection = 'tips'
+        continue
+      }
+      // 其他标题行（如 ## 备注 等），跳过
+      continue
+    }
+
+    // 按当前章节解析内容
+    switch (currentSection) {
+      case 'description':
+        description += (description ? ' ' : '') + trimmed
+        break
+      case 'info': {
+        const m = trimmed.match(/^[-*•]\s*(.+?)[：:]\s*(.+)/)
+        if (m) infoItems.push({ label: m[1].replace(/\*\*/g, '').trim(), value: m[2].replace(/\*\*/g, '').trim() })
+        break
+      }
+      case 'ingredients': {
+        const m = trimmed.match(/^[-*•]\s*(?:\*\*)?(.+?)(?:\*\*)?[：:]\s*(.+)/)
+        if (m) ingredients.push({ name: m[1].trim(), amount: m[2].trim() })
+        break
+      }
+      case 'steps': {
+        const m = trimmed.match(/^\d+[.)]\s*(.+)/)
+        if (m) steps.push(m[1].trim())
+        break
+      }
+      case 'tips': {
+        const m = trimmed.match(/^[-*•]\s*(.+)/)
+        if (m) tips.push(m[1].trim())
+        break
+      }
+    }
+  }
+
+  const hasStructure = !!(title || ingredients.length || steps.length)
+  return { hasStructure, title, description, infoItems, ingredients, steps, tips }
+}
+
+/** 解析完整7天方案 */
+function parseWeeklyFull(content) {
+  const lines = content.split('\n')
+  let title = ''
+  let summary = ''
+  const days = []
+  let shoppingList = ''
+  let tips = ''
+  let currentDay = null
+  let currentMeal = null
+  let currentField = null
+  let inShopping = false
+  let inTips = false
+
+  for (const line of lines) {
+    const trimmed = line.trim()
+    if (!trimmed) continue
+
+    // 主标题
+    if (trimmed.startsWith('# ') && !title) {
+      title = trimmed.replace(/^#\s*/, '').trim()
+      continue
+    }
+
+    // 用户需求总结
+    if (trimmed.startsWith('# ') && trimmed.includes('总结')) {
+      currentDay = null; currentMeal = null
+      continue
+    }
+
+    // 一周食材采购清单
+    if (trimmed.includes('采购清单') || trimmed.includes('购物清单')) {
+      if (currentMeal && currentDay) currentDay.meals.push(currentMeal)
+      if (currentDay) days.push(currentDay)
+      inShopping = true; inTips = false
+      currentDay = null; currentMeal = null
+      continue
+    }
+
+    // 一周营养建议
+    if (trimmed.includes('营养建议') || trimmed.includes('营养贴士') || trimmed.includes('小贴士')) {
+      if (currentMeal && currentDay) currentDay.meals.push(currentMeal)
+      if (currentDay) days.push(currentDay)
+      inTips = true; inShopping = false
+      currentDay = null; currentMeal = null
+      continue
+    }
+
+    // 天标题：## 第一天（周一）
+    const dayMatch = trimmed.match(/^##\s*(第[一二三四五六七天]+天[^#]*)/)
+    if (dayMatch) {
+      if (currentMeal && currentDay) currentDay.meals.push(currentMeal)
+      if (currentDay) days.push(currentDay)
+      currentDay = { label: dayMatch[1].trim(), meals: [] }
+      currentMeal = null
+      inShopping = false; inTips = false
+      continue
+    }
+
+    // 餐标题：### 早餐：菜名
+    const mealMatch = trimmed.match(/^###\s*(早餐|午餐|晚餐)[：:]\s*(.+)/)
+    if (mealMatch && currentDay) {
+      if (currentMeal) currentDay.meals.push(currentMeal)
+      currentMeal = { type: mealMatch[1], name: mealMatch[2], ingredients: '', instructions: '' }
+      currentField = null
+      continue
+    }
+
+    // 采购清单 / 营养建议内容
+    if (inShopping) {
+      shoppingList += (shoppingList ? '\n' : '') + trimmed
+      continue
+    }
+    if (inTips) {
+      tips += (tips ? '\n' : '') + trimmed
+      continue
+    }
+
+    // 总结内容（# 用户需求总结 之后的正文）
+    if (!currentDay && !currentMeal && !inShopping && !inTips && !trimmed.startsWith('#')) {
+      summary += (summary ? ' ' : '') + trimmed
+      continue
+    }
+
+    if (!currentMeal) continue
+
+    // 列表项：- 主要食材：... / - 做法简述：...
+    const listMatch = trimmed.match(/^[-*•]\s*(.+)/)
+    if (listMatch) {
+      const item = listMatch[1].trim()
+      if (item.startsWith('主要食材') || item.startsWith('食材')) {
+        currentMeal.ingredients = item.replace(/^主要食材[：:]?\s*/, '').replace(/^食材[：:]?\s*/, '')
+        currentField = 'ingredients'
+      } else if (item.startsWith('做法简述') || item.startsWith('做法') || item.startsWith('简述')) {
+        currentMeal.instructions = item.replace(/^做法简述[：:]?\s*/, '').replace(/^做法[：:]?\s*/, '').replace(/^简述[：:]?\s*/, '')
+        currentField = 'instructions'
+      }
+      continue
+    }
+
+    // 补充文本追加到当前字段
+    if (currentField === 'instructions') {
+      currentMeal.instructions += ' ' + trimmed
+    }
+  }
+
+  if (currentMeal && currentDay) currentDay.meals.push(currentMeal)
+  if (currentDay) days.push(currentDay)
+
+  return {
+    hasStructure: true,
+    isWeekly: true,
+    title,
+    summary: summary.length > 150 ? summary.substring(0, 150) + '...' : summary,
+    days,
+    shoppingList,
+    tips
+  }
+}
+
+function parseJsonField(field) {
+  if (!field) return []
+  if (typeof field === 'object') return field
+  try { return JSON.parse(field) } catch { return [] }
+}
+
+function ingredientCount(field) {
+  if (!field) return 0
+  try {
+    const arr = typeof field === 'string' ? JSON.parse(field) : field
+    return Array.isArray(arr) ? arr.length : 0
+  } catch { return 0 }
+}
+
+const parsedRecipe = computed(() => {
+  if (!detailRecord.value) return { hasStructure: false }
+  const rec = detailRecord.value
+  // 7天方案：总是从 markdown 解析
+  if (isWeekly(rec)) {
+    return parseRecipeMarkdown(rec.content)
+  }
+  // 新记录：优先使用结构化字段
+  if (rec.ingredients || rec.steps) {
+    const infoItems = []
+    if (rec.cookTime) infoItems.push({ label: '烹饪时长', value: rec.cookTime })
+    if (rec.difficulty) infoItems.push({ label: '难度等级', value: rec.difficulty })
+    return {
+      hasStructure: true,
+      title: rec.title,
+      description: rec.description || '',
+      infoItems,
+      ingredients: parseJsonField(rec.ingredients),
+      steps: parseJsonField(rec.steps),
+      tips: []
+    }
+  }
+  // 老记录：回退到 markdown 解析
+  return parseRecipeMarkdown(rec.content)
+})
 
 function formatTime(time) {
   if (!time) return ''
@@ -399,14 +774,30 @@ function formatTime(time) {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
-function formatExpire(time) { return formatTime(time) }
+function calcDaysUntil(expireDate) {
+  if (!expireDate) return null
+  let d
+  if (Array.isArray(expireDate)) {
+    d = new Date(expireDate[0], expireDate[1] - 1, expireDate[2], expireDate[3] || 0, expireDate[4] || 0)
+  } else {
+    d = new Date(expireDate)
+  }
+  if (isNaN(d.getTime())) return null
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  d.setHours(0, 0, 0, 0)
+  return Math.round((d - today) / (1000 * 60 * 60 * 24))
+}
 
 function formatExpiry(ing) {
-  if (ing.daysUntilExpiry == null || ing.daysUntilExpiry > 36500) return '未知'
-  if (ing.daysUntilExpiry < 0) return `已过期${Math.abs(ing.daysUntilExpiry)}天`
-  if (ing.daysUntilExpiry === 0) return '今天到期'
-  if (ing.daysUntilExpiry <= 1) return `剩余${ing.daysUntilExpiry}天`
-  return `剩余${ing.daysUntilExpiry}天`
+  const days = calcDaysUntil(ing.expireDate)
+  if (days == null || days > 36500) return '未知'
+  if (days < -365) return '数据异常'
+  if (days < 0) return `已过期${Math.abs(days)}天`
+  if (days === 0) return '今天到期'
+  if (days <= 1) return `剩余${days}天`
+  if (days > 365) return '数据异常'
+  return `剩余${days}天`
 }
 
 function getIngIcon(cat) {
@@ -414,7 +805,14 @@ function getIngIcon(cat) {
   return map[cat] || '📦'
 }
 
-function openDetail(rec) { detailRecord.value = rec }
+function openDetail(rec) { detailRecord.value = rec; expandedDays.value = new Set([0]) }
+
+function isWeekly(rec) {
+  if (rec.title && rec.title.includes('7天')) return true
+  // 兜底：通过内容结构判断（标题提取可能遗漏"7天"）
+  if (rec.content && /##\s*第一天/.test(rec.content) && /###\s*(早餐|午餐|晚餐)/.test(rec.content)) return true
+  return false
+}
 
 async function deleteRecord(id) {
   try {
@@ -431,21 +829,6 @@ async function handleDeleteIngredient(id) {
     const uid = userStore.user?.userId
     if (uid) loadIngredients(uid)
   } catch { /* ignore */ }
-}
-
-function handleBuy() { showPayModal.value = true }
-
-async function onPaySuccess() {
-  showPayModal.value = false
-  const uid = userStore.user?.userId
-  if (uid) {
-    isMember.value = await checkMember(uid)
-    if (isMember.value) {
-      expireTime.value = formatExpire(await getExpireTime(uid))
-      loadRecords(uid)
-      loadIngredients(uid)
-    }
-  }
 }
 
 function openAiChat() {
@@ -537,29 +920,50 @@ function aiSend() {
 .ai-hero-card {
   position: relative;
   margin: 14px 14px 0;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  background: linear-gradient(120deg, rgba(255,249,243,0.94), rgba(255,238,224,0.94), rgba(255,249,243,0.94), rgba(255,242,230,0.94));
+  background-size: 300% 300%;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border-radius: 20px;
   padding: 24px 18px;
   cursor: pointer;
-  overflow: hidden;
-  border: 1px solid rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,140,90,0.28);
+  box-shadow: 0 4px 24px rgba(255,122,51,0.12), 0 1px 4px rgba(0,0,0,0.04);
   transition: all 0.3s;
+  overflow: hidden;
+  animation: heroCardBgFlow 8s ease-in-out infinite, heroCardBreath 3.5s ease-in-out infinite;
+}
+
+/* 卡片扫光 */
+.ai-hero-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 30%;
+  background: linear-gradient(105deg, transparent, rgba(255,255,255,0.22) 50%, transparent);
+  transform: translateX(-160%) skewX(-18deg);
+  animation: heroShine 4.5s ease-in-out infinite;
+  pointer-events: none;
+  border-radius: inherit;
 }
 
 .ai-hero-card:active { transform: scale(0.985); }
 
-.ai-glow-bg {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(ellipse at 50% 30%, rgba(139,92,246,0.18) 0%, transparent 60%),
-              radial-gradient(ellipse at 80% 80%, rgba(59,130,246,0.10) 0%, transparent 50%);
-  animation: aiGlowShift 4s ease-in-out infinite;
-  pointer-events: none;
+@keyframes heroCardBgFlow {
+  0%, 100% { background-position: 0% 50%; }
+  50%      { background-position: 100% 50%; }
 }
 
-@keyframes aiGlowShift {
-  0%, 100% { opacity: 0.6; }
-  50% { opacity: 1; }
+@keyframes heroCardBreath {
+  0%, 100% { box-shadow: 0 4px 24px rgba(255,122,51,0.12), 0 1px 4px rgba(0,0,0,0.04); }
+  50%      { box-shadow: 0 8px 34px rgba(255,122,51,0.30), 0 2px 12px rgba(0,0,0,0.07); }
+}
+
+@keyframes heroShine {
+  0%, 55% { transform: translateX(-160%) skewX(-18deg); }
+  100%    { transform: translateX(600%) skewX(-18deg); }
 }
 
 .ai-hero-content {
@@ -571,30 +975,86 @@ function aiSend() {
   text-align: center;
 }
 
+/* 图标环：整体呼吸缩放 + 旋转光环 + 外圈光晕 */
 .ai-icon-ring {
-  width: 52px; height: 52px;
+  position: relative;
+  width: 56px; height: 56px;
   border-radius: 50%;
   margin-bottom: 14px;
-  background: conic-gradient(from 0deg, #8B5CF6, #3B82F6, #06B6D4, #8B5CF6);
-  animation: aiRingSpin 3s linear infinite;
+  background: linear-gradient(135deg, rgba(255,122,51,0.32), rgba(255,160,100,0.24));
+  border: 1.5px solid rgba(255,122,51,0.4);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 3px;
+  animation: iconRingBreath 3.5s ease-in-out infinite;
 }
 
-.ai-icon-inner {
-  width: 100%; height: 100%;
+.ai-icon-ring::before {
+  content: '';
+  position: absolute;
+  inset: -5px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #1e1b4b, #1e293b);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  background: conic-gradient(from 0deg,
+    transparent 0deg,
+    rgba(255,150,90,0.95) 50deg,
+    transparent 120deg,
+    transparent 200deg,
+    rgba(255,200,150,0.70) 260deg,
+    transparent 340deg);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #000 calc(100% - 2px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #000 calc(100% - 2px));
+  animation: iconRingSpin 3.2s linear infinite;
+  pointer-events: none;
+  z-index: 0;
 }
 
-@keyframes aiRingSpin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+/* 图标外圈呼吸光晕 */
+.ai-icon-ring::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  background: radial-gradient(circle at center, rgba(255,150,80,0.42), transparent 70%);
+  z-index: 0;
+  animation: iconRingGlow 2.6s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.ai-icon-ring svg {
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes iconRingBreath {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.06); }
+}
+
+@keyframes iconRingSpin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes iconRingGlow {
+  0%, 100% { opacity: 0.35; transform: scale(0.9); }
+  50%      { opacity: 1; transform: scale(1.12); }
+}
+
+/* 锅上升腾的蒸汽 */
+.steam {
+  transform-box: fill-box;
+  transform-origin: center bottom;
+  filter: drop-shadow(0 0 2px rgba(255,255,255,0.9));
+}
+
+.steam-1 { animation: steamRise 2.2s ease-in-out infinite; }
+.steam-2 { animation: steamRise 2.2s ease-in-out 0.4s infinite; }
+.steam-3 { animation: steamRise 2.2s ease-in-out 0.8s infinite; }
+
+@keyframes steamRise {
+  0%   { transform: translateY(1px) scale(0.75); opacity: 0; }
+  30%  { opacity: 0.95; }
+  60%  { opacity: 0.7; }
+  100% { transform: translateY(-6px) scale(1.15); opacity: 0; }
 }
 
 .ai-hero-text { margin-bottom: 12px; }
@@ -602,14 +1062,25 @@ function aiSend() {
 .ai-hero-greeting {
   font-size: 17px;
   font-weight: 700;
-  color: #e2e8f0;
   letter-spacing: 0.5px;
   margin-bottom: 4px;
+  background: linear-gradient(90deg, #5C3520, #C06535, #5C3520);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  animation: heroTitleShimmer 4.5s ease-in-out infinite;
+}
+
+@keyframes heroTitleShimmer {
+  0%, 100% { background-position: 0% 50%; }
+  50%      { background-position: 100% 50%; }
 }
 
 .ai-hero-sub {
   font-size: 13px;
-  color: #94a3b8;
+  color: #B08868;
 }
 
 .ai-sparkle-row {
@@ -621,16 +1092,16 @@ function aiSend() {
 .ai-sparkle {
   width: 4px; height: 4px;
   border-radius: 50%;
-  background: #8B5CF6;
+  background: #FF9A5C;
   animation: sparklePulse 1.8s ease-in-out infinite;
-  box-shadow: 0 0 6px rgba(139,92,246,0.6);
+  box-shadow: 0 0 6px rgba(255,122,51,0.4);
 }
 
-.ai-sparkle.delay-1 { animation-delay: 0.3s; background: #3B82F6; box-shadow: 0 0 6px rgba(59,130,246,0.6); }
-.ai-sparkle.delay-2 { animation-delay: 0.6s; background: #06B6D4; box-shadow: 0 0 6px rgba(6,182,212,0.6); }
+.ai-sparkle.delay-1 { animation-delay: 0.3s; background: #FFB088; box-shadow: 0 0 6px rgba(255,160,100,0.4); }
+.ai-sparkle.delay-2 { animation-delay: 0.6s; background: #FFC8A0; box-shadow: 0 0 6px rgba(255,180,130,0.4); }
 
 @keyframes sparklePulse {
-  0%, 100% { transform: scale(1); opacity: 0.4; }
+  0%, 100% { transform: scale(1); opacity: 0.3; }
   50% { transform: scale(1.8); opacity: 1; }
 }
 
@@ -682,34 +1153,50 @@ function aiSend() {
 
 .stat-num { font-size: 22px; font-weight: 800; color: var(--text-primary); }
 .stat-label { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
-.stat-warn .stat-num { color: #E8783D; }
-.stat-ok .stat-num { color: #56AB6F; }
+.stat-warn .stat-num { color: #E8A820; }
+.stat-danger .stat-num { color: #D1523F; }
 
-/* 分类筛选 */
-.category-filters {
+/* 分类拖拽滚动 */
+.category-scroll {
   display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-bottom: 14px;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 4px 0 12px;
+  margin-bottom: 8px;
+  -webkit-overflow-scrolling: touch;
+  cursor: grab;
+  scroll-behavior: smooth;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
+.category-scroll:active { cursor: grabbing; }
+
+.category-scroll::-webkit-scrollbar { display: none; }
+
 .filter-chip {
-  padding: 6px 14px;
-  border-radius: 20px;
+  padding: 8px 18px;
+  border-radius: 22px;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-secondary);
   background: #fff;
   cursor: pointer;
   border: 1.5px solid var(--border);
-  transition: all 0.2s;
+  transition: all 0.25s;
+  white-space: nowrap;
+  flex-shrink: 0;
+  box-shadow: 0 1px 4px rgba(30,21,15,0.03);
 }
+
+.filter-chip:active { transform: scale(0.95); }
 
 .filter-chip.active {
   background: var(--gradient-primary);
   color: #fff;
   border-color: transparent;
-  box-shadow: 0 2px 8px rgba(255,122,51,0.2);
+  box-shadow: 0 3px 12px rgba(255,122,51,0.25);
+  transform: scale(1.05);
 }
 
 /* 食材列表 */
@@ -724,15 +1211,52 @@ function aiSend() {
   padding: 12px 14px;
   box-shadow: 0 1px 4px rgba(30,21,15,0.03);
   border-left: 3px solid #56AB6F;
+  transition: all 0.25s;
 }
 
-.ingredient-row.near { border-left-color: #E8A820; }
-.ingredient-row.expired { border-left-color: #E8783D; opacity: 0.7; }
+.ingredient-row.near {
+  border-left-color: #E8A820;
+  background: linear-gradient(135deg, #FFFDF5, #FFF8E8);
+  box-shadow: 0 2px 8px rgba(232, 168, 32, 0.12);
+  animation: nearPulse 2.5s ease-in-out infinite;
+}
+
+.ingredient-row.expired {
+  border-left-color: #D1523F;
+  background: #FFF7F5;
+  opacity: 0.85;
+}
+
+@keyframes nearPulse {
+  0%, 100% { box-shadow: 0 2px 8px rgba(232, 168, 32, 0.08); }
+  50% { box-shadow: 0 2px 16px rgba(232, 168, 32, 0.20); }
+}
 
 .ing-icon { font-size: 24px; flex-shrink: 0; }
 .ing-info { flex: 1; min-width: 0; }
-.ing-name { font-size: 14px; font-weight: 700; color: var(--text-primary); }
+.ing-name { font-size: 14px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 8px; }
 .ing-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+.ing-badge {
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 10px;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.badge-near {
+  background: #FFF3D6;
+  color: #B87A14;
+  border: 1px solid #F5D78A;
+}
+
+.badge-expired {
+  background: #FFE8E4;
+  color: #C0392B;
+  border: 1px solid #F5B8A8;
+}
 
 .ing-del {
   width: 28px; height: 28px;
@@ -756,22 +1280,49 @@ function aiSend() {
 
 .record-card:active { transform: scale(0.98); }
 
+.card-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.card-icon {
+  font-size: 28px;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.card-info {
+  flex: 1;
+  min-width: 0;
+}
+
 .record-title {
   font-size: 15px; font-weight: 700;
   color: var(--text-primary);
   margin-bottom: 6px;
 }
 
-.record-preview {
-  font-size: 12px; color: var(--text-muted);
-  line-height: 1.5;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+.card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
-.record-time { font-size: 11px; color: var(--text-placeholder); margin-top: 8px; }
+.meta-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #8B7355;
+  background: #FBF6EF;
+  padding: 2px 8px;
+  border-radius: 10px;
+  border: 1px solid #F0E4D5;
+}
+
+.record-time { font-size: 11px; color: var(--text-placeholder); margin-top: 10px; }
 
 /* 空状态 */
 .empty-state {
@@ -786,107 +1337,6 @@ function aiSend() {
 .empty-text { font-size: 15px; color: var(--text-secondary); font-weight: 600; }
 .empty-sub { font-size: 12px; color: var(--text-muted); margin-top: 6px; text-align: center; }
 
-/* ===== 非会员区 ===== */
-.non-member-area { padding-bottom: 30px; }
-
-.nm-hero {
-  text-align: center;
-  padding: 40px 20px 10px;
-}
-
-.nm-crown { font-size: 56px; margin-bottom: 12px; }
-.nm-title { font-size: 24px; font-weight: 800; color: var(--text-primary); letter-spacing: 1px; }
-.nm-sub { font-size: 14px; color: var(--text-secondary); margin-top: 8px; font-weight: 500; }
-
-.section-title {
-  font-size: 17px; font-weight: 800;
-  color: var(--text-primary);
-  padding: 22px 14px 12px;
-  letter-spacing: 0.5px;
-}
-
-.benefits-row { display: flex; gap: 10px; padding: 0 14px; }
-
-.benefit-card {
-  flex: 1;
-  background: #fff;
-  border-radius: 14px;
-  padding: 16px 10px;
-  text-align: center;
-  box-shadow: 0 1px 6px rgba(30,21,15,0.04);
-  border: 1px solid rgba(0,0,0,0.03);
-}
-
-.benefit-icon { font-size: 28px; margin-bottom: 8px; }
-.benefit-name { font-size: 13px; font-weight: 800; color: var(--text-primary); margin-bottom: 3px; }
-.benefit-desc { font-size: 10px; color: var(--text-muted); line-height: 1.4; }
-
-.plans { padding: 0 14px; display: flex; flex-direction: column; gap: 12px; }
-
-.plan-card {
-  background: #fff;
-  border-radius: 14px;
-  padding: 18px 14px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  box-shadow: 0 1px 6px rgba(30,21,15,0.04);
-  border: 2px solid var(--border);
-  position: relative;
-}
-
-.plan-premium {
-  border-color: #F5C34B;
-  box-shadow: 0 4px 20px rgba(240,165,0,0.08);
-  background: #FFFDF6;
-}
-
-.plan-badge {
-  position: absolute;
-  top: -10px; left: 14px;
-  background: var(--text-secondary);
-  color: #fff;
-  font-size: 10px; font-weight: 800;
-  padding: 2px 10px;
-  border-radius: 10px;
-  letter-spacing: 1px;
-}
-
-.plan-badge-gold {
-  background: linear-gradient(135deg, #F5C34B, #E8A820);
-  box-shadow: 0 2px 8px rgba(240,165,0,0.3);
-}
-
-.plan-info { flex: 1; min-width: 0; }
-.plan-name { font-size: 14px; font-weight: 800; color: var(--text-primary); }
-.plan-desc { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
-.plan-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
-
-.plan-price { flex-shrink: 0; font-size: 11px; color: var(--text-muted); text-align: right; }
-.price-num { font-size: 20px; font-weight: 900; color: var(--primary); }
-.price-num-gold { color: #E8A820; }
-
-.plan-btn {
-  flex-shrink: 0;
-  padding: 8px 16px;
-  border-radius: 20px;
-  border: 2px solid var(--primary);
-  color: var(--primary);
-  font-size: 12px; font-weight: 800;
-  background: #fff;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.plan-btn:active { background: var(--primary); color: #fff; }
-
-.plan-btn-gold {
-  border-color: #E8A820;
-  background: linear-gradient(135deg, #F5C34B, #E8A820);
-  color: #fff;
-  box-shadow: 0 3px 10px rgba(240,165,0,0.25);
-}
-
 /* ===== 详情弹窗 ===== */
 .detail-overlay {
   position: fixed; inset: 0;
@@ -899,37 +1349,41 @@ function aiSend() {
 
 .detail-card {
   width: 100%;
-  max-width: 420px;
-  max-height: 80vh;
-  background: #fff;
+  max-width: 500px;
+  max-height: 85vh;
+  background: #FDFAF5;
   border-radius: 20px 20px 0 0;
-  padding: 20px;
+  padding: 0;
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 .detail-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 14px;
+  padding: 20px 20px 0;
+  flex-shrink: 0;
 }
 
-.detail-title { font-size: 17px; font-weight: 800; color: var(--text-primary); }
-.detail-close { font-size: 24px; color: var(--text-muted); cursor: pointer; }
+.detail-title { font-size: 19px; font-weight: 800; color: var(--text-primary); }
 
-.detail-body {
-  font-size: 14px; color: var(--text-secondary);
-  line-height: 1.75;
-  white-space: pre-wrap;
+.detail-close {
+  font-size: 28px; color: var(--text-muted); cursor: pointer;
+  width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+  border-radius: 50%;
 }
+
+.detail-body { padding: 16px 20px; flex: 1; }
 
 .detail-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 16px;
-  padding-top: 14px;
-  border-top: 1px solid var(--border);
+  padding: 14px 20px;
+  border-top: 1px solid #EDE8DF;
+  flex-shrink: 0;
 }
 
 .detail-time { font-size: 12px; color: var(--text-muted); }
@@ -944,6 +1398,278 @@ function aiSend() {
   background: #fff;
 }
 
+/* ===== 菜谱详情样式 ===== */
+.rp-desc {
+  font-size: 14px; color: var(--text-secondary);
+  line-height: 1.7;
+  margin-bottom: 20px;
+  padding: 12px 14px;
+  background: #FFFBF5;
+  border-radius: 10px;
+  border-left: 3px solid #F5C34B;
+}
+
+.rp-section { margin-bottom: 20px; }
+
+.rp-section-title {
+  font-size: 15px; font-weight: 800;
+  color: var(--text-primary);
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 2px solid #F0E8D8;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* 基本信息 */
+.rp-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.rp-info-item {
+  background: #fff;
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border: 1px solid #F0E8D8;
+}
+
+.rp-info-label { font-size: 11px; color: var(--text-muted); }
+
+.rp-info-value { font-size: 13px; font-weight: 700; color: var(--text-primary); }
+
+/* 食材清单 */
+.rp-ingredients {
+  background: #fff;
+  border-radius: 12px;
+  padding: 4px 0;
+  border: 1px solid #F0E8D8;
+  overflow: hidden;
+}
+
+.rp-ing-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-bottom: 1px solid #F7F3EB;
+}
+
+.rp-ing-item:last-child { border-bottom: none; }
+
+.rp-ing-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--primary);
+  flex-shrink: 0;
+}
+
+.rp-ing-name { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+.rp-ing-amount { font-size: 12px; color: var(--text-muted); margin-left: auto; }
+
+/* 烹饪步骤 */
+.rp-step-item {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.rp-step-num {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  background: var(--gradient-primary);
+  color: #fff;
+  font-size: 13px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.rp-step-text {
+  font-size: 13px; color: var(--text-secondary);
+  line-height: 1.65;
+  flex: 1;
+  padding-top: 3px;
+}
+
+/* 小贴士 */
+.rp-tips { display: flex; flex-direction: column; gap: 8px; }
+
+.rp-tip-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13px; color: var(--text-secondary);
+  line-height: 1.55;
+  background: #FFFBF0;
+  border-radius: 10px;
+  padding: 10px 12px;
+  border: 1px solid #F5E6C8;
+}
+
+.rp-tip-bulb { flex-shrink: 0; font-size: 14px; }
+
+/* 兜底原文 */
+.rp-raw {
+  font-size: 14px; color: var(--text-secondary);
+  line-height: 1.75;
+  white-space: pre-wrap;
+}
+
+/* ===== 7天方案 周文件夹样式 ===== */
+
+.weekly-card {
+  border-left: 4px solid var(--primary);
+  background: linear-gradient(135deg, #FFFAF5, #FFF6F0);
+}
+
+.weekly-badge {
+  display: inline-block;
+  font-family: var(--font-heading);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--primary);
+  background: var(--primary-bg);
+  padding: 2px 10px;
+  border-radius: var(--radius-xs);
+  margin-top: 4px;
+}
+
+.weekly-summary {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 14px;
+  padding: 10px 14px;
+  background: #FFFBF7;
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--primary-lighter);
+}
+
+/* 天文件夹 */
+.day-folder {
+  margin-bottom: 8px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid var(--border-light);
+}
+
+.day-folder-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.2s;
+}
+
+.day-folder-header:active {
+  background: #FFFAF5;
+}
+
+.day-num {
+  font-family: var(--font-heading);
+  font-size: 13px;
+  font-weight: 800;
+  color: #fff;
+  background: var(--gradient-primary);
+  padding: 3px 10px;
+  border-radius: var(--radius-xs);
+  white-space: nowrap;
+}
+
+.day-label {
+  flex: 1;
+  font-family: var(--font-heading);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.day-arrow {
+  font-size: 20px;
+  color: var(--text-muted);
+  transition: transform 0.3s;
+  font-weight: 700;
+}
+
+.day-arrow.open {
+  transform: rotate(90deg);
+}
+
+.day-meals {
+  padding: 0 12px 12px;
+}
+
+/* ===== 三餐卡片 ===== */
+
+.meal-card {
+  background: #fff;
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  box-shadow: var(--shadow-card);
+  border: 1px solid rgba(255, 122, 51, 0.06);
+}
+
+.meal-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.meal-type {
+  font-family: var(--font-heading);
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--gradient-primary);
+  padding: 3px 10px;
+  border-radius: var(--radius-xs);
+  letter-spacing: 1px;
+}
+
+.meal-name {
+  font-family: var(--font-heading);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.meal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.meal-row {
+  display: flex;
+  gap: 10px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.meal-label {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  color: var(--primary);
+  white-space: nowrap;
+  flex-shrink: 0;
+  min-width: 32px;
+}
+
+.meal-value {
+  color: var(--text-secondary);
+}
+
 /* ===== AI弹窗 ===== */
 .ai-overlay {
   position: fixed; inset: 0;
@@ -956,7 +1682,7 @@ function aiSend() {
 
 .ai-panel {
   width: 100%;
-  max-width: 420px;
+  max-width: 500px;
   height: 85vh;
   background: linear-gradient(180deg, #F5F0E8, #F9F7F2);
   border-radius: 20px 20px 0 0;
@@ -1103,4 +1829,60 @@ function aiSend() {
 
 .ai-send-btn:disabled { opacity: 0.4; }
 .ai-send-btn:not(:disabled):active { transform: scale(0.9); }
+
+/* AI mic button */
+.ai-mic-btn {
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+  background: #fff;
+  border: 1.5px solid var(--border);
+}
+
+.ai-mic-btn:active {
+  transform: scale(0.85);
+}
+
+.ai-mic-btn.on {
+  background: rgba(232,69,24,0.06);
+  border-color: #E84518;
+}
+
+.ai-pulse-icon {
+  animation: aiMicPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes aiMicPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.08); }
+}
+
+.ai-spin-icon {
+  animation: aiMicSpin 1s linear infinite;
+}
+
+@keyframes aiMicSpin {
+  to { transform: rotate(360deg); }
+}
+
+.ai-mic-btn.recognizing {
+  background: rgba(139, 123, 107, 0.06);
+}
+
+.ai-input-row.recording {
+  background: transparent;
+}
+
+.ai-mic-hint {
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-muted);
+  padding: 0 14px 2px;
+}
+
+.ai-mic-error {
+  color: #D1523F;
+}
 </style>

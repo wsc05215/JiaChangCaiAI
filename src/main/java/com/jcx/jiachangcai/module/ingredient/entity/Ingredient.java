@@ -3,8 +3,8 @@ package com.jcx.jiachangcai.module.ingredient.entity;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.io.Serializable;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -36,44 +36,16 @@ public class Ingredient implements Serializable {
     @Schema(description = "存入时间")
     private LocalDateTime createTime;
 
-    /**
-     * 获取保质天数
-     */
-    public int getExpiryDays() {
-        if (category == null) return 30;
-        return switch (category) {
-            case "蔬菜" -> 7;
-            case "生禽", "蛋类" -> 15;
-            case "水产" -> 5;
-            case "豆制品" -> 7;
-            default -> 30;
-        };
-    }
+    @Schema(description = "储存方式：冷藏/冷冻/常温")
+    private String storageMethod;
 
-    /**
-     * 距过期还剩几天（正数=未过期，0=今天到期，负数=已过期N天）
-     */
-    public long getDaysUntilExpiry() {
-        int days = getExpiryDays();
-        if (days < 0 || createTime == null) return Long.MAX_VALUE;
-        long passed = ChronoUnit.DAYS.between(createTime, LocalDateTime.now());
-        return days - passed;
-    }
+    @Schema(description = "购买日期")
+    private LocalDate purchaseDate;
 
-    /**
-     * 是否已过期
-     */
-    public boolean isExpired() {
-        long remaining = getDaysUntilExpiry();
-        return remaining < 0 && remaining > Long.MIN_VALUE;
-    }
+    @Schema(description = "保质天数（AI判定）")
+    private Integer expireDays;
 
-    /**
-     * 是否临期（还剩1天内到期）
-     */
-    public boolean isNearExpiry() {
-        long remaining = getDaysUntilExpiry();
-        return remaining >= 0 && remaining <= 1;
-    }
+    @Schema(description = "过期日期（purchaseDate + expireDays）")
+    private LocalDateTime expireDate;
 
 }

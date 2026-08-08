@@ -16,6 +16,11 @@ public class CustomRecord implements Serializable {
     private Long userId;
     private String type;
     private String title;
+    private String description;
+    private String cookTime;
+    private String difficulty;
+    private String ingredients;
+    private String steps;
     private String content;
     private LocalDateTime createTime;
 }

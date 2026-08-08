@@ -66,4 +66,13 @@ public class RecipeController {
     public Recipe createRecipe(@RequestBody Recipe recipe){
         return service.createRecipe(recipe);
     }
+
+    //删除菜谱
+    @GetMapping("/delete")
+    public String deleteRecipe(Long recipeId, Long userId){
+        boolean ok = service.deleteRecipe(recipeId, userId);
+        return ok ? "ok" : "fail";
+    }
+
+
 }

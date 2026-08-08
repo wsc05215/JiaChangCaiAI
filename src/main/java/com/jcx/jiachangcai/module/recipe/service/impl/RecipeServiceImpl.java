@@ -78,8 +78,24 @@ public class RecipeServiceImpl extends ServiceImpl<RecipeMapper, Recipe> impleme
         recipe.setCommentCount(0);
         recipe.setCreateTime(java.time.LocalDateTime.now());
         recipe.setUpdateTime(java.time.LocalDateTime.now());
+        // 归一化 coverImages 路径，确保都以 /uploads/ 开头
+        String coverImages = recipe.getCoverImages();
+        if (coverImages != null && !coverImages.isEmpty()) {
+            coverImages = coverImages.replaceAll("\"/(recipes/[^\"]+)\"", "\"/uploads/$1\"");
+            coverImages = coverImages.replaceAll("\"(recipes/[^\"]+)\"", "\"/uploads/$1\"");
+            recipe.setCoverImages(coverImages);
+        }
         mapper.insert(recipe);
         return recipe;
+    }
+
+    @Override
+    public boolean deleteRecipe(Long recipeId, Long userId) {
+        Recipe recipe = mapper.selectById(recipeId);
+        if (recipe == null || !recipe.getAuthorId().equals(userId)) {
+            return false;
+        }
+        return mapper.deleteById(recipeId) > 0;
     }
 
 }

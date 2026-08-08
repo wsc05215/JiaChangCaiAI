@@ -17,14 +17,14 @@
     <!-- 推荐 -->
     <div v-if="activeTab === 'recommend'" class="tab-content">
       <div v-if="carouselRecipes.length > 0" class="carousel" @touchstart="onTouchStart" @touchend="onTouchEnd">
-        <div class="carousel-track" :style="{ transform: `translateX(-${currentSlide * 100}%)` }">
-          <div v-for="(item, i) in carouselRecipes" :key="item.recipeId" class="carousel-slide" :class="{ 'is-active': i === currentSlide }" @click="goDetail(item.recipeId)">
+        <div class="carousel-track" ref="trackRef" :style="trackStyle" @transitionend="onTransitionEnd">
+          <div v-for="(item, i) in slides" :key="i" class="carousel-slide" @click="goDetail(item.recipeId)">
             <div class="slide-img-wrap">
-              <img class="slide-img" :class="{ 'ken-burns': i === currentSlide }" :src="getCover(item.coverImages)" @error="onImgError" />
-              <div class="slide-shine" v-if="i === currentSlide"></div>
+              <img class="slide-img" :src="getCover(item.coverImages)" @error="onImgError" />
+              <div class="slide-shine" :key="'s' + activeDotIndex"></div>
               <div class="slide-overlay"></div>
-              <div class="slide-content" :key="'c' + currentSlide">
-                <span class="slide-tag">{{ i === 0 ? '今日推荐' : i === 1 ? '人气必吃' : '不容错过' }}</span>
+              <div class="slide-content" :key="'c' + activeDotIndex">
+                <span class="slide-tag">{{ activeDotIndex === 0 ? '今日推荐' : activeDotIndex === 1 ? '人气必吃' : '不容错过' }}</span>
                 <div class="slide-title">{{ item.title }}</div>
                 <div class="slide-meta">{{ item.cookTime || '30分钟' }} · {{ formatCount(item.favoriteCount) }} 收藏</div>
               </div>
@@ -32,32 +32,34 @@
           </div>
         </div>
         <div class="carousel-dots">
-          <span v-for="(_, i) in carouselRecipes" :key="i" class="carousel-dot" :class="{ active: i === currentSlide }" @click.stop="goToSlide(i)"></span>
+          <span v-for="(_, i) in carouselRecipes" :key="i" class="carousel-dot" :class="{ active: i === activeDotIndex }" @click.stop="goToSlide(i)"></span>
         </div>
       </div>
 
       <div class="ai-card" @click="router.push('/ai-chat')">
-        <div class="ai-card-glow"></div>
         <div class="ai-card-body">
-          <div class="ai-icon-ring">
-            <div class="ai-icon-inner">
-              <svg viewBox="0 0 20 20" width="14" height="14" fill="none">
-                <path d="M6 15V8a4 4 0 018 0v7" fill="#fff" opacity="0.9"/>
-                <rect x="3" y="15" width="14" height="2.5" rx="1.2" fill="#fff"/>
-                <circle cx="10" cy="5.5" r="1.5" fill="#fff" opacity="0.5"/>
-                <circle cx="7" cy="4" r="1" fill="#fff" opacity="0.35"/>
-                <circle cx="13" cy="4" r="1" fill="#fff" opacity="0.35"/>
+          <div class="ai-icon-wrap">
+            <div class="ai-icon">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none">
+                <defs>
+                  <linearGradient id="aig" x1="2" y1="2" x2="22" y2="22">
+                    <stop offset="0%" stop-color="#fff"/>
+                    <stop offset="100%" stop-color="#e0e0ff"/>
+                  </linearGradient>
+                </defs>
+                <path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 11.023L18 11.75l-.259-.727a2.25 2.25 0 00-1.514-1.514L15.5 9.25l.727-.259a2.25 2.25 0 001.514-1.514L18 6.75l.259.727a2.25 2.25 0 001.514 1.514L20.5 9.25l-.727.259a2.25 2.25 0 00-1.514 1.514z" fill="url(#aig)" stroke="none"/>
+                <path d="M9.813 15.904L9 18.75l-.813-2.846m1.626 0a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813m4.717-3.09L9 5.25l.813 2.846m-1.626 0a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813m-3.09-3.09a4.5 4.5 0 003.09 3.09m-3.09-3.09l.813-2.846m2.277 5.936l-.813 2.846m-1.464-8.782zM18.259 11.023L18 11.75l-.259-.727a2.25 2.25 0 00-1.514-1.514L15.5 9.25l.727-.259a2.25 2.25 0 001.514-1.514L18 6.75l.259.727a2.25 2.25 0 001.514 1.514L20.5 9.25l-.727.259a2.25 2.25 0 00-1.514 1.514z" stroke="url(#aig)" stroke-width="0.4" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
             </div>
           </div>
           <div class="ai-card-text">
-            <div class="ai-card-title">AI烹饪助手</div>
+            <div class="ai-card-title">AI 烹饪助手</div>
             <div class="ai-card-desc">想知道某道菜怎么做？问我吧</div>
           </div>
-          <div class="ai-sparkle-row">
-            <span class="ai-sparkle"></span>
-            <span class="ai-sparkle delay-1"></span>
-            <span class="ai-sparkle delay-2"></span>
+          <div class="ai-arrow">
+            <svg viewBox="0 0 16 16" width="14" height="14">
+              <path d="M6 4l4 4-4 4" stroke="rgba(255,255,255,0.5)" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
           </div>
         </div>
       </div>
@@ -75,7 +77,7 @@
           <div class="recipe-body">
             <div class="recipe-name">{{ item.title }}</div>
             <div class="recipe-meta">{{ item.cookTime || '30分钟' }} · {{ formatCount(item.favoriteCount) }}收藏</div>
-            <div class="recipe-author">
+            <div class="recipe-author" @click.stop="goUser(item.authorId)">
               <img v-if="item.authorAvatar" :src="item.authorAvatar" class="recipe-author-avatar" @error="onAvatarError" />
               <span v-else class="recipe-author-avatar recipe-author-placeholder">{{ (item.authorName || '用')[0] }}</span>
               <span class="recipe-author-name">{{ item.authorName || '用户' + item.authorId }}</span>
@@ -97,13 +99,13 @@
       <div v-else class="feed-list">
         <div v-for="item in followRecipes" :key="item.recipeId" class="feed-card" @click="goDetail(item.recipeId)">
           <div class="feed-header">
-            <div v-if="item.authorAvatar" class="feed-avatar">
+            <div v-if="item.authorAvatar" class="feed-avatar" @click.stop="goUser(item.authorId)">
               <img :src="item.authorAvatar" class="feed-avatar-img" @error="onAvatarError" />
             </div>
-            <div v-else class="feed-avatar feed-avatar-placeholder">{{ (item.authorName || '用')[0] }}</div>
+            <div v-else class="feed-avatar feed-avatar-placeholder" @click.stop="goUser(item.authorId)">{{ (item.authorName || '用')[0] }}</div>
             <div class="feed-user">
               <span class="feed-nick">{{ item.authorName || '用户' + item.authorId }}</span>
-              <span class="feed-time">刚刚</span>
+              <span class="feed-time">{{ formatFeedTime(item.createTime) }}</span>
             </div>
           </div>
           <div class="feed-desc">{{ item.description }}</div>
@@ -147,7 +149,7 @@
       <div class="daily-scroll" v-else>
         <div v-for="item in recentProducts" :key="item.id" class="daily-card" @click="goProduct(item.id)">
           <div class="daily-img-wrap">
-            <img v-if="item.coverImage" :src="resolveImg(item.coverImage)" class="daily-img" />
+            <img v-if="item.coverImage" :src="item.coverImage" class="daily-img" />
             <div v-else class="daily-img-bg"></div>
           </div>
           <div class="daily-info">
@@ -170,7 +172,7 @@
         <div v-for="(item, idx) in filteredSalesProducts" :key="item.id" class="sales-card" @click="goProduct(item.id)">
           <div class="sales-rank" :class="{ 'rank-top': idx < 3 }">{{ idx + 1 }}</div>
           <div class="sales-img-wrap">
-            <img v-if="item.coverImage" :src="resolveImg(item.coverImage)" class="sales-img" />
+            <img v-if="item.coverImage" :src="item.coverImage" class="sales-img" />
           </div>
           <div class="sales-info">
             <div class="sales-name">{{ item.name }}</div>
@@ -184,21 +186,27 @@
     </div>
 
     <AppTabbar />
+
+    <transition name="fade">
+      <div v-if="toast.show" class="toast-home" :class="toast.type">{{ toast.msg }}</div>
+    </transition>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { userStore } from '../store/user'
 import { getAllRecipes, getFollowRecipes } from '../api/recipe'
 import { getRecentProducts, getSalesRanking, getSalesRankingByCategory } from '../api/shop'
+import { getUnreadCount } from '../api/comment'
 import AppTabbar from '../components/AppTabbar.vue'
-import { resolveImageUrl } from '../utils/imageUrl'
 
 const router = useRouter()
-const activeTab = ref('recommend')
+const TAB_KEY = 'home_active_tab'
+const activeTab = ref(sessionStorage.getItem(TAB_KEY) || 'recommend')
 const recipes = ref([])
+const toast = reactive({ show: false, msg: '', type: 'success' })
 const followRecipes = ref([])
 const currentUser = computed(() => userStore.user)
 
@@ -210,17 +218,76 @@ const salesCategories = ['全部', '果蔬', '肉蛋', '海鲜', '速食']
 const carouselRecipes = computed(() => recipes.value.slice(0, 3))
 const featuredRecipes = computed(() => recipes.value.slice(3))
 
-const currentSlide = ref(0)
+// 无缝循环轮播：首尾各克隆一张，边界处瞬间归位，避免回卷抖动
+const currentSlide = ref(1)
+const trackRef = ref(null)
 let autoTimer = null
 
+const slides = computed(() => {
+  const list = carouselRecipes.value
+  if (list.length <= 1) return list
+  return [list[list.length - 1], ...list, list[0]]
+})
+
+const trackStyle = computed(() => ({
+  transform: `translateX(-${currentSlide.value * 100}%)`
+}))
+
+// 当前真实第几张（用于圆点高亮/角标），忽略克隆位
+const activeDotIndex = computed(() => {
+  const n = carouselRecipes.value.length
+  if (n <= 1) return 0
+  if (currentSlide.value === n + 1) return 0
+  if (currentSlide.value === 0) return n - 1
+  return currentSlide.value - 1
+})
+
+// 到达首/尾克隆位后无动画跳回真实幻灯片。
+// 直接改 DOM 同步生效——若只改响应式变量，Vue 会异步批量更新 DOM，
+// 归位就会带着过渡动画往回滑过所有图片（边界抖动的根源）。
+function snapToReal() {
+  const el = trackRef.value
+  const n = carouselRecipes.value.length
+  if (!el || n <= 1) return
+  const target = currentSlide.value === 0 ? n : 1
+  el.style.transition = 'none'
+  el.style.transform = `translateX(-${target * 100}%)`
+  void el.offsetWidth
+  currentSlide.value = target
+  el.style.transition = ''
+}
+
+function onTransitionEnd(e) {
+  if (e.target !== trackRef.value) return
+  const n = carouselRecipes.value.length
+  if (n <= 1) return
+  if (currentSlide.value === n + 1 || currentSlide.value === 0) {
+    snapToReal()
+  }
+}
+
 function goToSlide(i) {
-  currentSlide.value = i
+  const n = carouselRecipes.value.length
+  if (n <= 1) return
+  if (currentSlide.value === 0 || currentSlide.value === n + 1) {
+    snapToReal()
+  }
+  currentSlide.value = i + 1
   resetAutoPlay()
 }
 
 function nextSlide() {
-  if (carouselRecipes.value.length === 0) return
-  currentSlide.value = (currentSlide.value + 1) % carouselRecipes.value.length
+  const n = carouselRecipes.value.length
+  if (n <= 1) return
+  if (currentSlide.value >= n + 1) { snapToReal(); return }
+  currentSlide.value++
+}
+
+function prevSlide() {
+  const n = carouselRecipes.value.length
+  if (n <= 1) return
+  if (currentSlide.value <= 0) { snapToReal(); return }
+  currentSlide.value--
 }
 
 function resetAutoPlay() {
@@ -235,13 +302,16 @@ function onTouchStart(e) {
 }
 function onTouchEnd(e) {
   const dx = e.changedTouches[0].clientX - touchStartX
-  if (dx < -40 && carouselRecipes.value.length > 1) {
-    currentSlide.value = (currentSlide.value + 1) % carouselRecipes.value.length
-  } else if (dx > 40 && carouselRecipes.value.length > 1) {
-    currentSlide.value = (currentSlide.value - 1 + carouselRecipes.value.length) % carouselRecipes.value.length
-  }
+  if (dx < -40) nextSlide()
+  else if (dx > 40) prevSlide()
   resetAutoPlay()
 }
+
+// 数据量变化时修正起始位：单张/空时停在 0，否则停在真实第一张
+watch(() => carouselRecipes.value.length, (n) => {
+  if (n <= 1) currentSlide.value = 0
+  else if (currentSlide.value <= 0) currentSlide.value = 1
+})
 
 const filteredSalesProducts = computed(() => {
   if (activeSalesCat.value === '全部') return salesProducts.value
@@ -260,14 +330,44 @@ onMounted(async () => {
     recipes.value = []
     followRecipes.value = []
   }
+  if (activeTab.value === 'shop') fetchShopData()
   resetAutoPlay()
+  if (currentUser.value) startNotifyPolling()
 })
 
 onUnmounted(() => {
   clearInterval(autoTimer)
+  if (notifyTimer) clearInterval(notifyTimer)
 })
 
+let notifyTimer = null
+let lastUnread = 0
+
+function startNotifyPolling() {
+  getUnreadCount(currentUser.value.userId).then(res => {
+    lastUnread = res.data || 0
+  }).catch(() => {})
+  notifyTimer = setInterval(async () => {
+    try {
+      const res = await getUnreadCount(currentUser.value.userId)
+      const count = res.data || 0
+      if (count > lastUnread) {
+        showToast('有人赞了你的评论')
+      }
+      lastUnread = count
+    } catch { /* ignore */ }
+  }, 15000)
+}
+
+function showToast(msg, type = 'success') {
+  toast.msg = msg
+  toast.type = type
+  toast.show = true
+  setTimeout(() => { toast.show = false }, 3000)
+}
+
 watch(activeTab, async (tab) => {
+  sessionStorage.setItem(TAB_KEY, tab)
   if (tab === 'follow' && currentUser.value) {
     try {
       const res = await getFollowRecipes(currentUser.value.userId)
@@ -308,18 +408,36 @@ function goProduct(id) {
   router.push('/product/' + id)
 }
 
+function goUser(userId) {
+  if (userId) router.push('/user/' + userId)
+}
+
+function formatFeedTime(val) {
+  if (!val) return ''
+  let d
+  if (Array.isArray(val)) {
+    d = new Date(val[0], val[1] - 1, val[2], val[3] || 0, val[4] || 0, val[5] || 0)
+  } else {
+    d = new Date(val)
+  }
+  if (isNaN(d.getTime())) return ''
+  const now = new Date()
+  const diff = now - d
+  if (diff < 60000) return '刚刚'
+  if (diff < 3600000) return Math.floor(diff / 60000) + '分钟前'
+  if (diff < 86400000) return Math.floor(diff / 3600000) + '小时前'
+  if (diff < 604800000) return Math.floor(diff / 86400000) + '天前'
+  return (d.getMonth() + 1) + '-' + d.getDate()
+}
+
 function getCover(images) {
   if (!images) return ''
   try {
     const arr = JSON.parse(images)
-    return resolveImageUrl(arr[0] || '')
+    return arr[0] || ''
   } catch {
-    return resolveImageUrl(images)
+    return images
   }
-}
-
-function resolveImg(url) {
-  return resolveImageUrl(url)
 }
 
 function formatCount(n) {
@@ -356,7 +474,7 @@ function goDetail(id) {
   min-height: 100vh;
   min-height: 100dvh;
   background: var(--gradient-page);
-  padding: 0 var(--container-padding) 70px;
+  padding: max(env(safe-area-inset-top), 14px) var(--container-padding) 70px;
 }
 
 /* search */
@@ -386,35 +504,91 @@ function goDetail(id) {
   color: var(--text-placeholder);
 }
 
-/* AI card */
+/* AI card — animated warm glass */
 .ai-card {
   position: relative;
   margin-top: 18px;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-  border-radius: 16px;
+  background: linear-gradient(120deg, rgba(255,249,243,0.94), rgba(255,238,224,0.94), rgba(255,249,243,0.94), rgba(255,242,230,0.94));
+  background-size: 300% 300%;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 20px;
   cursor: pointer;
+  border: 1px solid rgba(255,140,90,0.28);
+  box-shadow: 0 4px 24px rgba(255,122,51,0.12), 0 1px 4px rgba(0,0,0,0.04);
+  transition: all 0.35s;
   overflow: hidden;
-  border: 1px solid rgba(255,255,255,0.07);
-  transition: all 0.3s;
+  animation: aiCardBgFlow 8s ease-in-out infinite, aiCardBreath 3.5s ease-in-out infinite;
 }
 
-.ai-card:active {
-  transform: scale(0.985);
+/* 围绕按钮流动的光边 */
+@property --flow-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
 }
 
-.ai-card-glow {
+.ai-card::before {
+  content: '';
   position: absolute;
   inset: 0;
-  background:
-    radial-gradient(ellipse at 30% 50%, rgba(139,92,246,0.14) 0%, transparent 55%),
-    radial-gradient(ellipse at 80% 70%, rgba(59,130,246,0.08) 0%, transparent 45%);
-  animation: glowPulse 4s ease-in-out infinite;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: rgba(255,150,90,0.22); /* 不支持 @property 时的静态边框兜底 */
+  background: conic-gradient(
+    from var(--flow-angle),
+    transparent 0deg,
+    rgba(255,150,90,0.95) 45deg,
+    rgba(255,215,175,0.75) 90deg,
+    transparent 150deg,
+    transparent 210deg,
+    rgba(255,160,100,0.85) 300deg,
+    transparent 360deg
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  animation: aiBorderFlow 3.5s linear infinite;
   pointer-events: none;
+  z-index: 2;
 }
 
-@keyframes glowPulse {
-  0%, 100% { opacity: 0.5; }
-  50% { opacity: 1; }
+@keyframes aiBorderFlow {
+  from { --flow-angle: 0deg; }
+  to   { --flow-angle: 360deg; }
+}
+
+/* 卡片扫光 */
+.ai-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 30%;
+  background: linear-gradient(105deg, transparent, rgba(255,255,255,0.22) 50%, transparent);
+  transform: translateX(-160%) skewX(-18deg);
+  animation: aiShine 4.5s ease-in-out infinite;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.ai-card:active { transform: scale(0.98); }
+
+@keyframes aiCardBgFlow {
+  0%, 100% { background-position: 0% 50%; }
+  50%      { background-position: 100% 50%; }
+}
+
+@keyframes aiCardBreath {
+  0%, 100% { box-shadow: 0 4px 24px rgba(255,122,51,0.12), 0 1px 4px rgba(0,0,0,0.04); }
+  50%      { box-shadow: 0 8px 34px rgba(255,122,51,0.30), 0 2px 12px rgba(0,0,0,0.07); }
+}
+
+@keyframes aiShine {
+  0%, 55% { transform: translateX(-160%) skewX(-18deg); }
+  100%    { transform: translateX(600%) skewX(-18deg); }
 }
 
 .ai-card-body {
@@ -426,82 +600,84 @@ function goDetail(id) {
   padding: 18px 16px;
 }
 
-/* rotating conic ring */
-.ai-icon-ring {
-  width: 46px; height: 46px;
-  border-radius: 50%;
-  background: conic-gradient(from 0deg, #8B5CF6, #3B82F6, #06B6D4, #8B5CF6);
-  animation: ringSpin 3s linear infinite;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2.5px;
+/* 图标容器：整体呼吸缩放 */
+.ai-icon-wrap {
+  position: relative;
   flex-shrink: 0;
-}
-
-@keyframes ringSpin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.ai-icon-inner {
-  width: 100%; height: 100%;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #1e1b4b, #1e293b);
+  width: 46px; height: 46px;
   display: flex;
   align-items: center;
   justify-content: center;
+  animation: aiWrapBreath 3.5s ease-in-out infinite;
 }
 
-.ai-card-text {
-  flex: 1;
+.ai-icon {
+  width: 44px; height: 44px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(255,122,51,0.30), rgba(255,160,100,0.22));
+  border: 1px solid rgba(255,122,51,0.38);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  animation: aiIconGlow 2.6s ease-in-out infinite;
 }
+
+.ai-icon svg {
+  animation: aiSparkleTwinkle 3s ease-in-out infinite;
+}
+
+@keyframes aiWrapBreath {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.07); }
+}
+
+@keyframes aiIconGlow {
+  0%, 100% { box-shadow: 0 0 8px rgba(255,140,80,0.25); }
+  50%      { box-shadow: 0 0 20px rgba(255,140,80,0.55); }
+}
+
+@keyframes aiSparkleTwinkle {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50%      { transform: scale(1.18); opacity: 0.8; }
+}
+
+.ai-card-text { flex: 1; }
 
 .ai-card-title {
   font-size: 15px;
   font-weight: 700;
-  color: #e2e8f0;
-  margin-bottom: 3px;
-  letter-spacing: 0.4px;
+  margin-bottom: 4px;
+  letter-spacing: 0.5px;
+  background: linear-gradient(90deg, #4A2010, #C06535, #4A2010);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  animation: aiTitleShimmer 4.5s ease-in-out infinite;
+}
+
+@keyframes aiTitleShimmer {
+  0%, 100% { background-position: 0% 50%; }
+  50%      { background-position: 100% 50%; }
 }
 
 .ai-card-desc {
   font-size: 12px;
-  color: #94a3b8;
+  color: #8B6040;
   font-weight: 500;
 }
 
-/* sparkle dots */
-.ai-sparkle-row {
-  display: flex;
-  gap: 5px;
+.ai-arrow {
   flex-shrink: 0;
-  margin-right: 2px;
+  opacity: 0.6;
+  transition: all 0.3s;
 }
 
-.ai-sparkle {
-  width: 3.5px; height: 3.5px;
-  border-radius: 50%;
-  background: #8B5CF6;
-  animation: sparkleBounce 1.8s ease-in-out infinite;
-  box-shadow: 0 0 5px rgba(139,92,246,0.55);
-}
-
-.ai-sparkle.delay-1 {
-  animation-delay: 0.3s;
-  background: #3B82F6;
-  box-shadow: 0 0 5px rgba(59,130,246,0.55);
-}
-
-.ai-sparkle.delay-2 {
-  animation-delay: 0.6s;
-  background: #06B6D4;
-  box-shadow: 0 0 5px rgba(6,182,212,0.55);
-}
-
-@keyframes sparkleBounce {
-  0%, 100% { transform: scale(1); opacity: 0.4; }
-  50% { transform: scale(1.8); opacity: 1; }
+.ai-card:active .ai-arrow {
+  opacity: 1;
+  transform: translateX(2px);
 }
 
 /* tabs */
@@ -544,12 +720,11 @@ function goDetail(id) {
 
 .carousel-track {
   display: flex;
-  transition: transform 0.75s cubic-bezier(0.16, 0, 0.12, 1);
-  will-change: transform;
+  transition: transform 0.6s cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 
 .carousel-slide {
-  min-width: 100%;
+  flex: 0 0 100%;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
@@ -566,16 +741,6 @@ function goDetail(id) {
   height: 100%;
   object-fit: cover;
   background: linear-gradient(135deg, #E8E0D5, #DDD4C5);
-  transform-origin: center center;
-}
-
-.slide-img.ken-burns {
-  animation: kenBurns 5s cubic-bezier(0.33, 0, 0.1, 1) forwards;
-}
-
-@keyframes kenBurns {
-  0%   { transform: scale(1.02); }
-  100% { transform: scale(1.08); }
 }
 
 /* light sweep */
@@ -1149,4 +1314,26 @@ function goDetail(id) {
   font-size: 11px;
   color: var(--text-muted);
 }
+
+.toast-home {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 14px 36px;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  z-index: 999;
+  pointer-events: none;
+  letter-spacing: 1px;
+  font-family: var(--font-heading);
+}
+
+.toast-home.success { background: rgba(18, 30, 31, 0.88); }
+.toast-home.error { background: rgba(180, 60, 20, 0.9); }
+
+.fade-enter-active, .fade-leave-active { transition: opacity 0.3s; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }
 </style>

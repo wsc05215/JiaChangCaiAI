@@ -1,16 +1,45 @@
 <template>
   <div class="detail-page" v-if="recipe">
     <div class="top-bar">
-      <div class="top-back" @click="$router.back()">
+      <div class="top-back" @click="$goBack()">
         <svg viewBox="0 0 24 24" width="24" height="24">
           <path d="M15 18l-6-6 6-6" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </div>
+      <div v-if="isOwnRecipe" class="top-delete" @click="handleDeleteRecipe">
+        <svg viewBox="0 0 24 24" width="20" height="20">
+          <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
     </div>
 
-    <div class="cover-wrap">
-      <img class="cover-img" :src="getCover(recipe.coverImages)" @error="onImgError" />
+    <div class="cover-wrap"
+         @touchstart="onTouchStart"
+         @touchend="onTouchEnd"
+         @mousedown="onTouchStart"
+         @mouseup="onTouchEnd">
+      <div class="carousel-track" :style="{ transform: 'translateX(-' + currentSlide * 100 + '%)' }">
+        <div class="carousel-slide" v-for="(img, i) in allImages" :key="'img'+i">
+          <img :src="img" class="cover-img" @error="onImgError" />
+        </div>
+        <div class="carousel-slide" v-if="recipe.video">
+          <video ref="coverVideo"
+                 :src="recipe.video"
+                 class="cover-img"
+                 muted
+                 playsinline
+                 loop
+                 autoplay
+                 @error="onImgError"></video>
+          <div class="cover-gradient"></div>
+        </div>
+      </div>
       <div class="cover-gradient"></div>
+      <div class="carousel-dots" v-if="allSlides > 1">
+        <span v-for="i in allSlides" :key="i"
+              class="carousel-dot" :class="{ active: i - 1 === currentSlide }"
+              @click="currentSlide = i - 1"></span>
+      </div>
     </div>
 
     <div class="content-area">
@@ -23,12 +52,15 @@
       </div>
 
       <div class="author-row">
-        <div class="author-avatar">{{ authorName.charAt(0) }}</div>
-        <div class="author-info">
+        <div class="author-avatar" @click="goUser(recipe.authorId)">
+          <img v-if="recipe.authorAvatar && !authorAvatarFailed" :src="recipe.authorAvatar" class="author-avatar-img" @error="authorAvatarFailed = true" />
+          <span v-else>{{ authorName.charAt(0) }}</span>
+        </div>
+        <div class="author-info" @click="goUser(recipe.authorId)">
           <div class="author-name">{{ authorName }}</div>
           <div class="author-label">食谱创作者</div>
         </div>
-        <button class="follow-btn" :class="{ followed: isFollowed }" @click="handleFollow">
+        <button v-if="followChecked && !isOwnRecipe" class="follow-btn" :class="{ followed: isFollowed }" @click="handleFollow">
           {{ isFollowed ? '已关注' : '+ 关注' }}
         </button>
       </div>
@@ -80,6 +112,21 @@
 
       <div class="section-title">
         <span class="section-dot"></span>
+        视频教程
+      </div>
+      <div class="video-section">
+        <div v-if="recipe.video" class="video-player-wrap">
+          <video :src="recipe.video" controls preload="metadata"
+                 class="video-player"
+                 playsinline></video>
+        </div>
+        <div v-else class="video-empty">
+          <p>该用户未发布教程视频哦~</p>
+        </div>
+      </div>
+
+      <div class="section-title">
+        <span class="section-dot"></span>
         评论 ({{ comments.length }})
       </div>
       <div class="comment-list" v-if="topLevelComments.length">
@@ -91,7 +138,15 @@
               <span class="comment-time">{{ formatTime(c.createTime) }}</span>
             </div>
             <div class="comment-text">{{ c.content }}</div>
-            <span class="comment-reply-btn" @click="setReply(c)">回复</span>
+            <div class="comment-actions">
+              <span class="comment-like-btn" :class="{ liked: likedComments[c.commentId] }" @click.stop="toggleCommentLike(c)">
+                <svg viewBox="0 0 24 24" width="14" height="14">
+                  <path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-2l1.08-6.5a2 2 0 00-2-2.17H16a1 1 0 01-1-1.5L17 7.5A2 2 0 0015.28 5H14z" :fill="likedComments[c.commentId] ? '#FF5E2C' : 'none'" :stroke="likedComments[c.commentId] ? '#FF5E2C' : '#C4B5AA'" stroke-width="1.5"/>
+                </svg>
+                <span v-if="c.likeCount > 0">{{ c.likeCount }}</span>
+              </span>
+              <span class="comment-reply-btn" @click="setReply(c)">回复</span>
+            </div>
             <div class="reply-item" v-for="r in getReplies(c.commentId)" :key="r.commentId">
               <div class="comment-avatar small">{{ getCommentAuthor(r.userId).charAt(0) }}</div>
               <div class="comment-body">
@@ -143,9 +198,9 @@ import { useRoute, useRouter } from 'vue-router'
 import { userStore } from '../store/user'
 import { checkFavorited, addFavorite, removeFavorite } from '../api/favorite'
 import { follow, unfollow, checkFollowing } from '../api/follow'
-import { getComments, addComment } from '../api/comment'
+import { getComments, addComment, toggleCommentLike as toggleLikeApi, checkCommentLiked } from '../api/comment'
 import { getUserDetail } from '../api/auth'
-import { resolveImageUrl } from '../utils/imageUrl'
+import { deleteRecipe } from '../api/recipe'
 
 const route = useRoute()
 const router = useRouter()
@@ -154,13 +209,44 @@ const ingredients = ref([])
 const steps = ref([])
 const isFavorited = ref(false)
 const isFollowed = ref(false)
+const followChecked = ref(false)
+const authorAvatarFailed = ref(false)
 const commentText = ref('')
 const comments = ref([])
 const replyTo = ref(null)
 const commentAuthors = ref({})
+const likedComments = ref({})
 
 const currentUser = computed(() => userStore.user)
+const isOwnRecipe = computed(() => currentUser.value?.userId === recipe.value?.authorId)
 const authorName = computed(() => recipe.value?.authorName || ('用户' + (recipe.value?.authorId || '')))
+
+// 轮播
+const currentSlide = ref(0)
+const touchStartX = ref(0)
+const coverVideo = ref(null)
+
+const allImages = computed(() => parseJson(recipe.value?.coverImages))
+const allSlides = computed(() => {
+  const imgs = allImages.value.length
+  return recipe.value?.video ? imgs + 1 : imgs
+})
+
+function onTouchStart(e) {
+  touchStartX.value = e.touches ? e.touches[0].clientX : e.clientX
+}
+
+function onTouchEnd(e) {
+  const endX = e.changedTouches ? e.changedTouches[0].clientX : e.clientX
+  const diff = touchStartX.value - endX
+  if (Math.abs(diff) > 50) {
+    if (diff > 0 && currentSlide.value < allSlides.value - 1) {
+      currentSlide.value++
+    } else if (diff < 0 && currentSlide.value > 0) {
+      currentSlide.value--
+    }
+  }
+}
 
 onMounted(async () => {
   const id = route.params.id
@@ -177,11 +263,14 @@ onMounted(async () => {
           const favRes = await checkFavorited(currentUser.value.userId, found.recipeId)
           isFavorited.value = favRes.data === true
         } catch { /* ignore */ }
-        if (found.authorId) {
+        if (found.authorId && currentUser.value.userId !== found.authorId) {
           try {
             const followRes = await checkFollowing(currentUser.value.userId, found.authorId)
             isFollowed.value = followRes.data === true
           } catch { /* ignore */ }
+          finally { followChecked.value = true }
+        } else {
+          followChecked.value = true
         }
       loadComments()
       }
@@ -199,11 +288,6 @@ function parseJson(val) {
   return val
 }
 
-function getCover(images) {
-  if (!images) return ''
-  try { const arr = JSON.parse(images); return resolveImageUrl(arr[0] || '') } catch { return resolveImageUrl(images) }
-}
-
 function onImgError(e) { e.target.style.display = 'none' }
 
 async function loadComments() {
@@ -211,7 +295,33 @@ async function loadComments() {
   try {
     const res = await getComments(recipe.value.recipeId)
     comments.value = res.data || []
+    recipe.value.commentCount = comments.value.length
     comments.value.forEach(c => fetchAuthorName(c.userId))
+    if (currentUser.value) {
+      const uid = currentUser.value.userId
+      const results = await Promise.all(
+        comments.value.map(c =>
+          checkCommentLiked(c.commentId, uid).then(r => ({ id: c.commentId, liked: r.data })).catch(() => ({ id: c.commentId, liked: false }))
+        )
+      )
+      results.forEach(r => { likedComments.value[r.id] = r.liked })
+    }
+  } catch { /* ignore */ }
+}
+
+async function toggleCommentLike(comment) {
+  if (!currentUser.value) return
+  const uid = currentUser.value.userId
+  try {
+    const res = await toggleLikeApi(comment.commentId, uid)
+    if (res.data) {
+      likedComments.value[comment.commentId] = res.data.liked
+      if (res.data.liked) {
+        comment.likeCount = (comment.likeCount || 0) + 1
+      } else {
+        comment.likeCount = Math.max((comment.likeCount || 0) - 1, 0)
+      }
+    }
   } catch { /* ignore */ }
 }
 
@@ -282,6 +392,17 @@ async function toggleFavorite() {
   } catch { /* ignore */ }
 }
 
+async function handleDeleteRecipe() {
+  if (!currentUser.value || !recipe.value) return
+  if (!confirm('确定要删除这个菜谱吗？')) return
+  try {
+    const res = await deleteRecipe(recipe.value.recipeId, currentUser.value.userId)
+    if (res.data === 'ok') {
+      router.back()
+    }
+  } catch { /* ignore */ }
+}
+
 async function handleFollow() {
   if (!currentUser.value || !recipe.value) return
   const myId = currentUser.value.userId
@@ -297,13 +418,16 @@ async function handleFollow() {
   } catch (e) { console.error('关注操作失败:', e) }
 }
 
+function goUser(userId) {
+  if (userId) router.push('/user/' + userId)
+}
+
 async function handleComment() {
   if (!commentText.value.trim() || !currentUser.value || !recipe.value) return
   try {
     await addComment(recipe.value.recipeId, currentUser.value.userId, commentText.value.trim(), replyTo.value?.commentId || null)
     commentText.value = ''
     replyTo.value = null
-    recipe.value.commentCount = (recipe.value.commentCount || 0) + 1
     await loadComments()
   } catch (e) {
     console.error('comment failed:', e)
@@ -322,8 +446,27 @@ async function handleComment() {
   position: absolute;
   top: 12px;
   left: 12px;
+  right: 12px;
   z-index: 10;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
+
+.top-delete {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.3);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.top-delete:active { background: rgba(220,60,40,0.5); }
 
 .top-back {
   width: 36px;
@@ -339,13 +482,27 @@ async function handleComment() {
 
 .cover-wrap {
   position: relative;
+  overflow: hidden;
+  height: 320px;
+}
+
+.carousel-track {
+  display: flex;
+  height: 100%;
+  transition: transform 0.35s ease;
+}
+
+.carousel-slide {
+  min-width: 100%;
+  height: 100%;
 }
 
 .cover-img {
   width: 100%;
-  height: 320px;
+  height: 100%;
   object-fit: cover;
   background: linear-gradient(135deg, #F5F0E8, #EDE4D5);
+  display: block;
 }
 
 .cover-gradient {
@@ -355,6 +512,32 @@ async function handleComment() {
   right: 0;
   height: 120px;
   background: linear-gradient(transparent, var(--bg));
+  pointer-events: none;
+}
+
+.carousel-dots {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+  z-index: 5;
+}
+
+.carousel-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.5);
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.carousel-dot.active {
+  width: 18px;
+  border-radius: 3px;
+  background: #fff;
 }
 
 .content-area {
@@ -411,9 +594,19 @@ async function handleComment() {
   align-items: center;
   justify-content: center;
   box-shadow: 0 3px 10px rgba(255, 122, 51,0.25);
+  cursor: pointer;
+  overflow: hidden;
+  flex-shrink: 0;
 }
 
-.author-info { flex: 1; }
+.author-avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.author-info { flex: 1; cursor: pointer; }
 .author-name { font-size: 15px; font-weight: 700; color: var(--text-primary); }
 .author-label { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
 
@@ -576,13 +769,38 @@ async function handleComment() {
   line-height: 1.7;
 }
 
+.video-section {
+  padding: 0 16px;
+}
+
+.video-player-wrap {
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.video-player {
+  width: 100%;
+  max-height: 400px;
+  border-radius: var(--radius-md);
+  background: #000;
+  display: block;
+}
+
+.video-empty {
+  text-align: center;
+  padding: 30px 16px;
+  color: var(--text-muted);
+  font-size: 14px;
+  background: #fff;
+  border-radius: var(--radius-md);
+}
+
 .bottom-bar {
   position: fixed;
   bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 0;
   width: 100%;
-  max-width: 420px;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -713,11 +931,32 @@ async function handleComment() {
   word-break: break-all;
 }
 
+.comment-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 6px;
+}
+
+.comment-like-btn {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 12px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.2s;
+  font-weight: 500;
+}
+
+.comment-like-btn.liked {
+  color: #FF5E2C;
+}
+
 .comment-reply-btn {
   font-size: 12px;
   color: var(--primary);
   cursor: pointer;
-  margin-top: 6px;
   display: inline-block;
 }
 

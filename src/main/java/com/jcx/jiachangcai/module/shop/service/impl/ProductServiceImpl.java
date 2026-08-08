@@ -8,8 +8,6 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -27,11 +25,9 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
     @Override
     public List<Product> selectProductOfRecent() {
         LambdaQueryWrapper<Product> wrapper = new LambdaQueryWrapper<>();
-        LocalDate today = LocalDate.now();
-        LocalDateTime start = today.minusDays(7).atStartOfDay();
-        wrapper.ge(Product::getCreatedAt, start)
-                .eq(Product::getStatus, 1)
-                .orderByDesc(Product::getCreatedAt);
+        wrapper.eq(Product::getStatus, 1)
+                .orderByDesc(Product::getCreatedAt)
+                .last("LIMIT 10");
         return this.list(wrapper);
     }
 

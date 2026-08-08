@@ -18,4 +18,5 @@ public interface IMemberService extends IService<Member> {
     boolean getisMember(Long id);
     void addMember(Long user_id, Integer memver_type);
     LocalDateTime viewExperTime(Long user_Id);
+    Member getActiveMember(Long userId);
 }

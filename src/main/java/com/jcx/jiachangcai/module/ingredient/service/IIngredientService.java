@@ -15,5 +15,7 @@ public interface IIngredientService extends IService<Ingredient> {
 
     long countNearExpiry(Long userId);
 
+    long countExpired(Long userId);
+
     void deleteIngredient(Long ingredientId);
 }

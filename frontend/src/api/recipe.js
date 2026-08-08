@@ -18,6 +18,16 @@ export function uploadImages(files) {
   return request.post('/upload/images', form)
 }
 
+export function uploadVideo(file) {
+  const form = new FormData()
+  form.append('file', file)
+  return request.post('/upload/video', form)
+}
+
 export function createRecipe(data) {
   return request.post('/recipe/create', data)
+}
+
+export function deleteRecipe(recipeId, userId) {
+  return request.get('/recipe/delete', { params: { recipeId, userId } })
 }

@@ -13,3 +13,8 @@ export async function getExpireTime(userId) {
   const text = await res.text()
   return text ? JSON.parse(text) : null
 }
+
+export async function getMemberInfo(userId) {
+  const res = await fetch(`/member/info?userId=${userId}`)
+  return res.json()
+}

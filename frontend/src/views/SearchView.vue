@@ -1,7 +1,7 @@
 <template>
   <div class="search-page">
     <div class="search-bar">
-      <svg class="back-icon" viewBox="0 0 24 24" width="24" height="24" @click="$router.back()">
+      <svg class="back-icon" viewBox="0 0 24 24" width="24" height="24" @click="$goBack()">
         <path d="M15 18l-6-6 6-6" stroke="#6B5E52" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
       <input
@@ -80,7 +80,7 @@
       </div>
       <div v-else class="shop-list">
         <div v-for="item in productResults" :key="item.id" class="shop-card" @click="goProduct(item.id)">
-          <img class="shop-img" :src="resolveImg(item.coverImage)" @error="onImgError" />
+          <img class="shop-img" :src="item.coverImage" @error="onImgError" />
           <div class="shop-info">
             <div class="shop-name">{{ item.name }}</div>
             <div class="shop-subtitle">{{ item.subtitle }}</div>
@@ -102,7 +102,6 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { searchRecipes, searchProducts } from '../api/search'
-import { resolveImageUrl } from '../utils/imageUrl'
 
 const router = useRouter()
 const keyword = ref('')
@@ -132,11 +131,7 @@ async function doSearch() {
 
 function getCover(images) {
   if (!images) return ''
-  try { const arr = JSON.parse(images); return resolveImageUrl(arr[0] || '') } catch { return resolveImageUrl(images) }
-}
-
-function resolveImg(url) {
-  return resolveImageUrl(url)
+  try { const arr = JSON.parse(images); return arr[0] || '' } catch { return images }
 }
 
 function onImgError(e) { e.target.style.display = 'none' }

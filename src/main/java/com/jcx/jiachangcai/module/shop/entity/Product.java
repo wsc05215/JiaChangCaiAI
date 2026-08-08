@@ -1,6 +1,8 @@
 package com.jcx.jiachangcai.module.shop.entity;
 
 import java.math.BigDecimal;
+import com.baomidou.mybatisplus.annotation.FieldFill;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -38,6 +40,12 @@ public class Product implements Serializable {
     @Schema(description = "副标题/简介")
     private String subtitle;
 
+    @Schema(description = "商品详情（详细介绍、产地、规格等信息）")
+    private String detail;
+
+    @Schema(description = "收获地址（发货地/产地地址）")
+    private String deliveryAddress;
+
     @Schema(description = "售价（最低起售价）")
     private BigDecimal price;
 
@@ -72,9 +80,11 @@ public class Product implements Serializable {
     private Integer sortWeight;
 
     @Schema(description = "创建时间")
+    @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;
 
     @Schema(description = "更新时间")
+    @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updatedAt;
 
 

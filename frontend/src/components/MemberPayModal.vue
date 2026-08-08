@@ -206,7 +206,7 @@ async function doPay() {
 
 .modal-card {
   width: 100%;
-  max-width: 420px;
+  max-width: 500px;
   background: #fff;
   border-radius: 20px 20px 0 0;
   padding: 28px 20px 20px;

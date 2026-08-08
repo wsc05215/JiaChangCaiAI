@@ -16,6 +16,8 @@ export default defineConfig({
       '/search': 'http://localhost:8081',
       '/member': 'http://localhost:8081',
       '/comment': 'http://localhost:8081',
+      '/comment-like': 'http://localhost:8081',
+      '/notification': 'http://localhost:8081',
       '/upload': 'http://localhost:8081',
       '/uploads': 'http://localhost:8081',
       '/chat': 'http://localhost:8081',
@@ -27,6 +29,7 @@ export default defineConfig({
       '/meal-plan': 'http://localhost:8081',
       '/ingredient': 'http://localhost:8081',
       '/custom': 'http://localhost:8081',
+      '/api': 'http://localhost:8081',
     },
   },
   build: {

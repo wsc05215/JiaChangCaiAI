@@ -2,7 +2,7 @@
   <div class="page-wrapper menu-plan-page">
     <!-- 顶栏 -->
     <div class="top-bar">
-      <div class="top-back" @click="$router.back()">
+      <div class="top-back" @click="$goBack()">
         <svg viewBox="0 0 24 24" width="24" height="24">
           <path d="M15 18l-6-6 6-6" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
@@ -649,7 +649,7 @@ onMounted(async () => {
 
 .picker-sheet {
   width: 100%;
-  max-width: 375px;
+  max-width: 500px;
   margin: 0 auto;
   max-height: 75vh;
   background: #fff;

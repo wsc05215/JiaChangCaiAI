@@ -2,12 +2,138 @@
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <title>佳尝菜 - 登录</title>
+    <title>佳尝菜</title>
+    <style>
+      #app-splash {
+        position: fixed;
+        inset: 0;
+        z-index: 99999;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(170deg, #FFF5ED 0%, #FDE8D5 35%, #F8D8B8 70%, #F0C8A0 100%);
+        transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      #app-splash.fade-out {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      #app-splash .splash-mask {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(170deg, #FFF5ED 0%, #FDE8D5 35%, #F8D8B8 100%);
+        transform: translateY(100%);
+        transition: transform 0.3s cubic-bezier(0.55, 0, 0.1, 1);
+      }
+      #app-splash.reveal .splash-mask {
+        transform: translateY(0);
+      }
+      #app-splash.reveal .splash-content {
+        opacity: 0;
+        transform: scale(0.92) translateY(-16px);
+        transition: opacity 0.2s ease, transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .splash-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        z-index: 1;
+      }
+
+      .splash-brand {
+        font-family: 'PingFang SC', 'Microsoft YaHei', -apple-system, sans-serif;
+        font-size: 32px;
+        font-weight: 900;
+        color: #4A2510;
+        letter-spacing: 8px;
+        margin-bottom: 14px;
+        animation: splash-brand-in 0.35s ease both;
+        animation-delay: 0.04s;
+      }
+
+      .splash-tagline {
+        font-family: 'PingFang SC', 'Microsoft YaHei', -apple-system, sans-serif;
+        font-size: 14px;
+        color: #C07840;
+        letter-spacing: 6px;
+        margin-bottom: 48px;
+        animation: splash-tag-in 0.3s ease both;
+        animation-delay: 0.12s;
+      }
+
+      .splash-bar-wrap {
+        width: 48px;
+        height: 2px;
+        border-radius: 1px;
+        background: rgba(200, 120, 60, 0.15);
+        overflow: hidden;
+      }
+
+      .splash-bar-fill {
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, #E09860, transparent);
+        border-radius: 1px;
+        animation: splash-bar 1.2s ease-in-out infinite;
+      }
+
+      .splash-dots {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 20px;
+      }
+
+      .splash-dot {
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: #D4A078;
+        animation: splash-dot 0.8s ease-in-out infinite;
+      }
+      .splash-dot:nth-child(2) { animation-delay: 0.12s; }
+      .splash-dot:nth-child(3) { animation-delay: 0.24s; }
+
+      @keyframes splash-brand-in {
+        from { opacity: 0; transform: translateY(8px); letter-spacing: 16px; }
+        to { opacity: 1; transform: translateY(0); letter-spacing: 8px; }
+      }
+      @keyframes splash-tag-in {
+        from { opacity: 0; transform: translateY(4px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      @keyframes splash-bar {
+        0%, 100% { transform: translateX(-100%); }
+        50% { transform: translateX(100%); }
+      }
+      @keyframes splash-dot {
+        0%, 100% { opacity: 0.3; transform: scale(0.7); }
+        50% { opacity: 1; transform: scale(1.2); }
+      }
+    </style>
   </head>
   <body>
+    <div id="app-splash">
+      <div class="splash-mask"></div>
+
+      <div class="splash-content">
+        <div class="splash-brand">佳 尝 菜</div>
+        <div class="splash-tagline">家的味道，尝得到</div>
+        <div class="splash-bar-wrap"><div class="splash-bar-fill"></div></div>
+        <div class="splash-dots" style="margin-top:20px">
+          <span class="splash-dot"></span>
+          <span class="splash-dot"></span>
+          <span class="splash-dot"></span>
+        </div>
+      </div>
+    </div>
+
     <div id="app"></div>
     <script type="module" src="/src/main.js"></script>
   </body>

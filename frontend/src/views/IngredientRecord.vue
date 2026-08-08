@@ -1,7 +1,7 @@
 <template>
   <div class="ingredient-page">
     <div class="nav-bar">
-      <div class="back-btn" @click="$router.back()">
+      <div class="back-btn" @click="$goBack()">
         <svg viewBox="0 0 24 24" width="24" height="24">
           <path d="M15 18l-6-6 6-6" stroke="#6B5E52" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>

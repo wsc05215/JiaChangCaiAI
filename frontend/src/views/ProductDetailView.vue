@@ -2,7 +2,7 @@
   <div class="detail-page">
     <!-- 顶部导航 -->
     <div class="nav-bar">
-      <div class="back-btn" @click="$router.back()">
+      <div class="back-btn" @click="$goBack()">
         <svg viewBox="0 0 24 24" width="22" height="22">
           <path d="M15 18l-6-6 6-6" stroke="#5a524c" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
@@ -27,12 +27,6 @@
             <circle cx="8.5" cy="8.5" r="1.5" fill="#ccc"/>
             <path d="M22 16l-5-5-5 5-3-3-7 7" stroke="#ccc" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
-        </div>
-        <!-- 图集切换 -->
-        <div v-if="imageList.length > 1" class="image-dots">
-          <span v-for="(img, i) in imageList" :key="i"
-                class="dot" :class="{ active: i === currentImageIndex }"
-                @click="currentImageIndex = i"></span>
         </div>
       </div>
 
@@ -59,6 +53,24 @@
             {{ product.stock > 0 ? '库存' + product.stock + (product.unit || '件') : '暂时缺货' }}
           </span>
         </div>
+
+        <!-- 发货信息 -->
+        <div class="delivery-card" v-if="product.deliveryAddress">
+          <div class="delivery-row">
+            <span class="delivery-label">发货地</span>
+            <span class="delivery-address">{{ product.deliveryAddress }}</span>
+          </div>
+          <div class="delivery-row">
+            <span class="delivery-label">发货时效</span>
+            <span class="delivery-fast">24小时内发货</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 商品详情 -->
+      <div class="detail-card" v-if="product.detail">
+        <div class="detail-title">商品详情</div>
+        <div class="detail-content">{{ product.detail }}</div>
       </div>
 
       <!-- 底部操作栏 -->
@@ -358,6 +370,82 @@ async function handleBuy() {
 
 .in-stock { color: #5B9A5B; }
 .out-stock { color: #D14B4B; }
+
+/* 发货信息卡片 */
+.delivery-card {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #F0EDE8;
+}
+
+.delivery-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+}
+
+.delivery-row + .delivery-row {
+  margin-top: 10px;
+}
+
+.delivery-label {
+  color: var(--text-muted);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.delivery-address {
+  color: var(--text-primary);
+  font-weight: 600;
+  flex: 1;
+  line-height: 1.4;
+}
+
+.delivery-fast {
+  background: linear-gradient(135deg, #FF6B35, #FF8C5A);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+  letter-spacing: 0.5px;
+}
+
+/* 商品详情卡片 */
+.detail-card {
+  margin: 12px 12px 0;
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+}
+
+.detail-title {
+  font-family: var(--font-heading);
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.detail-title::before {
+  content: '';
+  width: 4px;
+  height: 18px;
+  border-radius: 2px;
+  background: var(--primary);
+}
+
+.detail-content {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.9;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
 
 /* 底部操作栏 */
 .bottom-bar {

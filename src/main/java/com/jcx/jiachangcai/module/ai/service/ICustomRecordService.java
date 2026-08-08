@@ -8,6 +8,7 @@ import java.util.List;
 
 public interface ICustomRecordService extends IService<CustomRecord> {
     void saveRecord(Long userId, AiChatType type, String content);
+    void saveWeeklyPlan(Long userId, AiChatType type, String content);
     List<CustomRecord> listByUserIdAndType(Long userId, AiChatType type);
     List<CustomRecord> listByUserId(Long userId);
 }

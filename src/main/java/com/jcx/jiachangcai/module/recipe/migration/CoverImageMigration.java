@@ -23,7 +23,8 @@ public class CoverImageMigration implements CommandLineRunner {
     private static final Logger log = LoggerFactory.getLogger(CoverImageMigration.class);
     private static final String UPLOAD_DIR = Paths.get(System.getProperty("user.dir"), "uploads", "recipes").toString();
     private static final ObjectMapper mapper = new ObjectMapper();
-
+    private static final String VIDEO_DIR =
+            Paths.get(System.getProperty("user.dir"), "uploads", "recipes", "video").toString();
     @Autowired
     private RecipeMapper recipeMapper;
 

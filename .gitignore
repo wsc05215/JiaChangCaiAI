@@ -39,6 +39,15 @@ uploads/
 frontend/node_modules/
 frontend/dist/
 
-### Capacitor (keep ios/ for Codemagic) ###
+### 根目录 node_modules（Capacitor 依赖）###
 node_modules/
+
+### 前端构建产物（打入 jar，由 npm run build 生成，不入库）###
+src/main/resources/static/
+
+### npm 缓存 ###
 .npm-cache/
+
+### 部署包（含 jar 与上传文件，不入库）###
+deploy/
+
