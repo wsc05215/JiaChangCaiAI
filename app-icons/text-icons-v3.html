@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 2048px; height: 2048px; }
+  body {
+    display: grid;
+    grid-template-columns: 1024px 1024px;
+    grid-template-rows: 1024px 1024px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .icon { position: relative; width: 1024px; height: 1024px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  .icon .word { position: relative; z-index: 2; text-align: center; }
+  .txt {
+    font-family: "PingFang SC", "Microsoft YaHei", -apple-system, sans-serif;
+    font-size: 196px; font-weight: 800; letter-spacing: 0.12em; margin-left: 0.12em;
+  }
+  .rule { width: 250px; height: 4px; margin: 44px auto 0; border-radius: 2px; }
+
+  /* 全图配套: 品牌暖橙渐变 #ffb088→#ff8f55→#FF7A33→#e06828 */
+  /* ===== S1 暖橙渐变 · 纯白字 ===== */
+  #s1 {
+    background: linear-gradient(150deg, #ffc0a0 0%, #ff8f55 34%, #FF7A33 62%, #e06828 100%);
+  }
+  #s1::before { content: ""; position: absolute; inset: 0; background: radial-gradient(circle at 28% 16%, rgba(255,255,255,0.28), rgba(255,255,255,0) 40%); }
+  #s1 .txt { color: #FFFFFF; text-shadow: 0 3px 10px rgba(170,55,0,0.32), 0 1px 3px rgba(170,55,0,0.20); }
+
+  /* ===== S2 暖橙渐变 · 白字细线 ===== */
+  #s2 {
+    background: linear-gradient(150deg, #ffc0a0 0%, #ff8f55 34%, #FF7A33 62%, #e06828 100%);
+  }
+  #s2::before { content: ""; position: absolute; inset: 0; background: radial-gradient(circle at 28% 16%, rgba(255,255,255,0.28), rgba(255,255,255,0) 40%); }
+  #s2 .txt { color: #FFFFFF; text-shadow: 0 3px 10px rgba(170,55,0,0.32), 0 1px 3px rgba(170,55,0,0.20); }
+  #s2 .rule { background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.95) 50%, rgba(255,255,255,0) 100%); }
+
+  /* ===== S3 暖橙浅底 · 品牌橙字 ===== */
+  #s3 { background: linear-gradient(180deg, #FFF6F0 0%, #FFE9D9 100%); }
+  #s3::before { content: ""; position: absolute; inset: 0; background: radial-gradient(circle at 50% 30%, rgba(255,122,51,0.07), rgba(255,122,51,0) 55%); }
+  #s3 .txt {
+    background: linear-gradient(180deg, #ff9a5e 0%, #FF7A33 48%, #e06828 100%);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: #FF7A33;
+    filter: drop-shadow(0 2px 4px rgba(224,104,40,0.18));
+  }
+  #s3 .rule { background: linear-gradient(90deg, rgba(255,122,51,0) 0%, rgba(255,122,51,0.8) 50%, rgba(255,122,51,0) 100%); }
+
+  /* ===== S4 暖橙渐变 · 白字 + 一缕蒸汽 ===== */
+  #s4 {
+    background: linear-gradient(150deg, #ffc0a0 0%, #ff8f55 34%, #FF7A33 62%, #e06828 100%);
+  }
+  #s4::before { content: ""; position: absolute; inset: 0; background: radial-gradient(circle at 28% 16%, rgba(255,255,255,0.28), rgba(255,255,255,0) 40%); }
+  #s4 .txt { color: #FFFFFF; text-shadow: 0 3px 10px rgba(170,55,0,0.32), 0 1px 3px rgba(170,55,0,0.20); }
+  .steam { width: 200px; margin: 0 auto 30px; height: 40px; position: relative; }
+  .steam i {
+    position: absolute; top: 0; width: 46px; height: 40px;
+    border-top: 11px solid rgba(255,255,255,0.9); border-radius: 50%;
+  }
+  .steam i:nth-child(1) { left: 42px; transform: rotate(12deg); opacity: 0.85; }
+  .steam i:nth-child(2) { left: 118px; transform: rotate(-12deg); opacity: 0.55; }
+</style>
+</head>
+<body>
+  <div id="s1" class="icon">
+    <div class="word"><div class="txt">佳尝菜</div></div>
+  </div>
+  <div id="s2" class="icon">
+    <div class="word">
+      <div class="txt">佳尝菜</div>
+      <div class="rule"></div>
+    </div>
+  </div>
+  <div id="s3" class="icon">
+    <div class="word">
+      <div class="txt">佳尝菜</div>
+      <div class="rule"></div>
+    </div>
+  </div>
+  <div id="s4" class="icon">
+    <div class="word">
+      <div class="steam"><i></i><i></i></div>
+      <div class="txt">佳尝菜</div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,16 @@
+# 本地图标设计工作区: 只保留选定的图标源, 其余本地素材一律不入库
+node_modules/
+.edge-tmp/
+text-icons-raw.png
+text-icons-v2-raw.png
+text-icons-v3-raw.png
+text-icons.html
+text-icons-v2.html
+preview.html
+*.svg
+*.js
+package.json
+package-lock.json
+font-test.png
+png/*
+!png/icon-s3-cream-orange.png
