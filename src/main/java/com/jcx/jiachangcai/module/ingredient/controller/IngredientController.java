@@ -6,19 +6,24 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jcx.jiachangcai.module.ingredient.entity.Ingredient;
 import com.jcx.jiachangcai.module.ingredient.service.IIngredientService;
 import com.jcx.jiachangcai.module.member.service.IMemberService;
-import org.springframework.ai.tool.ToolCallback;
-import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,15 +40,37 @@ public class IngredientController {
     private IMemberService memberService;
 
     @Autowired
-    private ToolCallbackProvider toolCallbackProvider;
-
-    @Autowired
     private ObjectMapper objectMapper;
 
-    /** 识别图片时图片落盘目录（本机磁盘路径，MCP 视觉工具需要绝对路径） */
+    /** 阿里云百炼 Qwen-VL 视觉识别配置（见 application.properties dashscope.vision.*） */
+    @Value("${dashscope.vision.api-key:}")
+    private String visionApiKey;
+    @Value("${dashscope.vision.base-url:https://dashscope.aliyuncs.com/compatible-mode/v1}")
+    private String visionBaseUrl;
+    @Value("${dashscope.vision.model:qwen-vl-max}")
+    private String visionModel;
+
+    private final HttpClient httpClient = HttpClient.newBuilder()
+            .connectTimeout(Duration.ofSeconds(10))
+            .build();
+
+    /** 识别图片时图片落盘目录（本机磁盘路径，视觉识别读取该文件） */
     private static final String IMG_DIR = Paths.get(System.getProperty("user.dir"), "uploads", "ingredients").toString();
 
     private static final Set<String> VALID_CATEGORIES = Set.of("蔬菜", "生禽", "蛋类", "水产", "豆制品", "其他");
+
+    /** 发给 Qwen-VL 的识别提示词：强制结构化 JSON，不含任何多余说明 */
+    private static final String VISION_PROMPT = """
+            你是食材记账助手。请识别图片里的购物内容，并判断每件食材的保质期：
+            若是购物小票/发票/收据，提取每件商品；若是食材实物照片，识别每个食材。
+            严格只输出 JSON，不要任何解释，不要 markdown 代码块。格式如下：
+            {"items":[{"name":"西红柿","category":"蔬菜","quantity":2,"unit":"个","expireDays":7}]}
+            约束：
+            - category 只能是 蔬菜、生禽、蛋类、水产、豆制品、其他 之一；
+            - expireDays 为保质天数，默认按"冷藏储存"估计，典型值参考：蔬菜7、蛋类30、生禽3、水产2、豆制品5、其他7；
+              牛奶/酸奶等按包装标注估计（冷藏一般7-21天）；无法判断时给该分类的典型值，必须在1-365之间；
+            - 没有把握的数量填 1，unit 可省略。
+            """;
 
     @PostMapping("/addIngredient")
     public void addIngredient(Long userId, String name, String category, LocalDateTime createTime) {
@@ -52,7 +79,7 @@ public class IngredientController {
 
     /**
      * 拍照识别食材（【不】入库，返回识别项供前端确认/编辑后再调 /saveBatch 保存）：
-     * 上传图片 -> 落盘 -> 调 MCP 视觉工具(analyze_image, 阿里云百炼 Qwen-VL)识别 -> 解析JSON -> 规范化分类
+     * 上传图片 -> 落盘 -> 调阿里云百炼 Qwen-VL 识别 -> 解析JSON -> 规范化分类
      *
      * @param userId 用户ID
      * @param file   图片文件（小票或食材实物照均可，仅用于识别，用后即删，不入库）
@@ -68,11 +95,11 @@ public class IngredientController {
             throw new RuntimeException("请选择要识别的图片");
         }
 
-        // 1. 图片落盘，拿到服务器本机绝对路径（MCP 视觉工具入参 image_path）。图片仅用于识别，用后即删，不保存进记录
+        // 1. 图片落盘，拿到服务器本机绝对路径（Qwen-VL 按该文件读取并转 base64）。图片仅用于识别，用后即删，不保存进记录
         File img = saveImage(file);
         String absPath = img.getAbsolutePath();
         try {
-            // 2. 调用 MCP 视觉工具识别
+            // 2. 调用阿里云百炼 Qwen-VL 识别
             String raw = callVisionTool(absPath);
 
             // 3. 解析识别结果为结构化食材列表（此时不入库，待用户确认后 saveBatch）
@@ -142,35 +169,65 @@ public class IngredientController {
         return result;
     }
 
-    /** 调 MCP 视觉工具 analyze_image（阿里云百炼 qwen-vl-max），强制模型输出结构化 JSON */
+    /** 调阿里云百炼 Qwen-VL（OpenAI-compatible 接口）识别图片，强制模型输出结构化 JSON */
     private String callVisionTool(String imagePath) {
-        // Spring AI 1.0.0 会给 MCP 工具加命名空间前缀：spring_ai_mcp_client_{server}_{tool}，
-        // 故用 endsWith 匹配工具名，避免受前缀/服务名影响
-        ToolCallback vision = Arrays.stream(toolCallbackProvider.getToolCallbacks())
-                .filter(t -> t.getToolDefinition().name().endsWith("analyze_image"))
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException(
-                        "MCP 视觉工具(analyze_image)未加载，请检查 npx 是否可用及 mcp-servers.json 配置"));
-
-        String question = """
-                你是食材记账助手。请识别图片里的购物内容，并判断每件食材的保质期：
-                若是购物小票/发票/收据，提取每件商品；若是食材实物照片，识别每个食材。
-                严格只输出 JSON，不要任何解释，不要 markdown 代码块。格式如下：
-                {"items":[{"name":"西红柿","category":"蔬菜","quantity":2,"unit":"个","expireDays":7}]}
-                约束：
-                - category 只能是 蔬菜、生禽、蛋类、水产、豆制品、其他 之一；
-                - expireDays 为保质天数，默认按"冷藏储存"估计，典型值参考：蔬菜7、蛋类30、生禽3、水产2、豆制品5、其他7；
-                  牛奶/酸奶等按包装标注估计（冷藏一般7-21天）；无法判断时给该分类的典型值，必须在1-365之间；
-                - 没有把握的数量填 1，unit 可省略。
-                """;
+        if (visionApiKey == null || visionApiKey.isBlank()) {
+            throw new RuntimeException("未配置阿里云百炼视觉识别 API Key（dashscope.vision.api-key）");
+        }
         try {
-            Map<String, Object> input = new HashMap<>();
-            input.put("image_path", imagePath);
-            input.put("question", question);
-            return vision.call(objectMapper.writeValueAsString(input));
+            // 1. 图片转 base64 data URL（qwen-vl 走多模态消息格式）
+            String base64 = Base64.getEncoder().encodeToString(Files.readAllBytes(Paths.get(imagePath)));
+            String dataUrl = "data:" + mimeOf(imagePath) + ";base64," + base64;
+
+            // 2. 组装多模态消息：图片 + 提示词
+            List<Map<String, Object>> content = new ArrayList<>();
+            Map<String, Object> imagePart = new HashMap<>();
+            imagePart.put("type", "image_url");
+            imagePart.put("image_url", Map.of("url", dataUrl));
+            content.add(imagePart);
+            Map<String, Object> textPart = new HashMap<>();
+            textPart.put("type", "text");
+            textPart.put("text", VISION_PROMPT);
+            content.add(textPart);
+
+            Map<String, Object> body = new HashMap<>();
+            body.put("model", visionModel);
+            body.put("messages", List.of(Map.of("role", "user", "content", content)));
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(visionBaseUrl + "/chat/completions"))
+                    .timeout(Duration.ofSeconds(60))
+                    .header("Authorization", "Bearer " + visionApiKey)
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(body)))
+                    .build();
+
+            // 3. 解析 OpenAI-compatible 响应：choices[0].message.content 即为结构化 JSON 文本
+            HttpResponse<String> resp = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            if (resp.statusCode() != 200) {
+                throw new RuntimeException("视觉识别接口调用失败，HTTP " + resp.statusCode() + "：" + truncate(resp.body(), 300));
+            }
+            JsonNode choices = objectMapper.readTree(resp.body()).path("choices");
+            String raw = choices.isArray() && choices.size() > 0
+                    ? choices.get(0).path("message").path("content").asText(null)
+                    : null;
+            if (raw == null || raw.isBlank()) {
+                throw new RuntimeException("视觉识别接口未返回内容，原始返回：" + truncate(resp.body(), 300));
+            }
+            return raw;
         } catch (Exception e) {
             throw new RuntimeException("调用视觉识别工具失败: " + e.getMessage(), e);
         }
+    }
+
+    /** 按图片文件扩展名推断 MIME（用于 data URL 前缀） */
+    private String mimeOf(String imagePath) {
+        String p = imagePath.toLowerCase();
+        if (p.endsWith(".png")) return "image/png";
+        if (p.endsWith(".webp")) return "image/webp";
+        if (p.endsWith(".heic")) return "image/heic";
+        if (p.endsWith(".heif")) return "image/heif";
+        return "image/jpeg";
     }
 
     /** 解析模型返回的 JSON（容忍 markdown 代码块/前后缀文字），返回已规范化分类的食材列表 */
@@ -208,11 +265,11 @@ public class IngredientController {
         }
     }
 
-    /** 取出字符串中最外层大括号包裹的 JSON 片段（兼容 MCP 工具返回的 [{"text":"..."}] 包装） */
+    /** 取出字符串中最外层大括号包裹的 JSON 片段（容忍模型在 JSON 前后夹带文字/代码块/列表包装） */
     private String extractJson(String raw) {
         if (raw == null) return null;
         String t = raw.trim();
-        // 1. MCP 工具结果通常是 [{"text":"<json字符串>"}]，先取出 text 字段内容
+        // 1. 若模型把 JSON 包在 [{"text":"..."}] 里，先取出 text 字段内容
         if (t.startsWith("[")) {
             try {
                 JsonNode arr = objectMapper.readTree(t);
