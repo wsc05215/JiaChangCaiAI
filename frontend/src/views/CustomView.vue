@@ -27,20 +27,22 @@
 
     <!-- 三个Tab -->
     <div class="tabs-row">
+      <div class="tab-slider" :style="{ '--tab-index': tabIndex }"></div>
       <span class="tab" :class="{ active: activeTab === 'recipe' }" @click="activeTab = 'recipe'">定制食谱</span>
       <span class="tab" :class="{ active: activeTab === 'menu' }" @click="activeTab = 'menu'">一键菜谱</span>
       <span class="tab" :class="{ active: activeTab === 'fridge' }" @click="activeTab = 'fridge'">食材管理</span>
     </div>
 
-    <!-- Tab: 我的食谱 -->
-    <div v-if="activeTab === 'recipe'" class="tab-content">
+    <Transition name="tab-fade" mode="out-in">
+    <div class="tab-content" :key="activeTab">
+      <template v-if="activeTab === 'recipe'">
       <div v-if="recipeRecords.length === 0" class="empty-state">
         <div class="empty-icon">&#x1F4D6;</div>
         <div class="empty-text">还没有定制食谱记录</div>
         <div class="empty-sub">点击上方烹饪助手定制食谱功能</div>
       </div>
       <div v-else class="record-list">
-        <div v-for="rec in recipeRecords" :key="rec.id" class="record-card" :class="{ 'weekly-card': isWeekly(rec) }" @click="openDetail(rec)">
+        <div v-for="(rec, i) in recipeRecords" :key="rec.id" class="record-card" :style="{ '--i': i }" :class="{ 'weekly-card': isWeekly(rec) }" @click="openDetail(rec)">
           <div class="card-top">
             <span class="card-icon">{{ isWeekly(rec) ? '📅' : '🍲' }}</span>
             <div class="card-info">
@@ -55,17 +57,16 @@
           <div class="record-time">{{ formatTime(rec.createTime) }}</div>
         </div>
       </div>
-    </div>
+      </template>
 
-    <!-- Tab: 一键菜谱 -->
-    <div v-if="activeTab === 'menu'" class="tab-content">
+      <template v-else-if="activeTab === 'menu'">
       <div v-if="menuRecords.length === 0" class="empty-state">
         <div class="empty-icon">&#x1F4CB;</div>
         <div class="empty-text">还没有一键菜谱记录</div>
         <div class="empty-sub">点击上方烹饪助手一键菜谱功能</div>
       </div>
       <div v-else class="record-list">
-        <div v-for="rec in menuRecords" :key="rec.id" class="record-card" @click="openDetail(rec)">
+        <div v-for="(rec, i) in menuRecords" :key="rec.id" class="record-card" :style="{ '--i': i }" @click="openDetail(rec)">
           <div class="card-top">
             <span class="card-icon">&#x1F372;</span>
             <div class="card-info">
@@ -80,10 +81,9 @@
           <div class="record-time">{{ formatTime(rec.createTime) }}</div>
         </div>
       </div>
-    </div>
+      </template>
 
-    <!-- Tab: 食材管理 -->
-    <div v-if="activeTab === 'fridge'" class="tab-content">
+      <template v-else>
       <div class="stats-row">
         <div class="stat-card">
           <div class="stat-num">{{ stats.total }}</div>
@@ -112,12 +112,16 @@
         <div class="empty-sub">点击上方烹饪助手食材管理功能</div>
       </div>
       <div v-else class="ingredient-list">
-        <div v-for="ing in filteredIngredients" :key="ing.ingredientId" class="ingredient-row"
+        <div v-for="(ing, i) in filteredIngredients" :key="ing.ingredientId" class="ingredient-row"
+             :style="{ '--i': i }"
              :class="{ expired: ing.expired, near: ing.nearExpiry && !ing.expired }">
-          <div class="ing-icon">{{ getIngIcon(ing.category) }}</div>
+          <div class="ing-icon">
+            <span>{{ getIngIcon(ing.category) }}</span>
+          </div>
           <div class="ing-info">
             <div class="ing-name">
               {{ ing.name }}
+              <span v-if="ing.quantity && ing.quantity > 0" class="ing-qty">×{{ ing.quantity }}{{ ing.unit || '' }}</span>
               <span v-if="ing.expired" class="ing-badge badge-expired">已过期</span>
               <span v-else-if="ing.nearExpiry" class="ing-badge badge-near">临期</span>
             </div>
@@ -130,7 +134,9 @@
           </div>
         </div>
       </div>
+      </template>
     </div>
+    </Transition>
 
     <!-- 记录详情弹窗（菜谱样式） -->
     <teleport to="body">
@@ -297,16 +303,36 @@
               </template>
             </div>
             <div v-for="(msg, i) in aiMessages" :key="i" class="ai-msg" :class="msg.role">
-              <div class="ai-msg-text">{{ msg.content }}</div>
+              <div class="ai-msg-text">
+                <img v-if="msg.image" :src="msg.image" class="ai-msg-img" alt="食材照片" />
+                <div v-if="msg.content">{{ msg.content }}</div>
+              </div>
             </div>
             <div v-if="aiStreaming" class="ai-msg ai">
               <div class="ai-msg-text">{{ aiStreamingText || '思考中...' }}</div>
             </div>
           </div>
-          <div v-if="!speech.supported.value && currentAiMode" class="ai-mic-hint">当前浏览器不支持语音输入，请使用 Chrome 或 Edge</div>
-          <div v-if="speech.error.value" class="ai-mic-hint ai-mic-error">{{ speech.error.value }}</div>
+          <div v-if="currentAiMode !== 'fridge' && !speech.supported.value && currentAiMode" class="ai-mic-hint">当前浏览器不支持语音输入，请使用 Chrome 或 Edge</div>
+          <div v-if="currentAiMode !== 'fridge' && speech.error.value" class="ai-mic-hint ai-mic-error">{{ speech.error.value }}</div>
           <div class="ai-input-row" :class="{ recording: speech.isListening.value || speech.isRecognizing.value }">
+            <!-- 食材管理(fridge)模式:相机按钮(选图/拍照识别入库);其他模式保留语音输入 -->
             <button
+              v-if="currentAiMode === 'fridge'"
+              class="ai-mic-btn"
+              @click="openImagePicker"
+              :disabled="aiStreaming || recognizingImage"
+              :title="recognizingImage ? '识别中...' : '拍照或选图识别食材'"
+            >
+              <svg v-show="!recognizingImage" viewBox="0 0 24 24" width="18" height="18">
+                <path d="M4 7h3l1.5-2.2a1 1 0 0 1 .8-.4h5.4a1 1 0 0 1 .8.4L17.2 7H20a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1z" fill="none" stroke="#8B7B6B" stroke-width="1.7" stroke-linejoin="round"/>
+                <circle cx="12" cy="12.5" r="3.2" fill="none" stroke="#8B7B6B" stroke-width="1.7"/>
+              </svg>
+              <svg v-show="recognizingImage" viewBox="0 0 24 24" width="18" height="18" class="ai-spin-icon">
+                <circle cx="12" cy="12" r="10" fill="none" stroke="#8B7B6B" stroke-width="2" stroke-dasharray="32 32" stroke-linecap="round"/>
+              </svg>
+            </button>
+            <button
+              v-else
               class="ai-mic-btn"
               :class="{ on: speech.isListening.value, recognizing: speech.isRecognizing.value }"
               @click="toggleMic"
@@ -335,12 +361,18 @@
               </svg>
             </button>
           </div>
+          <input ref="imageInput" type="file" accept="image/*" class="hidden-image-input" @change="onImageSelected" />
         </div>
       </div>
-    </teleport>
 
-    <!-- 底部导航 -->
-    <AppTabbar />
+      <IngredientConfirmModal
+        v-if="pendingRecognition"
+        :items="pendingRecognition.items"
+        :saving="savingConfirm"
+        @confirm="confirmSave"
+        @close="cancelRecognition"
+      />
+    </teleport>
   </div>
 </template>
 
@@ -349,14 +381,16 @@ import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { userStore } from '../store/user'
 import { listCustomRecords, deleteCustomRecord } from '../api/custom'
-import { listIngredients, deleteIngredient, getIngredientStats } from '../api/ingredient'
+import { listIngredients, deleteIngredient, getIngredientStats, recognizeIngredient, saveRecognizedItems } from '../api/ingredient'
 import { streamChat } from '../api/ai'
 import { useSpeechRecognition } from '../composables/useSpeechRecognition'
-import AppTabbar from '../components/AppTabbar.vue'
+import IngredientConfirmModal from '../components/IngredientConfirmModal.vue'
 
 const router = useRouter()
 
 const activeTab = ref('recipe')
+// 当前 Tab 索引（用于滑动胶囊指示器定位）
+const tabIndex = computed(() => ['recipe', 'menu', 'fridge'].indexOf(activeTab.value))
 const categories = ['蔬菜', '生禽', '蛋类', '水产', '豆制品', '其他']
 
 const recipeRecords = ref([])
@@ -406,6 +440,83 @@ const currentAiMode = ref(null)
 let cancelStream = null
 
 const speech = useSpeechRecognition()
+
+const imageInput = ref(null)
+const recognizingImage = ref(false)
+const pendingRecognition = ref(null) // { items: Array } 识别结果待确认
+const savingConfirm = ref(false)
+
+function openImagePicker() {
+  if (aiStreaming.value || recognizingImage.value || currentAiMode.value !== 'fridge') return
+  imageInput.value && imageInput.value.click()
+}
+
+async function onImageSelected(e) {
+  const file = e.target.files && e.target.files[0]
+  e.target.value = '' // 允许再次选择同一张图
+  if (!file) return
+
+  const uid = userStore.user?.userId
+  if (!uid || currentAiMode.value !== 'fridge') return
+
+  const previewUrl = URL.createObjectURL(file)
+  aiMessages.value.push({ role: 'user', content: '识别这张图片里的食材', image: previewUrl })
+  recognizingImage.value = true
+  try {
+    const res = await recognizeIngredient(uid, file)
+    const data = res.data || {}
+    const items = data.items || []
+    if (items.length) {
+      // 识别结果先弹确认/编辑，用户确认后才入库
+      aiMessages.value.push({ role: 'ai', content: '已识别出以下食材，请核对修改后确认入库' })
+      pendingRecognition.value = { items }
+    } else {
+      aiMessages.value.push({
+        role: 'ai',
+        content: '未识别出食材，请换一张更清晰的小票或食材照片试试',
+      })
+    }
+  } catch (err) {
+    const msg = (err.response && err.response.data && err.response.data.message) || err.message || '识别失败，请重试'
+    aiMessages.value.push({ role: 'ai', content: msg })
+  } finally {
+    recognizingImage.value = false
+    aiScrollBottom()
+  }
+}
+
+async function confirmSave(items) {
+  if (savingConfirm.value) return
+  const uid = userStore.user?.userId
+  if (!uid) return
+
+  savingConfirm.value = true
+  try {
+    const res = await saveRecognizedItems(uid, items)
+    const data = res.data || {}
+    const savedItems = data.items || []
+    const names = savedItems.map(i => i.name).join('、')
+    aiMessages.value.push({
+      role: 'ai',
+      content: `已保存 ${data.savedCount || 0} 件食材入库：${names}`,
+    })
+    pendingRecognition.value = null
+    if (uid) loadIngredients(uid)
+  } catch (err) {
+    const msg = (err.response && err.response.data && err.response.data.message) || err.message || '保存失败，请重试'
+    aiMessages.value.push({ role: 'ai', content: msg })
+  } finally {
+    savingConfirm.value = false
+    aiScrollBottom()
+  }
+}
+
+function cancelRecognition() {
+  if (savingConfirm.value) return
+  pendingRecognition.value = null
+  aiMessages.value.push({ role: 'ai', content: '已取消本次识别入库' })
+  aiScrollBottom()
+}
 
 // No need to watch speech text — stop() returns recognized text directly
 // (interim results are not available with MediaRecorder approach)
@@ -1109,13 +1220,28 @@ function aiSend() {
 
 /* ===== Tabs ===== */
 .tabs-row {
+  position: relative;
   display: flex;
-  gap: 6px;
   margin: 16px 14px;
-  background: #fff;
+  background: #F3EEE6;
   border-radius: 14px;
   padding: 4px;
   box-shadow: 0 2px 8px rgba(30,21,15,0.04);
+}
+
+/* 滑动胶囊指示器：跟随当前 Tab 弹性滑动（--tab-index: 0/1/2） */
+.tab-slider {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: calc((100% - 8px) / 3);
+  height: calc(100% - 8px);
+  background: var(--gradient-primary);
+  border-radius: 11px;
+  box-shadow: 0 2px 10px rgba(255, 122, 51, 0.28);
+  transition: transform 0.38s cubic-bezier(0.34, 1.35, 0.5, 1);
+  transform: translateX(calc(var(--tab-index, 0) * 100%));
+  pointer-events: none;
 }
 
 .tab {
@@ -1127,18 +1253,44 @@ function aiSend() {
   color: var(--text-muted);
   border-radius: 11px;
   cursor: pointer;
-  transition: all 0.25s;
+  position: relative;
+  transition: color 0.3s ease;
 }
 
 .tab.active {
-  background: var(--gradient-primary);
   color: #fff;
   font-weight: 700;
-  box-shadow: 0 2px 10px rgba(255,122,51,0.2);
+}
+
+/* Tab 内容切换过渡：淡入 + 轻微上移 */
+.tab-fade-enter-active {
+  transition: opacity 0.26s ease, transform 0.26s var(--ease-smooth);
+}
+.tab-fade-leave-active {
+  transition: opacity 0.16s ease, transform 0.16s ease;
+}
+.tab-fade-enter-from {
+  opacity: 0;
+  transform: translateY(10px);
+}
+.tab-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
 }
 
 /* Tab Content */
 .tab-content { padding: 0 14px; }
+
+/* 列表项级联进入（只动透明度，不动 transform，避免盖掉卡片的按压缩放反馈） */
+.record-card,
+.ingredient-row {
+  animation: cardIn 0.32s ease both;
+  animation-delay: calc(var(--i, 0) * 32ms);
+}
+@keyframes cardIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
 
 /* 统计 */
 .stats-row { display: flex; gap: 10px; margin-bottom: 14px; }
@@ -1235,7 +1387,8 @@ function aiSend() {
 
 .ing-icon { font-size: 24px; flex-shrink: 0; }
 .ing-info { flex: 1; min-width: 0; }
-.ing-name { font-size: 14px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 8px; }
+.ing-name { font-size: 14px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.ing-qty { font-size: 11px; font-weight: 700; color: var(--primary); background: var(--primary-bg); padding: 1px 6px; border-radius: 8px; }
 .ing-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
 
 .ing-badge {
@@ -1793,6 +1946,19 @@ function aiSend() {
   color: var(--text-primary);
   border-top-left-radius: 4px;
   box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+
+.ai-msg-img {
+  display: block;
+  max-width: 180px;
+  max-height: 180px;
+  border-radius: 12px;
+  margin-bottom: 6px;
+  object-fit: cover;
+}
+
+.hidden-image-input {
+  display: none;
 }
 
 .ai-input-row {

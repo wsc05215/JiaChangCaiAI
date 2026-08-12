@@ -123,6 +123,42 @@ a {
   color: inherit;
 }
 
+/* ---- 触摸与按钮丝滑化 ----
+ * 1) 全局去掉 iOS 点击灰闪
+ * 2) touch-action: manipulation 去掉移动端点按延迟/双击缩放
+ * 3) 未单独写按压样式的按钮，统一给一个带弹性的按压缩放反馈 */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+button,
+a,
+[role="button"],
+select {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  -webkit-user-select: none;
+  user-select: none;
+  transition:
+    transform 0.18s var(--ease-bounce),
+    opacity 0.18s ease,
+    box-shadow 0.22s ease,
+    background-color 0.22s ease,
+    color 0.22s ease,
+    border-color 0.22s ease;
+}
+
+button:not(:disabled):active {
+  transform: scale(0.95);
+}
+
 h1, h2, h3, h4 {
   font-family: var(--font-heading);
 }

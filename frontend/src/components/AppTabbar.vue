@@ -124,24 +124,11 @@ function goUploadRecipe() {
   transition: all 0.3s var(--ease-smooth);
   padding: 6px 10px;
   border-radius: var(--radius-md);
-  position: relative;
 }
 
 .tab-item.active {
   color: var(--primary);
   font-weight: 700;
-}
-
-.tab-item.active::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 22px;
-  height: 3px;
-  background: var(--gradient-primary);
-  border-radius: 0 0 3px 3px;
 }
 
 /* add button */

@@ -141,7 +141,6 @@
       <div v-if="toast.show" class="toast" :class="toast.type">{{ toast.msg }}</div>
     </transition>
 
-    <AppTabbar />
   </div>
 </template>
 
@@ -152,7 +151,6 @@ import { userStore } from '../store/user'
 import { getUserDetail, getWorkCount, getLikeCount, getFollowingCount, getFollowerCount } from '../api/user'
 import { checkMember } from '../api/member'
 import { alterUser } from '../api/auth'
-import AppTabbar from '../components/AppTabbar.vue'
 
 const router = useRouter()
 const isMember = ref(false)

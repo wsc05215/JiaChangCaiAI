@@ -48,4 +48,10 @@ public class Ingredient implements Serializable {
     @Schema(description = "过期日期（purchaseDate + expireDays）")
     private LocalDateTime expireDate;
 
+    @Schema(description = "数量（拍照识别时模型返回，如2）")
+    private Integer quantity;
+
+    @Schema(description = "单位（拍照识别时模型返回，如 个/斤/盒）")
+    private String unit;
+
 }

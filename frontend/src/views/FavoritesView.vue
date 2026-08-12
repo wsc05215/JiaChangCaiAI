@@ -13,7 +13,9 @@
       <span class="tab-btn" :class="{ active: activeTab === 'menu' }" @click="activeTab = 'menu'">菜单</span>
     </div>
 
-    <div v-if="activeTab === 'recipe'" class="tab-content">
+    <Transition name="tab-fade" mode="out-in">
+    <div class="tab-content" :key="activeTab">
+      <template v-if="activeTab === 'recipe'">
       <div v-if="!currentUser" class="empty-state">
         <svg viewBox="0 0 80 80" width="60" height="60" fill="none">
           <circle cx="40" cy="40" r="38" stroke="#E8DDD2" stroke-width="2" stroke-dasharray="6 4"/>
@@ -60,9 +62,9 @@
           </button>
         </div>
       </div>
-    </div>
+      </template>
 
-    <div v-else class="tab-content">
+      <template v-else>
       <div class="menu-card" @click="goMenuPlan">
         <div class="menu-icon-wrap">
           <svg viewBox="0 0 24 24" width="40" height="40" fill="none">
@@ -73,7 +75,9 @@
         <div class="menu-title">自定义计划</div>
         <div class="menu-desc">提前规划未来三餐</div>
       </div>
+      </template>
     </div>
+    </Transition>
 
     <div v-if="showConfirm" class="modal-overlay" @click.self="showConfirm = false">
       <div class="modal-box">
@@ -87,7 +91,6 @@
       </div>
     </div>
 
-    <AppTabbar />
   </div>
 </template>
 
@@ -97,7 +100,6 @@ import { useRouter } from 'vue-router'
 import { userStore } from '../store/user'
 import { getAllRecipes } from '../api/recipe'
 import { getFavoriteRecipeIds, removeFavorite } from '../api/favorite'
-import AppTabbar from '../components/AppTabbar.vue'
 
 const router = useRouter()
 const activeTab = ref('recipe')
@@ -224,6 +226,22 @@ async function confirmRemove() {
 }
 
 .tab-content { margin-top: 16px; }
+
+/* Tab 内容切换过渡 */
+.tab-fade-enter-active {
+  transition: opacity 0.26s ease, transform 0.26s var(--ease-smooth);
+}
+.tab-fade-leave-active {
+  transition: opacity 0.16s ease, transform 0.16s ease;
+}
+.tab-fade-enter-from {
+  opacity: 0;
+  transform: translateY(10px);
+}
+.tab-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
+}
 
 .empty-state {
   display: flex;

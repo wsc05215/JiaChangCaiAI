@@ -15,7 +15,9 @@
     </div>
 
     <!-- 推荐 -->
-    <div v-if="activeTab === 'recommend'" class="tab-content">
+    <Transition name="tab-fade" mode="out-in">
+    <div class="tab-content" :key="activeTab">
+      <template v-if="activeTab === 'recommend'">
       <div v-if="carouselRecipes.length > 0" class="carousel" @touchstart="onTouchStart" @touchend="onTouchEnd">
         <div class="carousel-track" ref="trackRef" :style="trackStyle" @transitionend="onTransitionEnd">
           <div v-for="(item, i) in slides" :key="i" class="carousel-slide" @click="goDetail(item.recipeId)">
@@ -85,10 +87,9 @@
           </div>
         </div>
       </div>
-    </div>
+      </template>
 
-    <!-- 关注 -->
-    <div v-else-if="activeTab === 'follow'" class="tab-content">
+      <template v-else-if="activeTab === 'follow'">
       <div v-if="followRecipes.length === 0" class="empty-state">
         <svg viewBox="0 0 80 80" width="60" height="60" fill="none">
           <circle cx="40" cy="40" r="38" stroke="#E8DDD2" stroke-width="2" stroke-dasharray="6 4"/>
@@ -135,10 +136,9 @@
           </div>
         </div>
       </div>
-    </div>
+      </template>
 
-    <!-- 商店 -->
-    <div v-else class="tab-content">
+      <template v-else>
       <div class="shop-section-title">
         <span>每日上新</span>
         <span class="shop-badge">NEW</span>
@@ -183,9 +183,9 @@
           </div>
         </div>
       </div>
+      </template>
     </div>
-
-    <AppTabbar />
+    </Transition>
 
     <transition name="fade">
       <div v-if="toast.show" class="toast-home" :class="toast.type">{{ toast.msg }}</div>
@@ -200,7 +200,6 @@ import { userStore } from '../store/user'
 import { getAllRecipes, getFollowRecipes } from '../api/recipe'
 import { getRecentProducts, getSalesRanking, getSalesRankingByCategory } from '../api/shop'
 import { getUnreadCount } from '../api/comment'
-import AppTabbar from '../components/AppTabbar.vue'
 
 const router = useRouter()
 const TAB_KEY = 'home_active_tab'
@@ -708,6 +707,22 @@ function goDetail(id) {
 
 .tab-content {
   margin-top: 10px;
+}
+
+/* Tab 内容切换过渡 */
+.tab-fade-enter-active {
+  transition: opacity 0.26s ease, transform 0.26s var(--ease-smooth);
+}
+.tab-fade-leave-active {
+  transition: opacity 0.16s ease, transform 0.16s ease;
+}
+.tab-fade-enter-from {
+  opacity: 0;
+  transform: translateY(10px);
+}
+.tab-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
 }
 
 /* ============ carousel ============ */
